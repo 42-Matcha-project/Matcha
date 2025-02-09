@@ -1,0 +1,21 @@
+# versionは3系が最新版で、versionによって書き方が異なる
+version: "3"
+services:
+  mysql:
+    build: ./mysql    #Dockerfileからビルドすることを示す
+    volumes:
+      - .:/docker-entrypoint-initdb.d  #初期データをマウントする場所
+    image: original_mysql # イメージの名前
+    ports:
+      - "3306:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass   #コンテナ内のMySQLを起動する際のパスワードを設定
+  go:
+    build: ./go
+    tty: true
+    volumes:
+      - ./go:/go/src/app  #初期データをマウントする場所
+    image: original_go
+    environment:
+      - DBUSER=root
+      - DBPASS=rootpass
