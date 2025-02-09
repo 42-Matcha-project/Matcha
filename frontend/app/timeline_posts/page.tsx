@@ -1,9 +1,11 @@
 'use client'
 
-import { Sidebar } from '../components/Sidebar';
-import React, { useState } from 'react';
+import Sidebar from '../components/Sidebar';
+import React, { useContext, useEffect, useState } from 'react';
+import { SidebarContext } from '../contexts/SidebarContext';
 
 const Timeline: React.FC = () => {
+  const { setIsOpen } = useContext(SidebarContext);
   const [post, setPost] = useState('');
   const [posts, setPosts] = useState<string[]>([]);
 
@@ -14,6 +16,13 @@ const Timeline: React.FC = () => {
       setPost('');
     }
   };
+
+  useEffect(() => {
+    // ページがマウントされたときにサイドバーを開く
+    setIsOpen(true);
+    // クリーンアップ関数でサイドバーを閉じる（必要に応じて）
+    return () => setIsOpen(false);
+  }, [setIsOpen]);
 
   return (
     <div className="flex">
