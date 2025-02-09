@@ -133,6 +133,7 @@ fabric.properties
 .history
 .ionide
 
+<<<<<<< HEAD
 # End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,goland
 
 
@@ -192,3 +193,6 @@ thumb
 sketch
 
 # End of https://www.toptal.com/developers/gitignore/api/react,nextjs
+=======
+# End of https://www.toptal.com/developers/gitignore/api/visualstudiocode,goland
+
