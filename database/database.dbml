@@ -1,0 +1,211 @@
+// Use DBML to define your database structure
+// Docs: https://dbml.dbdiagram.io/docs
+
+Table users {
+  id integer [primary key]
+  username varchar(10)
+  email varchar(20)
+  password varchar(20)
+  gender enum('male', 'female')
+  introduction varchar(100)
+  icon_image_url varchar(255)
+}
+
+/*
+  userとreport
+*/
+Table user_reports {
+  id integer [primary key]
+  user_id integer
+  report_id integer
+}
+
+Table reports {
+  id integer [primary key]
+  kind enum('violence')// 後々追加
+  text varchar(200)
+}
+
+Ref: users.id < user_reports.user_id
+Ref: reports.id < user_reports.report_id
+
+
+/*
+  userとopinion
+*/
+Table user_opinions {
+  id integer [primary key]
+  user_id integer
+  opinion_id integer
+}
+
+Table opinions {
+  id integer [primary key]
+  text varchar(200)
+}
+
+Ref: users.id < user_opinions.user_id
+Ref: opinions.id < user_opinions.opinion_id
+
+
+/*
+  userとdirect_message
+*/
+Table user_direct_messages {
+  id integer [primary key]
+  user_id integer
+  direct_message_id integer
+}
+
+Table direct_messages {
+  id integer [primary key]
+  to_user_id integer
+  text varchar(200)
+  image_url varchar(255)
+  create_at timestamp
+  reaction enum('smile', 'cry', 'good')
+}
+
+Ref: users.id < user_direct_messages.user_id
+Ref: direct_messages.id < user_direct_messages.direct_message_id
+
+
+/*
+  !!!!!!!!!!!!!!!
+  userとfootprint
+*/
+Table footprints {
+  id integer [primary key]
+  user_id integer
+  to_user_id integer
+  create_at timestamp
+}
+
+Ref: users.id < footprints.user_id
+Ref: users.id < footprints.to_user_id
+
+
+/*
+  userと投稿したpost
+*/
+Table user_posts {
+  id integer [primary key]
+  user_id integer
+  post_id integer
+}
+
+Ref: users.id < user_posts.user_id
+Ref: posts.id < user_posts.post_id
+
+
+/*
+  userといいねしたpost
+*/
+Table user_like_posts {
+  id integer [primary key]
+  user_id integer
+  post_id integer
+  create_at timestamp //DEFAULT current_time
+}
+
+Table posts {
+  id integer [primary key]
+  text varchar(200)
+  image_url varchar(255)
+  create_at timestamp //DEFAULT current_timestamp
+  // location point
+  is_draft bool //ひとりひとつ
+}
+
+Ref: users.id < user_like_posts.user_id
+Ref: posts.id < user_like_posts.post_id
+
+
+/*
+  !!!!!!!!!!!!
+  user同士の関係
+*/
+Table user_relations {
+  id integer [primary key]
+  user_id integer
+  to_user_id integer
+  relation enum('like', 'dislike')
+  create_at timestamp
+}
+
+Ref: users.id < user_relations.user_id
+Ref: users.id < user_relations.to_user_id
+
+
+/*
+  userとaffiliation
+*/
+Table user_affiliations {
+  id integer [primary key]
+  user_id integer
+  affiliation_id integer
+}
+
+Table affiliations {
+  id integer [primary key]
+  affiliation varchar(100)
+}
+
+Ref: users.id < user_affiliations.user_id
+Ref: affiliations.id < user_affiliations.affiliation_id
+
+
+/*
+  userとpicture
+*/
+Table user_pictures {
+  id integer [primary key]
+  user_id integer
+  picture_url varchar(255)
+}
+
+Ref: users.id < user_pictures.user_id
+
+
+/*
+  userとtag
+*/
+Table user_tags {
+  id integer [primary key]
+  user_id integer // 外部キー
+  tag_id integer // 外部キー
+}
+
+Table tags {
+  id integer [primary key]
+  name varchar(20)
+}
+
+Ref: users.id < user_tags.user_id
+Ref: tags.id < user_tags.tag_id
+
+
+/*
+  userとsexual_preferences
+*/
+Table user_sexual_preferences {
+  id integer [primary key]
+  user_id integer
+  sexual_preference_id integer
+}
+
+Table sexual_preferences {
+  id integer [primary key]
+  name varchar(20)
+}
+
+Ref: users.id < user_sexual_preferences.user_id
+Ref: sexual_preferences.id < user_sexual_preferences.sexual_preference_id
+
+
+/*
+  今日の格言
+*/
+Table todays_quotes {
+  text varchar(50)
+}
