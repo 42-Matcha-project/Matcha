@@ -18,24 +18,30 @@ jobs:
         uses: actions/setup-node@v2
         with:
           node-version: "18"
+          cache: 'npm'
 
       - name: Install dependencies
         run: npm install
+        working-directory: ./frontend
 
       - name: Run ESLint and fix issues
-        run: npm run lint -- --fix
+        run: npm run lint
+        working-directory: ./frontend
 
       - name: Run Prettier and fix issues
         run: npm run format
+        working-directory: ./frontend
 
       - name: Commit changes if any
+        if: github.event_name == 'push'
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
           if ! git diff --cached --quiet; then
             git commit -m 'chore: fix lint and format issues'
-            git push origin HEAD
+            git push
           else
             echo "No changes to commit. Skipping push."
           fi
+        working-directory: ./frontend
