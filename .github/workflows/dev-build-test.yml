@@ -1,0 +1,41 @@
+name: dev-build-test
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Run ESLint and fix issues
+        run: npm run lint -- --fix
+
+      - name: Run Prettier and fix issues
+        run: npm run format
+
+      - name: Commit changes if any
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          if ! git diff --cached --quiet; then
+            git commit -m 'chore: fix lint and format issues'
+            git push origin HEAD
+          else
+            echo "No changes to commit. Skipping push."
+          fi
