@@ -12,12 +12,12 @@ const Sidebar: React.FC = () => {
   return (
     <div
     className={classnames(
-      "h-screen bg-black text-white p-10 flex flex-col transition-transform duration-700",
-      { "translate-x-10": isOpen, "-translate-x-0": !isOpen }
+      "h-screen bg-black text-white p-10 flex flex-col transition-transform duration-500 ease-in-out",
+      { "translate-x-0": isOpen, "-translate-x-0": !isOpen }
     )}
     >
       <nav className="space-y-5">
-        <NavItem href="/timeline_posts" icon={<Home size={20} />} text="timeline" />
+        <NavItem href="/timeline" icon={<Home size={20} />} text="timeline" />
         <NavItem href="#" icon={<User size={20} />} text="profile list" />
         <NavItem href="#" icon={<Bell size={20} />} text="notification" />
         <NavItem href="#" icon={<Mail size={20} />} text="mail" />
@@ -30,7 +30,7 @@ const Sidebar: React.FC = () => {
 const NavItem: React.FC<{ href: string; icon: React.ReactNode; text: string }> = ({ href, icon, text }) => (
   <Link 
     href={href}
-    className="flex items-center space-x-1 p-2 rounded-md transition-transform duration-700 ease-in-out hover:translate-x-2 hover:bg-[#662E1C]"
+    className="flex items-center space-x-1 p-2 rounded-md transition-transform duration-700 ease-in-out hover:translate-x-7 hover:bg-[#662E1C]"
     >
       {icon}
       <span>{text}</span>
