@@ -3,6 +3,13 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 
 interface TweetFormProps {
   onAddTweet: (tweet: string) => void;
@@ -10,14 +17,21 @@ interface TweetFormProps {
 
 const TweetForm: React.FC<TweetFormProps> = ({ onAddTweet }) => {
   const [tweet, setTweet] = useState('');
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (tweet.trim()) {
       onAddTweet(tweet);
       setTweet('');
-    }
+      setIsDialogOpen(true);
+
+      // 1.2秒後にダイアログを閉じる
+      setTimeout(() => {
+        setIsDialogOpen(false);
+    }, 1200);
   };
+};
 
   return (
     <form onSubmit={handleSubmit} className="p-4 border-b border-gray-200">
@@ -32,6 +46,14 @@ const TweetForm: React.FC<TweetFormProps> = ({ onAddTweet }) => {
           投稿
         </Button>
       </div>
+      
+      <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+  <DialogContent  className="custom-dialog [&>button:last-child]:hidden">
+    <DialogHeader>
+      <DialogTitle>投稿しました</DialogTitle>
+    </DialogHeader>
+  </DialogContent>
+</Dialog>
     </form>
   );
 };

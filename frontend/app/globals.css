@@ -70,3 +70,7 @@ body {
     @apply bg-background text-foreground;
   }
 }
+
+.custom-dialog {
+  @apply w-1/4 h-auto top-11 max-h-1 flex items-center justify-center;
+}
