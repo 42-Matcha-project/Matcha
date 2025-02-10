@@ -3,3 +3,9 @@ services:
     build: ./mysql
     ports:
       - "3306:3306"
+    volumes:
+      - ./mysql/data/:/var/lib/mysql
+      - ./mysql/configs/:/etc/mysql/conf.d/
+      - ./mysql/logs:/var/log/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=rootpass
