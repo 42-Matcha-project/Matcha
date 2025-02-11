@@ -2,7 +2,7 @@ services:
   backend:
     build: ./backend
     volumes:
-      - ./backend/src/:/usr/src/app
+      - ./backend/srcs/:/usr/src/app/srcs
   mysql:
     build: ./mysql
     ports:
