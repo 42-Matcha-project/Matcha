@@ -6,7 +6,7 @@ CREATE TABLE users (
     id              INT AUTO_INCREMENT NOT NULL,
     username        VARCHAR(30) NOT NULL UNIQUE,
     email           VARCHAR(255) NOT NULL UNIQUE,
-    password        CHAR(60) NOT NULL,
+    password        VARCHAR(60) NOT NULL,
     display_name    VARCHAR(20) NOT NULL ,
     gender          ENUM('male', 'female') NOT NULL,
     introduction    VARCHAR(255),
