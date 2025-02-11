@@ -3,12 +3,15 @@
 
 Table users {
   id integer [primary key]
-  username varchar(10)
-  email varchar(20)
-  password varchar(20)
+  username varchar(30) [unique]
+  email varchar(255) [unique]
+  password varchar(60)
+  display_name varchar(20)
   gender enum('male', 'female')
   introduction varchar(100)
   icon_image_url varchar(255)
+  created_at timestamp
+  updated_at timestamp
 }
 
 /*
