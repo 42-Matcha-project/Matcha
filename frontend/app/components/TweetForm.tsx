@@ -34,7 +34,12 @@ const TweetForm: React.FC<TweetFormProps> = ({ onAddTweet, currentUser }) => {
   };
 };
 
+const containerClass = "w-full max-w-md bg-white p-4 rounded-lg shadow-md";
+
+
   return (
+    <div className="flex top justify-center bg-gray-100">
+      <div className={containerClass}>
     <form onSubmit={handleSubmit} className="p-4 border-b border-gray-200">
       <div className="flex-1">
         <img src={`/images/${currentUser.iconImageUrl}`}
@@ -62,6 +67,8 @@ const TweetForm: React.FC<TweetFormProps> = ({ onAddTweet, currentUser }) => {
   </DialogContent>
 </Dialog>
     </form>
+  </div>
+</div>
   );
 };
 
