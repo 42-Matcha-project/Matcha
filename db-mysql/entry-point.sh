@@ -1,0 +1,7 @@
+#!/bin/bash
+
+mysqld
+
+mysql -u root -p ${MYSQL_ROOT_PASSWORD} -e "CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_USER_PASSWORD}';
+GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'localhost' WITH GRANT OPTION;
+FLUSH PRIVILEGES;"
