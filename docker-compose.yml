@@ -1,4 +1,8 @@
 services:
+  backend:
+    build: ./backend
+    volumes:
+      - ./backend/src/:/usr/src/app
   mysql:
     build: ./mysql
     ports:
