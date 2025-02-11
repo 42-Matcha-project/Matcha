@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { User, Post } from '../timeline/types';
+import { useRouter } from 'next/navigation';
 
 interface PostListProps {
   users: User[];
@@ -18,6 +19,7 @@ const options = {
 
 const PostList: React.FC<PostListProps> = ({ posts, users }) => {
   const [likes, setLikes] = useState<{[key: number]: number }>({});
+  const router = useRouter();
 
   const handleLike = (postId: number) => {
     setLikes((prevLikes) => ({
@@ -26,7 +28,12 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
     }));
   };
 
-  const containerClass = "w-full max-w-md bg-white p-4 rounded-lg shadow-md";
+  const handleMessage = (userId: number) => {
+    // router.push(`/messages/${userId}`);
+    router.push(`/messages`);
+  };
+
+  const containerClass = 'w-full max-w-md bg-white p-4 rounded-lg shadow-md';
 
   return (
     <div className="flex flex-col items-center space-y-4 mt-4">
@@ -46,6 +53,13 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
               </div>
               <p className="mb-2">{post.content}</p>
               <div className="flex items-center">
+                <button onClick={() => handleMessage(user.id)}>
+                  <img
+                    src="/images/mail.png"
+                    alt="メールアイコン"
+                    className="w-8 h-8 mr-5 ml-3"
+                  />
+                </button>
                 <button
                   onClick={() => handleLike(post.id)}
                   className={`text-2xl ${likes ? 'text-red-500' : 'text-gray-500'} hover:text-red-700 `}
@@ -53,7 +67,7 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
                   ♡
                 </button>
                 <span>{likes[post.id] || 0}</span>
-                <span className="text-sm text-gray-500  ml-auto">
+                <span className="text-sm text-gray-500 ml-auto">
                   {new Date(post.timestamp).toLocaleString('ja-JP', options)}
                 </span>
               </div>
@@ -66,4 +80,3 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
 };
 
 export default PostList;
-
