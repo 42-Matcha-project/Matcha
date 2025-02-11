@@ -32,7 +32,7 @@ const Timeline: React.FC = () => {
   return (
     <div className="flex">
       <Sidebar />
-      <div className="p-5 flex-1">
+      <div className="p-10 flex-1">
         <h1 className="text-2xl mb-4">Timeline</h1>
         <TweetForm onAddTweet={handleAddTweet} currentUser={currentUser} />
         <PostList posts={posts} users={users}/>

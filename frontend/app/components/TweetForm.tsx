@@ -34,25 +34,25 @@ const TweetForm: React.FC<TweetFormProps> = ({ onAddTweet, currentUser }) => {
   };
 };
 
-const containerClass = "w-full max-w-md bg-white p-4 rounded-lg shadow-md";
-
+const containerClass = "w-full max-w-md bg-gray-200 p-4 rounded-lg shadow-md";
 
   return (
-    <div className="flex top justify-center bg-gray-100">
+    <div className="flex top justify-center">
       <div className={containerClass}>
-    <form onSubmit={handleSubmit} className="p-4 border-b border-gray-200">
-      <div className="flex-1">
-        <img src={`/images/${currentUser.iconImageUrl}`}
-         alt={`${currentUser.username}`} 
-         className="w-10 h-10 rounded-full" 
-         />
+    <form onSubmit={handleSubmit} className="p-2 border-b border-gray-200">
+      <div className="flex items-center space-x-3">
+        <img
+          src={currentUser.iconImageUrl}
+          alt={`${currentUser.username}`}
+          className="w-10 h-10 rounded-full object-cover"
+        />
       <Textarea
         placeholder="今どうしてる？"
         value={tweet}
         onChange={(e) => setTweet(e.target.value)}
         className="w-full p-2 border rounded-md"
       />
-      <div className="flex justify-end mt-2">
+      <div className="flex justify-end mt-5">
         <Button type="submit" disabled={!tweet.trim()}>
           投稿
         </Button>

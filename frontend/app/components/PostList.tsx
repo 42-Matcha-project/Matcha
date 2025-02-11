@@ -47,7 +47,7 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
                 <img
                   src={user.iconImageUrl}
                   alt={`${user.username}`}
-                  className="w-12 h-12 rounded-full mr-4"
+                  className="w-10 h-10 rounded-full mr-4 object-cover"
                 />
                 <h4 className="font-bold">{user.username}</h4>
               </div>

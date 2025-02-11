@@ -12,7 +12,7 @@ const Sidebar: React.FC = () => {
   return (
     <div
     className={classnames(
-      "h-screen bg-black text-white p-10 flex flex-col transition-transform duration-500 ease-in-out",
+      "fixed top-0 left-0 h-full bg-black text-white p-12 flex flex-col transition-transform duration-500 ease-in-out",
       { "translate-x-0": isOpen, "-translate-x-0": !isOpen }
     )}
     >
