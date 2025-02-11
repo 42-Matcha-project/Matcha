@@ -1,6 +1,6 @@
-import * as React from "react"
+import * as React from "react";
 
-import { cn } from "@/lib/utils"
+import { cn } from "@/lib/utils";
 
 const Textarea = React.forwardRef<
   HTMLTextAreaElement,
@@ -10,11 +10,7 @@ const Textarea = React.forwardRef<
     <div className="relative flex items-center">
       {icon && (
         <div className="absolute left-2 top-2">
-          <img 
-          src={icon}
-          alt="アイコン"
-          className="w-8 h-8 rounded-full" 
-          />
+          <img src={icon} alt="アイコン" className="w-8 h-8 rounded-full" />
         </div>
       )}
       <textarea

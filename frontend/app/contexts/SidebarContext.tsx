@@ -1,5 +1,5 @@
-'use client'
-import React, { createContext, useState, ReactNode } from 'react';
+"use client";
+import React, { createContext, useState, ReactNode } from "react";
 
 interface SidebarContextProps {
   isOpen: boolean;
@@ -11,7 +11,9 @@ export const SidebarContext = createContext<SidebarContextProps>({
   setIsOpen: () => {},
 });
 
-export const SidebarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const SidebarProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
 
   return (

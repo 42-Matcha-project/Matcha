@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import React, { useContext, useEffect, useState, useCallback } from 'react';
-import Sidebar from '../components/Sidebar';
-import { SidebarContext } from '../contexts/SidebarContext';
-import TweetForm from '../components/TweetForm';
-import PostList from '../components/PostList';
-import { User, Post } from './types';
-import { users, initialPosts } from './data';
+import React, { useContext, useEffect, useState, useCallback } from "react";
+import Sidebar from "../components/Sidebar";
+import { SidebarContext } from "../contexts/SidebarContext";
+import TweetForm from "../components/TweetForm";
+import PostList from "../components/PostList";
+import { User, Post } from "./types";
+import { users, initialPosts } from "./data";
 
 const currentUser = users[0]; // 仮のログインユーザー
 
@@ -35,7 +35,7 @@ const Timeline: React.FC = () => {
       <div className="p-10 flex-1">
         <h1 className="text-2xl mb-4">Timeline</h1>
         <TweetForm onAddTweet={handleAddTweet} currentUser={currentUser} />
-        <PostList posts={posts} users={users}/>
+        <PostList posts={posts} users={users} />
       </div>
     </div>
   );
