@@ -11,5 +11,5 @@ services:
       - ./mysql/data/:/var/lib/mysql
       - ./mysql/configs/:/etc/mysql/conf.d/
       - ./mysql/logs:/var/log/mysql
-    environment:
-      - MYSQL_ROOT_PASSWORD=rootpass
+    env_file:
+      - .env
