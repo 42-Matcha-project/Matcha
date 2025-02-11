@@ -5,8 +5,13 @@ services:
       - ./backend-go/srcs/:/usr/src/app/srcs
     env_file:
       - .env
+    tty: true
   db-mysql:
-    build: db-mysql
+    build:
+      context: ./db-mysql
+      args:
+        MYSQL_USER: ${MYSQL_USER}
+        MYSQL_USER_PASSWORD: ${MYSQL_USER_PASSWORD}
     ports:
       - "3306:3306"
     volumes:

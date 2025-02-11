@@ -1,7 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"srcs/dbhandler"
+)
 
 func main() {
-	fmt.Printf("Hello Go!\n")
+	dbhandler.ConnectDataBase()
 }
