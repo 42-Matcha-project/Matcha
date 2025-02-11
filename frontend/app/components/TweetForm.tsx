@@ -9,13 +9,14 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { FaUserCircle } from 'react-icons/fa';
+import { User } from '@/app/timeline/types';
 
 interface TweetFormProps {
   onAddTweet: (tweet: string) => void;
+  currentUser: User;
 }
 
-const TweetForm: React.FC<TweetFormProps> = ({ onAddTweet }) => {
+const TweetForm: React.FC<TweetFormProps> = ({ onAddTweet, currentUser }) => {
   const [tweet, setTweet] = useState('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
@@ -36,12 +37,15 @@ const TweetForm: React.FC<TweetFormProps> = ({ onAddTweet }) => {
   return (
     <form onSubmit={handleSubmit} className="p-4 border-b border-gray-200">
       <div className="flex-1">
+        <img src={`/images/${currentUser.iconImageUrl}`}
+         alt={`${currentUser.username}`} 
+         className="w-10 h-10 rounded-full" 
+         />
       <Textarea
         placeholder="今どうしてる？"
         value={tweet}
         onChange={(e) => setTweet(e.target.value)}
         className="w-full p-2 border rounded-md"
-        icon={FaUserCircle}
       />
       <div className="flex justify-end mt-2">
         <Button type="submit" disabled={!tweet.trim()}>

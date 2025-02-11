@@ -4,15 +4,25 @@ import React, { useContext, useEffect, useState, useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import { SidebarContext } from '../contexts/SidebarContext';
 import TweetForm from '../components/TweetForm';
-import TweetList from '../components/TweetList';
+import PostList from '../components/PostList';
+import { User, Post } from './types';
+import { users, initialPosts } from './data';
+
+const currentUser = users[0]; // 仮のログインユーザー
 
 const Timeline: React.FC = () => {
   const { setIsOpen } = useContext(SidebarContext);
-  const [posts, setPosts] = useState<string[]>([]);
+  const [posts, setPosts] = useState<Post[]>(initialPosts);
 
-  const addTweet = useCallback((tweet: string) => {
-    setPosts((prevPosts) => [tweet, ...prevPosts]);
-  }, []);
+  const handleAddTweet = (content: string) => {
+    const newPost: Post = {
+      id: posts.length + 1,
+      userId: currentUser.id,
+      content,
+      timestamp: new Date(),
+    };
+    setPosts([newPost, ...posts]);
+  };
 
   useEffect(() => {
     setIsOpen(true);
@@ -24,8 +34,8 @@ const Timeline: React.FC = () => {
       <Sidebar />
       <div className="p-5 flex-1">
         <h1 className="text-2xl mb-4">Timeline</h1>
-        <TweetForm onAddTweet={addTweet} />
-        <TweetList posts={posts} />
+        <TweetForm onAddTweet={handleAddTweet} currentUser={currentUser} />
+        <PostList posts={posts} users={users}/>
       </div>
     </div>
   );
