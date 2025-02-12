@@ -5,9 +5,11 @@ import { Home, User, Bell, Mail, Settings } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
 import { SidebarContext } from "../contexts/SidebarContext";
+import { usePathname } from "next/navigation";
 
 const Sidebar: React.FC = () => {
   const { isOpen } = useContext(SidebarContext);
+  const pathname = usePathname();
 
   return (
     <div
@@ -17,11 +19,11 @@ const Sidebar: React.FC = () => {
       )}
     >
       <nav className="space-y-10">
-        <NavItem href="/timeline" icon={<Home size={20} />} text="timeline" />
-        <NavItem href="/profilelist" icon={<User size={20} />} text="profile list" />
-        <NavItem href="/notification" icon={<Bell size={20} />} text="notification" />
-        <NavItem href="/messages" icon={<Mail size={20} />} text="message" />
-        <NavItem href="/myprofiles" icon={<Settings size={20} />} text="my profile" />
+        <NavItem href="/timeline" icon={<Home size={20} />} text="timeline" isActive={pathname === "/timeline"} />
+        <NavItem href="/profilelist" icon={<User size={20} />} text="profile list" isActive={pathname === "/profilelist"} />
+        <NavItem href="/notification" icon={<Bell size={20} />} text="notification" isActive={pathname === "/notification"}/>
+        <NavItem href="/messages" icon={<Mail size={20} />} text="message" isActive={pathname === "/messages"}/>
+        <NavItem href="/myprofiles" icon={<Settings size={20} />} text="my profile" isActive={pathname === "/myprofiles"} />
       </nav>
     </div>
   );
@@ -31,10 +33,13 @@ const NavItem: React.FC<{
   href: string;
   icon: React.ReactNode;
   text: string;
-}> = ({ href, icon, text }) => (
+  isActive: boolean;
+}> = ({ href, icon, text, isActive}) => (
   <Link
     href={href}
-    className="flex items-center space-x-1 p-2 rounded-md transition-transform duration-700 ease-in-out hover:translate-x-7 hover:bg-[#662E1C]"
+    className={`flex items-center space-x-1 p-2 rounded-md transition-transform duration-700 ease-in-out ${
+      isActive ? "bg-[#662E1C] translate-x-10" : "hover:bg-[#662E1C] hover:translate-x-10"
+    }`}
   >
     {icon}
     <span>{text}</span>
