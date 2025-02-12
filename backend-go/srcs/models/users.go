@@ -2,6 +2,7 @@ package models
 
 import (
 	"os"
+	"srcs/token"
 	"strings"
 	"time"
 
@@ -79,4 +80,28 @@ func (user *User) PrepareOutput() *User {
 	*/
 	user.Password = ""
 	return user
+}
+
+func FetchUserAndGenerateJWTToken(username string, email string, password string) (string, error) {
+	/*
+		JWTトークンを生成する関数。
+		usernameかemailからユーザーを識別し、DBから対応するユーザーを取り出す。
+		そのユーザーのパスワードが正しいことを確認する。
+		ユーザーIDを使用してJWTトークンを生成し返す。
+	*/
+	var user User
+	if err := DB.Where("username = ? OR email = ?", username, email).First(&user).Error; err != nil {
+		return "", err
+	}
+
+	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
+		return "", err
+	}
+
+	jwtToken, err := token.GenerateJWTToken(uint(user.ID))
+	if err != nil {
+		return "", err
+	}
+
+	return jwtToken, nil
 }

@@ -17,6 +17,7 @@ func main() {
 
 	authRoutes := router.Group("/auth")
 	authRoutes.POST("/register", auth.RegisterUser)
+	authRoutes.POST("/login", auth.Login)
 
 	router.Run(":8080")
 }
