@@ -19,7 +19,7 @@ func ConnectDataBase() {
 		テーブル名には"t_"というprefixをつけるように設定
 	*/
 	dbUser := os.Getenv("MYSQL_USER")
-	dbPass := os.Getenv("MYSQL_USER_PASSWORD")
+	dbPass := os.Getenv("MYSQL_PASSWORD")
 	dbName := os.Getenv("DATABASE_NAME")
 	dbHost := os.Getenv("DATABASE_HOST")
 	dbPort := os.Getenv("DATABASE_PORT")

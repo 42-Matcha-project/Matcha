@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "CREATE USER '${MYSQL_USER}'@'localhost' IDENTIFIED BY '${MYSQL_USER_PASSWORD}';" >> /docker-entrypoint-initdb.d/create-default-table.sql
-echo "GRANT ALL PRIVILEGES ON *.* TO '${MYSQL_USER}'@'localhost' WITH GRANT OPTION;" >> /docker-entrypoint-initdb.d/create-default-table.sql
+echo "CREATE USER IF NOT EXISTS '${MYSQL_USER}'@'%' IDENTIFIED BY '${MYSQL_PASSWORD}';" >> /docker-entrypoint-initdb.d/create-default-table.sql
+echo "GRANT ALL PRIVILEGES ON matcha.* TO '${MYSQL_USER}'@'%';" >> /docker-entrypoint-initdb.d/create-default-table.sql
 echo "FLUSH PRIVILEGES;" >> /docker-entrypoint-initdb.d/create-default-table.sql

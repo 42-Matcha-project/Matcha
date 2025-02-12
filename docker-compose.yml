@@ -11,7 +11,7 @@ services:
       context: ./db-mysql
       args:
         MYSQL_USER: ${MYSQL_USER}
-        MYSQL_USER_PASSWORD: ${MYSQL_USER_PASSWORD}
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
