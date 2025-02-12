@@ -1,6 +1,8 @@
 services:
   backend-go:
     build: backend-go
+    ports:
+      - "8080:8080"
     volumes:
       - ./backend-go/srcs/:/usr/src/app/srcs
     env_file:

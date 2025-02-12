@@ -1,9 +1,22 @@
 package main
 
 import (
-	"srcs/dbhandler"
+	"srcs/auth"
+	"srcs/models"
+
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	dbhandler.ConnectDataBase()
+	/*
+		DB接続を確立し、ルーティングをする関数。
+	*/
+	models.ConnectDataBase()
+
+	router := gin.Default()
+
+	authRoutes := router.Group("/auth")
+	authRoutes.POST("/register", auth.RegisterUser)
+
+	router.Run(":8080")
 }
