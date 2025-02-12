@@ -16,12 +16,12 @@ const Sidebar: React.FC = () => {
         { "translate-x-0": isOpen, "-translate-x-0": !isOpen },
       )}
     >
-      <nav className="space-y-5">
+      <nav className="space-y-10">
         <NavItem href="/timeline" icon={<Home size={20} />} text="timeline" />
-        <NavItem href="#" icon={<User size={20} />} text="profile list" />
-        <NavItem href="#" icon={<Bell size={20} />} text="notification" />
-        <NavItem href="#" icon={<Mail size={20} />} text="mail" />
-        <NavItem href="#" icon={<Settings size={20} />} text="my profile" />
+        <NavItem href="/profilelist" icon={<User size={20} />} text="profile list" />
+        <NavItem href="/notification" icon={<Bell size={20} />} text="notification" />
+        <NavItem href="/messages" icon={<Mail size={20} />} text="message" />
+        <NavItem href="/myprofiles" icon={<Settings size={20} />} text="my profile" />
       </nav>
     </div>
   );
