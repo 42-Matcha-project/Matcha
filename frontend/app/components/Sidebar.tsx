@@ -37,8 +37,8 @@ const NavItem: React.FC<{
 }> = ({ href, icon, text, isActive}) => (
   <Link
     href={href}
-    className={`flex items-center space-x-1 p-2 rounded-md transition-transform duration-700 ease-in-out ${
-      isActive ? "bg-[#662E1C] translate-x-10 shadow-[0_0_10px_rgba(255,255,0.9,0.7)]": "hover:bg-[#662E1C] hover:translate-x-10 hover:shadow-[0_0_10px_rgba(255,255,255,1)]"
+    className={`flex items-center space-x-1 p-2 rounded-md transition-transform duration-700 ease-in-out hover:-translate-y-1 ${
+      isActive ? "bg-[#662E1C] translate-x-10 shadow-[0_0_10px_rgba(255,255,0.9,0.7)] hover:scale-105": "hover:bg-[#662E1C] hover:translate-x-10 hover:shadow-[0_0_10px_rgba(255,255,255,1)]"
     }`}
   >
     {icon}
