@@ -8,6 +8,9 @@ services:
     env_file:
       - .env
     tty: true
+    depends_on:
+      - db-mysql
+
   db-mysql:
     build:
       context: ./db-mysql

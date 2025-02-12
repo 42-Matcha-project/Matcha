@@ -1,21 +1,22 @@
-SRCS := ./srcs/main.go
 NAME := backend
+
+SRCS_DIR = srcs/
 
 GO = go
 
-all: $(NAME)
+run: build
+	./$(SRCS_DIR)$(NAME)
+
+build: $(NAME)
 
 $(NAME): $(SRCS)
-	- $(GO) mod download
-	- $(GO) fmt $^
-	- $(GO) build -o $@ $^
-
-run: all
-	./$(NAME)
+	$(GO) -C $(SRCS_DIR) mod tidy
+	$(GO) -C $(SRCS_DIR) fmt
+	$(GO) -C $(SRCS_DIR) build -o $@ .
 
 clean:
-	rm -f $(NAME)
+	rm -f ./$(SRCS)$(NAME)
 
-re: clean all
+re: clean run
 
 .PHONY: all clean re run
