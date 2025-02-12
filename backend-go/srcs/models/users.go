@@ -1,6 +1,7 @@
 package models
 
 import (
+	"os"
 	"strings"
 	"time"
 
@@ -56,7 +57,9 @@ func (inputUser *User) BeforeSave(*gorm.DB) error {
 
 	inputUser.Password = string(hashedPassword)
 	inputUser.Username = strings.ToLower(inputUser.Username)
-	location, err := time.LoadLocation("Asia/Tokyo")
+
+	timeZone := os.Getenv("TIME_ZONE")
+	location, err := time.LoadLocation(timeZone)
 	if err != nil {
 		return err
 	}
