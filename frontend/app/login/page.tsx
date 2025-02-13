@@ -1,13 +1,11 @@
-import Sidebar from "../components/Sidebar";
 import Layout from "../components/Layout";
 
-export default function Message() {
+export default function Login() {
   return (
     <Layout>
       <div className="flex items-center justify-center h-screen">
-        <Sidebar />
-        <a href="/timeline" rel="noopener noreferrer">
-          DM page
+        <a href="/login" rel="noopener noreferrer">
+          login page
         </a>
       </div>
     </Layout>
