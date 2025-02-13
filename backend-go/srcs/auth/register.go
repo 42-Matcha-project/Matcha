@@ -11,13 +11,13 @@ type RegisterInput struct {
 	/*
 		登録時にリクエストからJSONデータを抽出するための構造体。
 	*/
-	Username     string `json:"username" binding:"required"`
-	Email        string `json:"email" binding:"required"`
-	Password     string `json:"password" binding:"required"`
-	DisplayName  string `json:"display_name" binding:"required"`
-	Gender       string `json:"gender" binding:"required"`
-	Introduction string `json:"introduction"`
-	IconImageUrl string `json:"icon_image_url"`
+	Username     string `json:"Username" binding:"required"`
+	Email        string `json:"Email" binding:"required"`
+	Password     string `json:"Password" binding:"required"`
+	DisplayName  string `json:"DisplayName" binding:"required"`
+	Gender       string `json:"Gender" binding:"required"`
+	Introduction string `json:"Introduction"`
+	IconImageUrl string `json:"IconImageUrl"`
 }
 
 func RegisterUser(reqContext *gin.Context) {
@@ -34,7 +34,7 @@ func RegisterUser(reqContext *gin.Context) {
 		return
 	}
 
-	registerUser := &models.User{
+	registerUser := &models.TUser{
 		Username:     registerInput.Username,
 		Email:        registerInput.Email,
 		Password:     registerInput.Password,
@@ -44,7 +44,7 @@ func RegisterUser(reqContext *gin.Context) {
 		IconImageURL: registerInput.IconImageUrl,
 	}
 
-	registerUser, err := registerUser.Save()
+	registerUser, err := registerUser.CreateUser()
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return

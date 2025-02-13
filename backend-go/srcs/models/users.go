@@ -1,16 +1,18 @@
 package models
 
 import (
+	"github.com/gin-gonic/gin"
+	"net/http"
 	"os"
+	"reflect"
 	"srcs/token"
 	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
-type User struct {
+type TUser struct {
 	/*
 		usersテーブルの構造体
 	*/
@@ -26,7 +28,7 @@ type User struct {
 	UpdatedAt    time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP;column:updated_at"`
 }
 
-func (*User) TableName() string {
+func (*TUser) TableName() string {
 	/*
 		テーブル名を明示的に指定する関数。
 		AutoMigrateの際に自動で参照される。
@@ -34,46 +36,37 @@ func (*User) TableName() string {
 	return "t_users"
 }
 
-func (inputUser *User) Save() (*User, error) {
+func (user *TUser) CreateUser() (*TUser, error) {
 	/*
 		DBに新規ユーザーを保存する関数。
 	*/
-	err := DB.Create(inputUser).Error
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
 		return nil, err
 	}
-	return inputUser, nil
-}
 
-func (inputUser *User) BeforeSave(*gorm.DB) error {
-	/*
-		Saveが実行される直前に自動で呼ばれる関数。
-		DBに保存する前にpasswordをハッシュ化、usernameを小文字にする。
-		created_atとupdated_atを設定。
-	*/
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(inputUser.Password), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-
-	inputUser.Password = string(hashedPassword)
-	inputUser.Username = strings.ToLower(inputUser.Username)
+	user.Password = string(hashedPassword)
+	user.Username = strings.ToLower(user.Username)
 
 	timeZone := os.Getenv("TIME_ZONE")
 	location, err := time.LoadLocation(timeZone)
 	if err != nil {
-		return err
+		return nil, err
 	}
-	if inputUser.CreatedAt.IsZero() {
-		inputUser.CreatedAt = time.Now().In(location)
+	if user.CreatedAt.IsZero() {
+		user.CreatedAt = time.Now().In(location)
 	}
-	if inputUser.UpdatedAt.IsZero() {
-		inputUser.UpdatedAt = time.Now().In(location)
+	if user.UpdatedAt.IsZero() {
+		user.UpdatedAt = time.Now().In(location)
 	}
-	return nil
+	err = DB.Create(user).Error
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
 }
 
-func (user *User) PrepareOutput() *User {
+func (user *TUser) PrepareOutput() *TUser {
 	/*
 		ユーザーデータを返すor出力する前の準備をする関数。
 		アウトプットの際はpasswordを非表示に。
@@ -82,14 +75,14 @@ func (user *User) PrepareOutput() *User {
 	return user
 }
 
-func FetchUserAndGenerateJWTToken(username string, email string, password string) (string, error) {
+func FetchUserAndGenerateJWTTokenString(username string, email string, password string) (string, error) {
 	/*
 		JWTトークンを生成する関数。
 		usernameかemailからユーザーを識別し、DBから対応するユーザーを取り出す。
 		そのユーザーのパスワードが正しいことを確認する。
 		ユーザーIDを使用してJWTトークンを生成し返す。
 	*/
-	var user User
+	var user TUser
 	if err := DB.Where("username = ? OR email = ?", username, email).First(&user).Error; err != nil {
 		return "", err
 	}
@@ -98,10 +91,68 @@ func FetchUserAndGenerateJWTToken(username string, email string, password string
 		return "", err
 	}
 
-	jwtToken, err := token.GenerateJWTToken(uint(user.ID))
+	jwtTokenString, err := token.GenerateJWTTokenString(uint(user.ID))
 	if err != nil {
 		return "", err
 	}
 
-	return jwtToken, nil
+	return jwtTokenString, nil
+}
+
+type ChangeUserInfoInput struct {
+	/*
+		登録時にリクエストからJSONデータを抽出するための構造体。
+	*/
+	Password     string `json:"Password"`
+	DisplayName  string `json:"DisplayName"`
+	Gender       string `json:"Gender"`
+	Introduction string `json:"Introduction"`
+	IconImageUrl string `json:"IconImageUrl"`
+}
+
+func (user *TUser) UpdateUser(input ChangeUserInfoInput) error {
+	inputValue := reflect.ValueOf(input)
+	for i := 0; i < inputValue.NumField(); i++ {
+		inputFieldName := inputValue.Type().Field(i).Name
+		inputFieldValue := inputValue.Field(i).Interface()
+
+		if inputFieldValue == "" {
+			continue
+		}
+
+		err := DB.Model(user).Update(inputFieldName, inputFieldValue).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func ChangeUserInfo(reqContext *gin.Context) {
+	userId, err := token.ExtractUserIdFromRequest(reqContext)
+	if err != nil {
+		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	user := &TUser{}
+	err = DB.First(&user, userId).Error
+	if err != nil {
+		reqContext.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	var changeUserInfoInput ChangeUserInfoInput
+	if err := reqContext.ShouldBindJSON(&changeUserInfoInput); err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if err := user.UpdateUser(changeUserInfoInput); err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	reqContext.JSON(http.StatusOK, gin.H{
+		"data": user.PrepareOutput(),
+	})
 }

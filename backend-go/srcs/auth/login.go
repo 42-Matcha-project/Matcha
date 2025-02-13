@@ -11,9 +11,9 @@ type LoginInput struct {
 	/*
 		ログイン時にリクエストからJSONデータを抽出するための構造体。
 	*/
-	Username string `json:"username"`
-	Email    string `json:"email"`
-	Password string `json:"password" binding:"required"`
+	Username string `json:"Username"`
+	Email    string `json:"Email"`
+	Password string `json:"Password" binding:"required"`
 }
 
 func (loginInput *LoginInput) validate() error {
@@ -44,13 +44,13 @@ func Login(reqContext *gin.Context) {
 		return
 	}
 
-	jwtToken, err := models.FetchUserAndGenerateJWTToken(loginInput.Username, loginInput.Email, loginInput.Password)
+	jwtTokenString, err := models.FetchUserAndGenerateJWTTokenString(loginInput.Username, loginInput.Email, loginInput.Password)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
 	}
 
 	reqContext.JSON(http.StatusOK, gin.H{
-		"token": jwtToken,
+		"token": jwtTokenString,
 	})
 }
