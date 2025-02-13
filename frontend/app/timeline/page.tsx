@@ -7,6 +7,7 @@ import TweetForm from "../components/TweetForm";
 import PostList from "../components/PostList";
 import { User, Post } from "./types";
 import { users, initialPosts } from "./data";
+import Layout from "../components/Layout";
 
 const currentUser = users[0]; // 仮のログインユーザー
 
@@ -30,6 +31,7 @@ const Timeline: React.FC = () => {
   }, [setIsOpen]);
 
   return (
+    <Layout>
     <div className="flex">
       <Sidebar />
       <div className="p-10 flex-1">
@@ -38,6 +40,7 @@ const Timeline: React.FC = () => {
         <PostList posts={posts} users={users} />
       </div>
     </div>
+    </Layout>
   );
 };
 

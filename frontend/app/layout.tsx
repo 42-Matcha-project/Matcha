@@ -19,15 +19,23 @@ export const metadata: Metadata = {
 
 export default function RootLayout({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
+}) {
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        className={`
+          relative min-h-screen
+          ${geistSans.variable} ${geistMono.variable}
+          antialiased
+        `}
       >
-        {children}
+        <div className="absolute inset-0 bg-[url('/images/background.png')] bg-cover bg-center bg-no-repeat" />
+        <div className="absolute inset-0 bg-white bg-opacity-40" />
+        <div className="relative z-10">
+          {children}
+        </div>
       </body>
     </html>
   );

@@ -1,13 +1,16 @@
 import Sidebar  from "../components/Sidebar";
+import Layout from "../components/Layout";
 
 export default function Myprofile() {
     return (
-      <div className="flex items-center justify-center bg-gray-100 h-screen">
+      <Layout>
+      <div className="flex items-center justify-center h-screen">
         <Sidebar />
         <a href="/myprofile" rel="noopener noreferrer">
           my profile page
         </a>
       </div>
+      </Layout>
     );
   }
   
