@@ -165,3 +165,31 @@ func ChangeUserInfo(reqContext *gin.Context) {
 		"data": user.PrepareOutput(),
 	})
 }
+
+func DeleteUser(reqContext *gin.Context) {
+	/*
+		DBからユーザーを削除する関数。
+	*/
+	userId, err := token.ExtractUserIdFromRequest(reqContext)
+	if err != nil {
+		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	user := &TUser{}
+	err = DB.First(&user, userId).Error
+	if err != nil {
+		reqContext.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	err = DB.Delete(user).Error
+	if err != nil {
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	reqContext.JSON(http.StatusOK, gin.H{
+		"status": "success",
+	})
+}
