@@ -23,6 +23,7 @@ func main() {
 	settingRoutes := router.Group("/settings")
 	settingRoutes.Use(middlewares.JWTValidationMiddleware())
 	settingRoutes.PUT("/user", models.ChangeUserInfo)
+	settingRoutes.DELETE("/user", models.DeleteUser)
 
 	router.Run(":8080")
 }
