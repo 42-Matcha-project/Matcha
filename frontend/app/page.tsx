@@ -14,13 +14,13 @@ const MainContent = () => (
     <div className="flex gap-4 mt-4">
       <Link
         href="/register"
-        className="bg-emerald-800 text-white px-6 py-2 rounded shadow hover:bg-emerald-950 transition duration-200"
+        className="bg-emerald-700 text-white px-6 py-2 rounded shadow hover:bg-emerald-900 transition duration-200"
       >
         登録
       </Link>
       <Link
         href="/login"
-        className="border border-emerald-800 text-emerald-800 px-6 py-2 rounded hover:bg-emerald-950 hover:text-white transition duration-200"
+        className="border border-emerald-700 text-emerald-800 px-6 py-2 rounded hover:bg-emerald-900 hover:text-white transition duration-200"
       >
         ログイン
       </Link>
