@@ -22,6 +22,7 @@ func main() {
 
 	settingRoutes := router.Group("/settings")
 	settingRoutes.Use(middlewares.JWTValidationMiddleware())
+	settingRoutes.GET("/user", models.GetUserInfo)
 	settingRoutes.PUT("/user", models.ChangeUserInfo)
 	settingRoutes.DELETE("/user", models.DeleteUser)
 
