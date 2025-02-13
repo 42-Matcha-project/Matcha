@@ -19,11 +19,36 @@ const Sidebar: React.FC = () => {
       )}
     >
       <nav className="space-y-10">
-        <NavItem href="/timeline" icon={<Home size={20} />} text="timeline" isActive={pathname === "/timeline"} />
-        <NavItem href="/profilelist" icon={<User size={20} />} text="profile list" isActive={pathname === "/profilelist"} />
-        <NavItem href="/notification" icon={<Bell size={20} />} text="notification" isActive={pathname === "/notification"}/>
-        <NavItem href="/messages" icon={<Mail size={20} />} text="message" isActive={pathname === "/messages"}/>
-        <NavItem href="/myprofiles" icon={<Settings size={20} />} text="my profile" isActive={pathname === "/myprofiles"} />
+        <NavItem
+          href="/timeline"
+          icon={<Home size={20} />}
+          text="timeline"
+          isActive={pathname === "/timeline"}
+        />
+        <NavItem
+          href="/profilelist"
+          icon={<User size={20} />}
+          text="profile list"
+          isActive={pathname === "/profilelist"}
+        />
+        <NavItem
+          href="/notification"
+          icon={<Bell size={20} />}
+          text="notification"
+          isActive={pathname === "/notification"}
+        />
+        <NavItem
+          href="/messages"
+          icon={<Mail size={20} />}
+          text="message"
+          isActive={pathname === "/messages"}
+        />
+        <NavItem
+          href="/myprofiles"
+          icon={<Settings size={20} />}
+          text="my profile"
+          isActive={pathname === "/myprofiles"}
+        />
       </nav>
     </div>
   );
@@ -34,11 +59,13 @@ const NavItem: React.FC<{
   icon: React.ReactNode;
   text: string;
   isActive: boolean;
-}> = ({ href, icon, text, isActive}) => (
+}> = ({ href, icon, text, isActive }) => (
   <Link
     href={href}
     className={`flex items-center space-x-1 p-2 rounded-md transition-transform duration-700 ease-in-out hover:-translate-y-1 ${
-      isActive ? "bg-[#662E1C] translate-x-10 shadow-[0_0_10px_rgba(255,255,0.9,0.7)] hover:scale-105": "hover:bg-[#662E1C] hover:translate-x-10 hover:shadow-[0_0_10px_rgba(255,255,255,1)]"
+      isActive
+        ? "bg-[#662E1C] translate-x-10 shadow-[0_0_10px_rgba(255,255,0.9,0.7)] hover:scale-105"
+        : "hover:bg-[#662E1C] hover:translate-x-10 hover:shadow-[0_0_10px_rgba(255,255,255,1)]"
     }`}
   >
     {icon}

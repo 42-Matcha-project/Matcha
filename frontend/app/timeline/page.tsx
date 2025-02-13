@@ -32,14 +32,14 @@ const Timeline: React.FC = () => {
 
   return (
     <Layout>
-    <div className="flex">
-      <Sidebar />
-      <div className="p-10 flex-1">
-        <h1 className="text-2xl mb-4">Timeline</h1>
-        <TweetForm onAddTweet={handleAddTweet} currentUser={currentUser} />
-        <PostList posts={posts} users={users} />
+      <div className="flex">
+        <Sidebar />
+        <div className="p-10 flex-1">
+          <h1 className="text-2xl mb-4">Timeline</h1>
+          <TweetForm onAddTweet={handleAddTweet} currentUser={currentUser} />
+          <PostList posts={posts} users={users} />
+        </div>
       </div>
-    </div>
     </Layout>
   );
 };
