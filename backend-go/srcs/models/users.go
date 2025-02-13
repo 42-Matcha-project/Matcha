@@ -114,7 +114,7 @@ func GetUserInfo(reqContext *gin.Context) {
 	}
 
 	reqContext.JSON(http.StatusOK, gin.H{
-		"user": user,
+		"user": user.PrepareOutput(),
 	})
 }
 
