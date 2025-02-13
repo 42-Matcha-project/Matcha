@@ -50,6 +50,11 @@ func extractJWTTokenStringFromRequest(reqContext *gin.Context) string {
 }
 
 func parseJWTTokenString(JWTTokenString string) (*jwt.Token, error) {
+	/*
+		JWTトークンの文字列を解析する関数。
+		暗号化メソッドと秘密鍵が一致することを確かめる。
+		正しければJWTトークンとして解析した型で返す。
+	*/
 	JWTToken, err := jwt.Parse(JWTTokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
@@ -83,6 +88,10 @@ func ValidateJWTToken(reqContext *gin.Context) error {
 }
 
 func ExtractUserIdFromRequest(reqContext *gin.Context) (uint, error) {
+	/*
+		リクエスト情報からユーザーのidを抽出する関数。
+		リクエストに含まれるJWTトークンを解析してクレーム部分からユーザーidを抽出し返す。
+	*/
 	JWTTokenString := extractJWTTokenStringFromRequest(reqContext)
 	JWTToken, err := parseJWTTokenString(JWTTokenString)
 	if err != nil {

@@ -111,6 +111,10 @@ type ChangeUserInfoInput struct {
 }
 
 func (user *TUser) UpdateUser(input ChangeUserInfoInput) error {
+	/*
+		ユーザーのDBを更新する関数。
+		列ごとに更新していく。
+	*/
 	inputValue := reflect.ValueOf(input)
 	for i := 0; i < inputValue.NumField(); i++ {
 		inputFieldName := inputValue.Type().Field(i).Name
@@ -129,6 +133,11 @@ func (user *TUser) UpdateUser(input ChangeUserInfoInput) error {
 }
 
 func ChangeUserInfo(reqContext *gin.Context) {
+	/*
+		ユーザーの情報を更新する関数。
+		リクエストからuserのidを取得しDBから取り出す。
+		そのユーザーの情報を更新する。
+	*/
 	userId, err := token.ExtractUserIdFromRequest(reqContext)
 	if err != nil {
 		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
