@@ -99,6 +99,25 @@ func FetchUserAndGenerateJWTTokenString(username string, email string, password 
 	return jwtTokenString, nil
 }
 
+func GetUserInfo(reqContext *gin.Context) {
+	userId, err := token.ExtractUserIdFromRequest(reqContext)
+	if err != nil {
+		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		return
+	}
+
+	user := &TUser{}
+	err = DB.First(&user, userId).Error
+	if err != nil {
+		reqContext.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		return
+	}
+
+	reqContext.JSON(http.StatusOK, gin.H{
+		"user": user,
+	})
+}
+
 type ChangeUserInfoInput struct {
 	/*
 		登録時にリクエストからJSONデータを抽出するための構造体。
