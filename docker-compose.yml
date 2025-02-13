@@ -1,16 +1,26 @@
 services:
   backend-go:
     build: backend-go
+    ports:
+      - "8080:8080"
     volumes:
       - ./backend-go/srcs/:/usr/src/app/srcs
+    env_file:
+      - .env
     tty: true
+    depends_on:
+      - db-mysql
+
   db-mysql:
-    build: db-mysql
+    build:
+      context: ./db-mysql
+      args:
+        MYSQL_USER: ${MYSQL_USER}
+        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
     ports:
       - "3306:3306"
     volumes:
-      - ./db-mysql/data/:/var/lib/db-mysql
-      - ./db-mysql/configs/:/etc/db-mysql/conf.d/
-      - ./db-mysql/logs:/var/log/db-mysql
+      - ./db-mysql/data/:/var/lib/mysql
+      - ./db-mysql/logs:/var/log/mysql
     env_file:
       - .env
