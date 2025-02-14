@@ -9,14 +9,14 @@ export default function NextPage() {
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  // 選択可能なタグ一覧
-  const availableTags = ["Sports", "Animals", "Movies", "Music", "Travel"];
+  // 選択可能なタグ一覧（日本語）
+  const availableTags = ["スポーツ", "動物", "映画", "音楽", "旅行"];
 
   const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
       if (previewUrls.length + files.length > 5) {
-        alert("You can only upload up to 5 photos.");
+        alert("写真は最大5枚までアップロードできます。");
         e.target.value = "";
         return;
       }
@@ -53,16 +53,16 @@ export default function NextPage() {
       <div className="flex items-center justify-center min-h-screen p-4">
         <form className="w-full max-w-4xl bg-white p-8 rounded-md shadow flex flex-col gap-8">
           <h2 className="text-base/7 font-semibold text-gray-900 text-center">
-            Personal Information
+            プロフィール情報
           </h2>
 
-          {/* Preference */}
+          {/* 好み */}
           <div className="col-span-full">
             <label
               htmlFor="preference"
               className="block text-lg/6 font-medium text-gray-900"
             >
-              Preference
+              好み
             </label>
             <div className="mt-2">
               <textarea
@@ -75,17 +75,17 @@ export default function NextPage() {
               />
             </div>
             <p className="mt-3 text-sm/6 text-gray-600">
-              Please write down your favorite person's preferences.
+              好みを記入してください。
             </p>
           </div>
 
-          {/* About you */}
+          {/* 自己紹介 */}
           <div className="col-span-full">
             <label
               htmlFor="about you"
               className="block text-lg/6 font-medium text-gray-900"
             >
-              About you
+              自己紹介
             </label>
             <div className="mt-2">
               <textarea
@@ -98,14 +98,14 @@ export default function NextPage() {
               />
             </div>
             <p className="mt-3 text-sm/6 text-gray-600">
-              Please write a few sentences about yourself.
+              自己紹介文を数行記入してください。
             </p>
           </div>
 
           {/* タグ選択 */}
           <div className="col-span-full">
             <label className="block text-lg/6 font-medium text-gray-900">
-              Interests
+              興味のあるタグ
             </label>
             <div className="mt-2 flex flex-wrap gap-2">
               {availableTags.map((tag) => (
@@ -124,7 +124,7 @@ export default function NextPage() {
               ))}
             </div>
             <p className="mt-3 text-sm/6 text-gray-600">
-              Choose your interests (e.g. Sports, Animals, Movies, etc.)
+              興味のあるタグを選んでください（例：スポーツ、動物、映画など）
             </p>
           </div>
 
@@ -134,14 +134,14 @@ export default function NextPage() {
               htmlFor="photos"
               className="block text-lg/9 font-medium text-gray-900"
             >
-              Your photos
+              あなたの写真
             </label>
             <button
               type="button"
               onClick={handleButtonClick}
               className="rounded-md bg-emerald-700 text-white px-4 py-2"
             >
-              Select Files
+              ファイルを選択
             </button>
             <input
               type="file"
@@ -153,7 +153,7 @@ export default function NextPage() {
               className="hidden"
             />
             <p className="mt-3 text-sm/6 text-gray-600">
-              Please upload up to 5 photos.
+              写真は最大5枚までアップロードしてください。
             </p>
             {/* プレビュー表示 */}
             <div className="mt-4 flex gap-4">
@@ -163,7 +163,7 @@ export default function NextPage() {
                   <img
                     key={index}
                     src={url}
-                    alt={`Preview ${index + 1}`}
+                    alt={`プレビュー ${index + 1}`}
                     className="w-32 h-32 object-cover rounded-md"
                   />
                 ) : (
@@ -171,7 +171,7 @@ export default function NextPage() {
                     key={index}
                     className="w-32 h-32 border border-dashed border-gray-400 flex items-center justify-center rounded-md"
                   >
-                    <span className="text-sm text-gray-500">No Image</span>
+                    <span className="text-sm text-gray-500">画像なし</span>
                   </div>
                 );
               })}
