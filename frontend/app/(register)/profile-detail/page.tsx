@@ -4,7 +4,7 @@ import Layout from "../../components/Layout";
 import Link from "next/link";
 import { useRef, useState, ChangeEvent } from "react";
 
-export default function NextPage() {
+export default function ProfileDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);

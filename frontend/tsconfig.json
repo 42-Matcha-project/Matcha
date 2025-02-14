@@ -27,7 +27,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    "app/(register)/nextpage"
+    "app/(register)/profile-detail"
   ],
   "exclude": ["node_modules"]
 }
