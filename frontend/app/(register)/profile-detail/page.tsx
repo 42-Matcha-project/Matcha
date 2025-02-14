@@ -8,32 +8,48 @@ export default function ProfileDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrls, setPreviewUrls] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [fileError, setFileError] = useState<string>("");
 
-  // 選択可能なタグ一覧（日本語）
   const availableTags = ["スポーツ", "動物", "映画", "音楽", "旅行"];
 
   const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files) {
       if (previewUrls.length + files.length > 5) {
-        alert("写真は最大5枚までアップロードできます。");
+        setFileError("写真はすでに5枚アップロードされています。");
         e.target.value = "";
         return;
       }
 
       const newUrls: string[] = [];
+      const newFiles: File[] = [];
+
       Array.from(files).forEach((file) => {
+        const duplicate = [...uploadedFiles, ...newFiles].some(
+          (uploaded) =>
+            uploaded.name === file.name && uploaded.size === file.size,
+        );
+        if (duplicate) {
+          setFileError(`"${file.name}" はすでにアップロードされています。`);
+          return;
+        }
+
+        newFiles.push(file);
+
         const reader = new FileReader();
         reader.onloadend = () => {
           if (reader.result) {
             newUrls.push(reader.result as string);
           }
-          if (newUrls.length === files.length) {
+          if (newUrls.length === newFiles.length) {
             setPreviewUrls((prev) => [...prev, ...newUrls]);
+            setUploadedFiles((prev) => [...prev, ...newFiles]);
           }
         };
         reader.readAsDataURL(file);
       });
+      e.target.value = "";
     }
   };
 
@@ -41,7 +57,6 @@ export default function ProfileDetails() {
     fileInputRef.current?.click();
   };
 
-  // タグをクリックしたときの処理（選択状態のトグル）
   const handleTagClick = (tag: string) => {
     setSelectedTags((prev) =>
       prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
@@ -155,6 +170,12 @@ export default function ProfileDetails() {
             <p className="mt-3 text-sm/6 text-gray-600">
               写真は最大5枚までアップロードしてください。
             </p>
+
+            {/* エラーメッセージ表示 */}
+            {fileError && (
+              <p className="mt-2 text-sm text-red-600">{fileError}</p>
+            )}
+
             {/* プレビュー表示 */}
             <div className="mt-4 flex gap-4">
               {Array.from({ length: 5 }).map((_, index) => {
