@@ -1,10 +1,13 @@
-import Layout from "../components/Layout";
+"use client";
+
+import Layout from "../../components/Layout";
+import Link from "next/link";
 
 export default function Register() {
   return (
     <Layout>
       <div className="flex items-center justify-center min-h-screen p-4">
-        <form className="w-full max-w-md bg-white p-8 rounded-md shadow flex flex-col gap-8">
+        <form className="w-full max-w-4xl bg-white p-8 rounded-md shadow flex flex-col gap-8">
           <h2 className="text-base/7 font-semibold text-gray-900 text-center">
             Personal Information
           </h2>
@@ -13,7 +16,7 @@ export default function Register() {
           <div>
             <label
               htmlFor="username"
-              className="block text-sm/6 font-medium text-gray-900"
+              className="block text-lg/6 font-medium text-gray-900"
             >
               username
             </label>
@@ -30,7 +33,7 @@ export default function Register() {
           <div>
             <label
               htmlFor="gender"
-              className="block text-sm/6 font-medium text-gray-900"
+              className="block text-lg/6 font-medium text-gray-900"
             >
               Gender
             </label>
@@ -63,7 +66,7 @@ export default function Register() {
           <div>
             <label
               htmlFor="email"
-              className="block text-sm/6 font-medium text-gray-900"
+              className="block text-lg/6 font-medium text-gray-900"
             >
               email
             </label>
@@ -79,7 +82,7 @@ export default function Register() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm/6 font-medium text-gray-900"
+              className="block text-lg/6 font-medium text-gray-900"
             >
               password
             </label>
@@ -95,7 +98,7 @@ export default function Register() {
           <div>
             <label
               htmlFor="confirmPassword"
-              className="block text-sm/6 font-medium text-gray-900"
+              className="block text-lg/6 font-medium text-gray-900"
             >
               confirm password
             </label>
@@ -109,18 +112,22 @@ export default function Register() {
 
           {/* ボタン */}
           <div className="flex items-center justify-end gap-4">
-            <button
-              type="button"
-              className="text-sm/6 font-semibold text-gray-900"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="rounded-md bg-emerald-700 px-3 py-2 text-sm font-semibold text-white hover:bg-emerald-900"
-            >
-              Save
-            </button>
+            <Link href="/">
+              <button
+                type="button"
+                className="border border-emerald-700 text-emerald-800 px-6 py-2 rounded hover:bg-emerald-900 hover:text-white transition duration-200"
+              >
+                Cancel
+              </button>
+            </Link>
+            <Link href="/nextpage">
+              <button
+                type="button"
+                className="bg-emerald-700 text-white px-6 py-2 rounded shadow hover:bg-emerald-900 transition duration-200"
+              >
+                次へ
+              </button>
+            </Link>
           </div>
         </form>
       </div>
