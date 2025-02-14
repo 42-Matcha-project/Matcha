@@ -9,16 +9,16 @@ export default function Register() {
       <div className="flex items-center justify-center min-h-screen p-4">
         <form className="w-full max-w-4xl bg-white p-8 rounded-md shadow flex flex-col gap-8">
           <h2 className="text-base/7 font-semibold text-gray-900 text-center">
-            Personal Information
+            プロフィール情報
           </h2>
 
-          {/* username */}
+          {/* ユーザー名 */}
           <div>
             <label
               htmlFor="username"
               className="block text-lg/6 font-medium text-gray-900"
             >
-              username
+              名前
             </label>
             <input
               id="username"
@@ -29,13 +29,31 @@ export default function Register() {
             />
           </div>
 
-          {/* gender */}
+          {/* ニックネーム */}
+          <div>
+            <label
+              htmlFor="nickname"
+              className="block text-lg/6 font-medium text-gray-900"
+            >
+              ニックネーム（アプリ内で表示される名前）
+            </label>
+            <input
+              id="nickname"
+              name="nickname"
+              type="text"
+              autoComplete="given-name"
+              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-indigo-600"
+              placeholder="例）太郎、あき、みっちゃんなど"
+            />
+          </div>
+
+          {/* 性別 */}
           <div>
             <label
               htmlFor="gender"
               className="block text-lg/6 font-medium text-gray-900"
             >
-              Gender
+              性別
             </label>
             <div className="mt-1 flex items-center gap-4">
               <label className="inline-flex items-center gap-2 cursor-pointer">
@@ -46,7 +64,7 @@ export default function Register() {
                   value="male"
                   className="h-4 w-4 text-indigo-600"
                 />
-                <span className="text-gray-700">Male</span>
+                <span className="text-gray-700">男性</span>
               </label>
 
               <label className="inline-flex items-center gap-2 cursor-pointer">
@@ -57,18 +75,18 @@ export default function Register() {
                   value="female"
                   className="h-4 w-4 text-indigo-600"
                 />
-                <span className="text-gray-700">Female</span>
+                <span className="text-gray-700">女性</span>
               </label>
             </div>
           </div>
 
-          {/* email */}
+          {/* メールアドレス */}
           <div>
             <label
               htmlFor="email"
               className="block text-lg/6 font-medium text-gray-900"
             >
-              email
+              メールアドレス
             </label>
             <input
               id="email"
@@ -78,13 +96,13 @@ export default function Register() {
             />
           </div>
 
-          {/* password */}
+          {/* パスワード */}
           <div>
             <label
               htmlFor="password"
               className="block text-lg/6 font-medium text-gray-900"
             >
-              password
+              パスワード
             </label>
             <input
               id="password"
@@ -94,13 +112,13 @@ export default function Register() {
             />
           </div>
 
-          {/* confirm password */}
+          {/* パスワード確認 */}
           <div>
             <label
               htmlFor="confirmPassword"
               className="block text-lg/6 font-medium text-gray-900"
             >
-              confirm password
+              パスワード確認
             </label>
             <input
               id="confirmPassword"
@@ -117,7 +135,7 @@ export default function Register() {
                 type="button"
                 className="border border-emerald-700 text-emerald-800 px-6 py-2 rounded hover:bg-emerald-900 hover:text-white transition duration-200"
               >
-                Cancel
+                キャンセル
               </button>
             </Link>
             <Link href="/nextpage">
