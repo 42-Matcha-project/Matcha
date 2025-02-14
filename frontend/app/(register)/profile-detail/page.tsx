@@ -188,7 +188,7 @@ export default function ProfileDetails() {
                 戻る
               </button>
             </Link>
-            <Link href="/nextpage">
+            <Link href="/affiliations-filter">
               <button
                 type="button"
                 className="bg-emerald-700 text-white px-6 py-2 rounded shadow hover:bg-emerald-900 transition duration-200"
