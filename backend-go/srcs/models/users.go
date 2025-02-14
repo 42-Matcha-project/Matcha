@@ -99,6 +99,30 @@ func FetchUserAndGenerateJWTTokenString(username string, email string, password 
 	return jwtTokenString, nil
 }
 
+func GetUserInfo(reqContext *gin.Context) {
+	/*
+		ユーザーの情報を取得する関数。
+	*/
+	userId, err := token.ExtractUserIdFromRequest(reqContext)
+	if err != nil {
+		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to get user id from token"})
+		reqContext.Error(err)
+		return
+	}
+
+	user := &TUser{}
+	err = DB.First(&user, userId).Error
+	if err != nil {
+		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.Error(err)
+		return
+	}
+
+	reqContext.JSON(http.StatusOK, gin.H{
+		"user": user.PrepareOutput(),
+	})
+}
+
 type ChangeUserInfoInput struct {
 	/*
 		登録時にリクエストからJSONデータを抽出するための構造体。
@@ -140,28 +164,63 @@ func ChangeUserInfo(reqContext *gin.Context) {
 	*/
 	userId, err := token.ExtractUserIdFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to get user id from token"})
+		reqContext.Error(err)
 		return
 	}
 
 	user := &TUser{}
 	err = DB.First(&user, userId).Error
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": err.Error()})
+		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.Error(err)
 		return
 	}
 
 	var changeUserInfoInput ChangeUserInfoInput
 	if err := reqContext.ShouldBindJSON(&changeUserInfoInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.Error(err)
 		return
 	}
 	if err := user.UpdateUser(changeUserInfoInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update user"})
+		reqContext.Error(err)
 		return
 	}
 
 	reqContext.JSON(http.StatusOK, gin.H{
 		"data": user.PrepareOutput(),
+	})
+}
+
+func DeleteUser(reqContext *gin.Context) {
+	/*
+		DBからユーザーを削除する関数。
+	*/
+	userId, err := token.ExtractUserIdFromRequest(reqContext)
+	if err != nil {
+		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to get user id from token"})
+		reqContext.Error(err)
+		return
+	}
+
+	user := &TUser{}
+	err = DB.First(&user, userId).Error
+	if err != nil {
+		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.Error(err)
+		return
+	}
+
+	err = DB.Delete(user).Error
+	if err != nil {
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
+		reqContext.Error(err)
+		return
+	}
+
+	reqContext.JSON(http.StatusOK, gin.H{
+		"status": "success",
 	})
 }
