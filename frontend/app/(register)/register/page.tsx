@@ -67,7 +67,7 @@ export default function Register() {
               autoComplete="nickname"
               required
               placeholder="例）太郎、あき、みっちゃんなど"
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900 border border-gray-300"
+              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
           </div>
 
@@ -87,9 +87,11 @@ export default function Register() {
                   name="gender"
                   value="male"
                   required
-                  className="h-4 w-4 text-indigo-600"
+                  className="peer h-4 w-4 appearance-none rounded-full border border-gray-300 bg-white checked:bg-green-800 focus:outline-none"
                 />
-                <span className="text-gray-700">男性</span>
+                <span className="text-gray-700 peer-checked:text-green-900">
+                  男性
+                </span>
               </label>
               <label className="inline-flex items-center gap-2 cursor-pointer">
                 <input
@@ -98,9 +100,11 @@ export default function Register() {
                   name="gender"
                   value="female"
                   required
-                  className="h-4 w-4 text-indigo-600"
+                  className="peer h-4 w-4 appearance-none rounded-full border border-gray-300 bg-white checked:bg-green-800 focus:outline-none"
                 />
-                <span className="text-gray-700">女性</span>
+                <span className="text-gray-700 peer-checked:text-green-900">
+                  女性
+                </span>
               </label>
             </div>
           </div>
@@ -118,7 +122,7 @@ export default function Register() {
               name="email"
               type="email"
               required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900 border border-gray-300"
+              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
           </div>
 
@@ -135,7 +139,7 @@ export default function Register() {
               name="password"
               type="password"
               required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900 border border-gray-300"
+              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
           </div>
 
@@ -152,7 +156,7 @@ export default function Register() {
               name="confirmPassword"
               type="password"
               required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900 border border-gray-300"
+              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
           </div>
 
