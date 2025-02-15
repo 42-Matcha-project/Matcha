@@ -29,18 +29,24 @@ export default function Register() {
           <div>
             <label
               htmlFor="username"
-              className="block text-lg/6 font-medium text-gray-900"
+              className="block text-lg font-medium text-gray-900"
             >
-              名前
+              ユーザー名
             </label>
-            <input
-              id="username"
-              name="username"
-              type="text"
-              autoComplete="given-name"
-              required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-indigo-600"
-            />
+            <div className="mt-1 flex shadow-sm">
+              <span className="inline-flex items-center px-3 rounded-l-md border border-gray-300 bg-gray-50 text-gray-500">
+                @
+              </span>
+              <input
+                id="username"
+                name="username"
+                type="text"
+                autoComplete="given-name"
+                required
+                placeholder="例）taro123、akiko、michanなど"
+                className="flex-1 block w-full rounded-none rounded-r-md border border-gray-300 bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900"
+              />
+            </div>
           </div>
 
           {/* ニックネーム */}
@@ -49,7 +55,10 @@ export default function Register() {
               htmlFor="nickname"
               className="block text-lg/6 font-medium text-gray-900"
             >
-              ニックネーム（アプリ内で表示される名前）
+              ニックネーム
+              <p className="mt-1 text-sm text-gray-600">
+                他のユーザーに表示される名前になります
+              </p>
             </label>
             <input
               id="nickname"
@@ -58,7 +67,7 @@ export default function Register() {
               autoComplete="nickname"
               required
               placeholder="例）太郎、あき、みっちゃんなど"
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-indigo-600"
+              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900 border border-gray-300"
             />
           </div>
 
@@ -109,7 +118,7 @@ export default function Register() {
               name="email"
               type="email"
               required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-indigo-600"
+              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900 border border-gray-300"
             />
           </div>
 
@@ -126,7 +135,7 @@ export default function Register() {
               name="password"
               type="password"
               required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-indigo-600"
+              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900 border border-gray-300"
             />
           </div>
 
@@ -143,7 +152,7 @@ export default function Register() {
               name="confirmPassword"
               type="password"
               required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-indigo-600"
+              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900 border border-gray-300"
             />
           </div>
 
