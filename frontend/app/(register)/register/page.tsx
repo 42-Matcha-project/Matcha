@@ -57,7 +57,7 @@ export default function Register() {
             >
               ニックネーム
               <p className="mt-1 text-sm text-gray-600">
-                他のユーザーに表示される名前になります
+                他のユーザーさんに表示されるあなたの名前です。
               </p>
             </label>
             <input

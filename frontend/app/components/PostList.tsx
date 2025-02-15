@@ -77,6 +77,8 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
                   <Image
                     src={user.iconImageUrl}
                     alt={`${user.username}`}
+                    width={40}
+                    height={40}
                     className="w-10 h-10 rounded-full mr-4 object-cover"
                   />
                   <h4 className="font-bold">{user.username}</h4>
@@ -86,6 +88,8 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
                     <Image
                       src="/images/setting.png"
                       alt="設定アイコン"
+                      width={20}
+                      height={20}
                       className="w-5 h-5"
                     />
                   </button>
@@ -116,6 +120,8 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
                   <Image
                     src="/images/mail.png"
                     alt="メールアイコン"
+                    width={20}
+                    height={20}
                     className="w-8 h-8 mr-5 ml-3"
                   />
                 </button>
