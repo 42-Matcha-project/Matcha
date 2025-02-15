@@ -80,49 +80,52 @@ export default function ProfileDetails() {
             >
               好み
             </label>
+            <p className="mt-1 text-sm/6 text-gray-600">
+              あなたが理想とする相手のタイプや、求める特徴を教えてください。
+            </p>
             <div className="mt-2">
               <textarea
                 id="preference"
                 name="preference"
-                placeholder="例）動物が好きな人、お酒が好きな人、映画鑑賞が好きな人"
+                placeholder="例）優しい人、メガネをかけている人、音楽が好きな人など"
                 rows={3}
-                className="block w-full rounded-md bg-gray-100 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                className="block w-full rounded-md bg-gray-100 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6 focus:outline-green-900 border border-gray-300"
                 defaultValue={""}
               />
             </div>
-            <p className="mt-3 text-sm/6 text-gray-600">
-              好みを記入してください。
-            </p>
           </div>
 
           {/* 自己紹介 */}
           <div className="col-span-full">
             <label
-              htmlFor="about you"
+              htmlFor="about-you"
               className="block text-lg/6 font-medium text-gray-900"
             >
               自己紹介
             </label>
+            <p className="mt-1 text-sm/6 text-gray-600">
+              あなたの好きなことやこだわりを教えてください。
+            </p>
             <div className="mt-2">
               <textarea
-                id="about you"
-                name="about you"
+                id="about-you"
+                name="about-you"
                 placeholder="例）ねこが大好きで、休みの日はよく猫カフェに行きます。動物が好きな人と出会えたら嬉しいです！"
                 rows={3}
-                className="block w-full rounded-md bg-gray-100 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6"
+                className="block w-full rounded-md bg-gray-100 px-3 py-1.5 text-base text-gray-900 border border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-green-900 focus:-outline-offset-2 outline-gray-300"
                 defaultValue={""}
               />
             </div>
-            <p className="mt-3 text-sm/6 text-gray-600">
-              自己紹介文を数行記入してください。
-            </p>
           </div>
 
           {/* タグ選択 */}
           <div className="col-span-full">
             <label className="block text-lg/6 font-medium text-gray-900">
-              興味のあるタグ
+              趣味・興味
             </label>
+            <p className="mt-1 text-sm/6 text-gray-600">
+              興味のあるタグを選んでください（例：スポーツ、動物、映画など）
+            </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {availableTags.map((tag) => (
                 <button
@@ -131,17 +134,14 @@ export default function ProfileDetails() {
                   onClick={() => handleTagClick(tag)}
                   className={`px-3 py-1 rounded-full border transition-all ${
                     selectedTags.includes(tag)
-                      ? "bg-emerald-700 text-white border-emerald-700"
-                      : "bg-white text-gray-900 border-gray-300"
+                      ? "bg-emerald-700 text-white border-emerald-700 hover:bg-emerald-600"
+                      : "bg-white text-gray-900 border-gray-300 hover:bg-emerald-600"
                   }`}
                 >
                   {tag}
                 </button>
               ))}
             </div>
-            <p className="mt-3 text-sm/6 text-gray-600">
-              興味のあるタグを選んでください（例：スポーツ、動物、映画など）
-            </p>
           </div>
 
           {/* 写真アップロード */}
@@ -155,7 +155,7 @@ export default function ProfileDetails() {
             <button
               type="button"
               onClick={handleButtonClick}
-              className="rounded-md bg-emerald-700 text-white px-4 py-2"
+              className="rounded-md bg-emerald-700 text-white px-4 py-2 hover:bg-emerald-900 transition duration-200"
             >
               ファイルを選択
             </button>
@@ -168,8 +168,13 @@ export default function ProfileDetails() {
               multiple
               className="hidden"
             />
-            <p className="mt-3 text-sm/6 text-gray-600">
+            <p className="mt-2 text-sm text-gray-600">
               写真は最大5枚までアップロードしてください。
+              <br />
+            </p>
+            <p className="mt-1 text-sm font-bold text-yellow-800 bg-yellow-50 p-2 rounded border border-yellow-300">
+              ※
+              アップロードされた最初の画像が、プロフィール一覧のサムネイルとして表示されます。
             </p>
 
             {/* エラーメッセージ表示 */}
