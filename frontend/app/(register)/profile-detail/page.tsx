@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import Layout from "../../components/Layout";
 import Link from "next/link";
 import { useRef, useState, ChangeEvent } from "react";
@@ -181,7 +182,7 @@ export default function ProfileDetails() {
               {Array.from({ length: 5 }).map((_, index) => {
                 const url = previewUrls[index];
                 return url ? (
-                  <img
+                  <Image
                     key={index}
                     src={url}
                     alt={`プレビュー ${index + 1}`}

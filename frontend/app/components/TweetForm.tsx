@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { User } from "@/app/timeline/types";
+import Image from "next/image";
 
 interface TweetFormProps {
   onAddTweet: (tweet: string) => void;
@@ -41,7 +42,7 @@ const TweetForm: React.FC<TweetFormProps> = ({ onAddTweet, currentUser }) => {
       <div className={containerClass}>
         <form onSubmit={handleSubmit} className="p-2 border-b border-gray-200">
           <div className="flex items-center space-x-3">
-            <img
+            <Image
               src={currentUser.iconImageUrl}
               alt={`${currentUser.username}`}
               className="w-10 h-10 rounded-full object-cover"
