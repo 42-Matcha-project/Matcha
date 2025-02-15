@@ -124,7 +124,7 @@ export default function ProfileDetails() {
               趣味・興味
             </label>
             <p className="mt-1 text-sm/6 text-gray-600">
-              興味のあるタグを選んでください（例：スポーツ、動物、映画など）
+              興味のあるタグを選んでください。 (複数選択可)
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {availableTags.map((tag) => (
@@ -174,7 +174,11 @@ export default function ProfileDetails() {
             </p>
             <p className="mt-1 text-sm font-bold text-yellow-800 bg-yellow-50 p-2 rounded border border-yellow-300">
               ※
-              アップロードされた最初の画像が、プロフィール一覧のサムネイルとして表示されます。
+              1枚目の画像は、他のユーザーさんにあなたの顔写真として最初に見られる大切なものになります。
+              <br />
+              そのため、できればお顔がはっきり写ったものをおすすめします。
+              <br />
+              残りの4枚は、趣味の写真など、あなたらしさが伝わるお気に入りの写真をどうぞお選びください。
             </p>
 
             {/* エラーメッセージ表示 */}
@@ -191,6 +195,8 @@ export default function ProfileDetails() {
                     key={index}
                     src={url}
                     alt={`プレビュー ${index + 1}`}
+                    width={128}
+                    height={128}
                     className="w-32 h-32 object-cover rounded-md"
                   />
                 ) : (
