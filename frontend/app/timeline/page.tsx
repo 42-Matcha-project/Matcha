@@ -1,11 +1,11 @@
 "use client";
 
-import React, { useContext, useEffect, useState, useCallback } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import { SidebarContext } from "../contexts/SidebarContext";
 import TweetForm from "../components/TweetForm";
 import PostList from "../components/PostList";
-import { User, Post } from "./types";
+import { Post } from "./types";
 import { users, initialPosts } from "./data";
 import Layout from "../components/Layout";
 
