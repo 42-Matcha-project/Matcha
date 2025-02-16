@@ -16,7 +16,8 @@ func JWTValidationMiddleware() gin.HandlerFunc {
 	return func(reqContext *gin.Context) {
 		err := token.ValidateJWTToken(reqContext)
 		if err != nil {
-			reqContext.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			reqContext.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to validate JWT"})
+			reqContext.Error(err)
 			reqContext.Abort()
 			return
 		}
