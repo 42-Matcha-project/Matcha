@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net/http"
 	"srcs/auth"
 	"srcs/middlewares"
 	"srcs/models"
@@ -15,6 +16,12 @@ func main() {
 	models.ConnectDataBase()
 
 	router := gin.Default()
+
+	router.GET("/health", func(reqContext *gin.Context) {
+		reqContext.JSON(http.StatusOK, gin.H{
+			"status": "OK",
+		})
+	})
 
 	authRoutes := router.Group("/auth")
 	authRoutes.POST("/register", auth.RegisterUser)

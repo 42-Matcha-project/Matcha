@@ -220,7 +220,5 @@ func DeleteUser(reqContext *gin.Context) {
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{
-		"status": "success",
-	})
+	reqContext.Status(http.StatusOK)
 }
