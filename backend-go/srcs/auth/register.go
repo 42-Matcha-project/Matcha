@@ -53,6 +53,6 @@ func RegisterUser(reqContext *gin.Context) {
 	}
 
 	reqContext.JSON(http.StatusOK, gin.H{
-		"user_data": registerUser.PrepareOutput(),
+		"user": registerUser.PrepareOutput(),
 	})
 }
