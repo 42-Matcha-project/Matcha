@@ -157,7 +157,7 @@ export default function ProfileDetails() {
               onClick={handleButtonClick}
               className="rounded-md bg-emerald-700 text-white px-4 py-2 hover:bg-emerald-900 transition duration-200"
             >
-              ファイルを選択
+              ファイル選択
             </button>
             <input
               type="file"

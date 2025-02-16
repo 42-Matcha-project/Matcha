@@ -2,16 +2,53 @@
 
 import { useRouter } from "next/navigation";
 import Layout from "../../components/Layout";
+import { useRef, useState, ChangeEvent } from "react";
+import Image from "next/image";
 
 export default function Register() {
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // ここでカスタムバリデーションが必要なら実施
-    // 例: 各必須項目が正しく入力されているかなど
-    // バリデーションが通った場合のみ次のページへ遷移
+    // 必要ならバリデーション等の処理を追加
     router.push("/profile-detail");
+  };
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [previewUrl, setPreviewUrl] = useState<string>("");
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [fileError, setFileError] = useState<string>("");
+
+  const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
+
+    // 複数ファイル選択された場合はエラー表示
+    if (files.length > 1) {
+      setFileError("ファイルは一つのみアップロード可能です。");
+      e.target.value = "";
+      return;
+    }
+
+    setFileError("");
+    const file = files[0];
+
+    // ファイルのプレビュー表示用にFileReaderを使用
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      if (reader.result) {
+        setPreviewUrl(reader.result as string);
+      }
+    };
+    reader.readAsDataURL(file);
+    setUploadedFile(file);
+
+    // inputの値をリセット
+    e.target.value = "";
+  };
+
+  const handleButtonClick = () => {
+    fileInputRef.current?.click();
   };
 
   return (
@@ -21,7 +58,7 @@ export default function Register() {
           onSubmit={handleSubmit}
           className="w-full max-w-4xl bg-white p-8 rounded-md shadow flex flex-col gap-8"
         >
-          <h2 className="text-base/7 font-semibold text-gray-900 text-center">
+          <h2 className="text-base font-semibold text-gray-900 text-center">
             プロフィール情報
           </h2>
 
@@ -53,7 +90,7 @@ export default function Register() {
           <div>
             <label
               htmlFor="nickname"
-              className="block text-lg/6 font-medium text-gray-900"
+              className="block text-lg font-medium text-gray-900"
             >
               ニックネーム
               <p className="mt-1 text-sm text-gray-600">
@@ -71,11 +108,61 @@ export default function Register() {
             />
           </div>
 
+          {/* アイコン */}
+          <div>
+            <label
+              htmlFor="photo"
+              className="block text-lg font-medium text-gray-900"
+            >
+              アイコン
+              <p className="m-1 text-sm text-gray-600">
+                いつでも画像を変更できます。
+              </p>
+            </label>
+            <button
+              type="button"
+              onClick={handleButtonClick}
+              className="rounded-md bg-emerald-700 text-white px-5 py-1 hover:bg-emerald-900 transition duration-200"
+            >
+              ファイル選択
+            </button>
+            <input
+              type="file"
+              id="photo"
+              ref={fileInputRef}
+              onChange={handleFilesChange}
+              accept="image/*"
+              className="hidden"
+            />
+
+            {/* エラーメッセージ表示 */}
+            {fileError && (
+              <p className="mt-2 text-sm text-red-600">{fileError}</p>
+            )}
+
+            {/* プレビュー表示 */}
+            <div className="mt-4 flex gap-4">
+              {previewUrl ? (
+                <Image
+                  src={previewUrl}
+                  alt="プレビュー"
+                  width={128}
+                  height={128}
+                  className="w-32 h-32 object-cover rounded-md"
+                />
+              ) : (
+                <div className="w-32 h-32 border border-dashed border-gray-400 flex items-center justify-center rounded-full">
+                  <span className="text-sm text-gray-500">画像なし</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* 性別 */}
           <div>
             <label
               htmlFor="gender"
-              className="block text-lg/6 font-medium text-gray-900"
+              className="block text-lg font-medium text-gray-900"
             >
               性別
             </label>
@@ -113,7 +200,7 @@ export default function Register() {
           <div>
             <label
               htmlFor="email"
-              className="block text-lg/6 font-medium text-gray-900"
+              className="block text-lg font-medium text-gray-900"
             >
               メールアドレス
             </label>
