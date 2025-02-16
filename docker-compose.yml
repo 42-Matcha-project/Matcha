@@ -10,6 +10,12 @@ services:
     tty: true
     depends_on:
       - db-mysql
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
 
   db-mysql:
     build:
@@ -24,3 +30,9 @@ services:
       - ./db-mysql/logs:/var/log/mysql
     env_file:
       - .env
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
