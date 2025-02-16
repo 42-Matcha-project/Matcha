@@ -49,7 +49,7 @@ jobs:
         run: npm install -g newman
 
       - name: Test API
-        run: newman run ./postman/postman_collection.json --reporters cli,junit --reporter-junit-export results.xml
+        run: newman run ./postman/user.json --reporters cli,junit --reporter-junit-export results.xml
 
       - name: Stop app
         run: docker compose down -v
