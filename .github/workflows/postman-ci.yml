@@ -32,7 +32,13 @@ jobs:
           echo "BACKEND_USER_URL=${{ secrets.BACKEND_USER_URL }}" >> .env
 
       - name: Start app
-        run: docker compose up --build -d
+        run: |
+          docker compose up --build -d
+          until docker compose ps | grep -q "healthy"; do
+            echo "Waiting for services to be healthy..."
+            sleep 5
+          done
+          echo "Services are up and running."
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
