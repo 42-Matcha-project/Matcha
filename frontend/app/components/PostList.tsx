@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { User, Post } from "../timeline/types";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface PostListProps {
   users: User[];
@@ -10,11 +11,11 @@ interface PostListProps {
 }
 
 const options = {
-  year: "numeric",
-  month: "2-digit",
-  day: "2-digit",
-  hour: "2-digit",
-  minute: "2-digit",
+  year: "numeric" as const,
+  month: "2-digit" as const,
+  day: "2-digit" as const,
+  hour: "2-digit" as const,
+  minute: "2-digit" as const,
 };
 
 const PostList: React.FC<PostListProps> = ({ posts, users }) => {
@@ -30,9 +31,8 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
     }));
   };
 
-  const handleMessage = (userId: number) => {
-    // router.push(`/messages/${userId}`);
-    router.push(`/messages`);
+  const handleMessage = () => {
+    router.push(`/messages/${users[0].id}`);
   };
 
   const handleDelete = (postId: number) => {
@@ -74,18 +74,22 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
             <div className="flex flex-col">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center">
-                  <img
+                  <Image
                     src={user.iconImageUrl}
                     alt={`${user.username}`}
+                    width={40}
+                    height={40}
                     className="w-10 h-10 rounded-full mr-4 object-cover"
                   />
                   <h4 className="font-bold">{user.username}</h4>
                 </div>
                 <div className="relative">
                   <button onClick={() => toggleMenu(post.id)}>
-                    <img
+                    <Image
                       src="/images/setting.png"
                       alt="設定アイコン"
+                      width={20}
+                      height={20}
                       className="w-5 h-5"
                     />
                   </button>
@@ -112,10 +116,12 @@ const PostList: React.FC<PostListProps> = ({ posts, users }) => {
               </div>
               <p className="mb-2">{post.content}</p>
               <div className="flex items-center">
-                <button onClick={() => handleMessage(user.id)}>
-                  <img
+                <button onClick={() => handleMessage()}>
+                  <Image
                     src="/images/mail.png"
                     alt="メールアイコン"
+                    width={20}
+                    height={20}
                     className="w-8 h-8 mr-5 ml-3"
                   />
                 </button>
