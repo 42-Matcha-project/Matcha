@@ -1,0 +1,32 @@
+name: API Test with Postman & Newman
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Start app
+        uses: docker compose up --build -d
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Newman
+        run: npm install -g newman
+
+      - name: Test API
+        run: newman run ./postman_collection.json --reporters cli,junit --reporter-junit-export results.xml
+
+      - name: Stop app
+        run: docker compose down -v
