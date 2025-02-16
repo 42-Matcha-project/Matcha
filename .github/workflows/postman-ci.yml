@@ -14,6 +14,23 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Create .env file from secrets
+        run: |
+          echo "TIME_ZONE=${{ secrets.TIME_ZONE }}" > .env
+          echo "JWT_TOKEN_LIFE_SPAN=${{ secrets.JWT_TOKEN_LIFE_SPAN }}" >> .env
+          echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+          echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+          echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+          echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+          echo "DATABASE_NAME=${{ secrets.DATABASE_NAME }}" >> .env
+          echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> .env
+          echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> .env
+          echo "BACKEND_AUTH_GROUP=${{ secrets.BACKEND_AUTH_GROUP }}" >> .env
+          echo "BACKEND_REGISTER_URL=${{ secrets.BACKEND_REGISTER_URL }}" >> .env
+          echo "BACKEND_LOGIN_URL=${{ secrets.BACKEND_LOGIN_URL }}" >> .env
+          echo "BACKEND_SETTINGS_GROUP=${{ secrets.BACKEND_SETTINGS_GROUP }}" >> .env
+          echo "BACKEND_USER_URL=${{ secrets.BACKEND_USER_URL }}" >> .env
+
       - name: Start app
         run: docker compose up --build -d
 
