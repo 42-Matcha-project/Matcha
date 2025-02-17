@@ -173,15 +173,15 @@ Ref: t_users.id < t_user_pictures.user_id
 
 
 /*
-  userとtag
+  userとinteresttag
 */
-Table t_user_tags {
+Table t_user_interest_tags {
   id integer [primary key]
   user_id integer // 外部キー
   tag_id integer // 外部キー
 }
 
-Table t_tags {
+Table t_interest_tags {
   id integer [primary key]
   name varchar(20)
 }
