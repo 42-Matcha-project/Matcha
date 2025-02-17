@@ -25,13 +25,15 @@ Table user_reports {
 
 Table reports {
   id integer [primary key]
+  post_id integer
+  to_user_id integer
   kind enum('violence')// 後々追加
   text varchar(200)
 }
 
 Ref: users.id < user_reports.user_id
 Ref: reports.id < user_reports.report_id
-
+Ref: users.id < reports.to_user_id
 
 /*
   userとopinion
