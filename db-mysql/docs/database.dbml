@@ -10,6 +10,7 @@ Table t_users {
   gender enum('male', 'female')
   introduction varchar(100)
   icon_image_url varchar(255)
+  sexual_preference varchar(200)
   created_at timestamp
   updated_at timestamp
 }
@@ -188,25 +189,6 @@ Table t_interest_tags {
 
 Ref: t_users.id < t_user_tags.user_id
 Ref: t_tags.id < t_user_tags.tag_id
-
-
-/*
-  userとsexual_preferences
-*/
-Table t_user_sexual_preferences {
-  id integer [primary key]
-  user_id integer
-  sexual_preference_id integer
-}
-
-Table t_sexual_preferences {
-  id integer [primary key]
-  name varchar(20)
-}
-
-Ref: t_users.id < t_user_sexual_preferences.user_id
-Ref: t_sexual_preferences.id < t_user_sexual_preferences.sexual_preference_id
-
 
 /*
   今日の格言
