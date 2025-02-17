@@ -18,20 +18,11 @@ export default function Register() {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [previewUrls, setPreviewUrl] = useState<string[]>([]);
-  const [fileError, setFileError] = useState<string>("");
 
   const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
 
-    // 複数ファイル選択された場合はエラー表示
-    if (files.length > 1) {
-      setFileError("ファイルは一つのみアップロード可能です。");
-      e.target.value = "";
-      return;
-    }
-
-    setFileError("");
     const file = files[0];
 
     // ファイルのプレビュー表示用にFileReaderを使用
@@ -98,42 +89,28 @@ export default function Register() {
 
           {/* アイコン */}
           <div>
-            <label
+            <FormField
+              label="アイコン"
               htmlFor="photo"
-              className="block text-lg font-medium text-gray-900"
+              description="いつでも画像を変更できます。"
             >
-              アイコン
-              <p className="m-1 text-sm text-gray-600">
-                いつでも画像を変更できます。
-              </p>
-            </label>
-            <FileInputButton onClick={handleButtonClick} />
-            <input
-              type="file"
-              id="photo"
-              ref={fileInputRef}
-              onChange={handleFilesChange}
-              accept="image/*"
-              className="hidden"
-            />
-
-            {/* エラーメッセージ表示 */}
-            {fileError && (
-              <p className="mt-2 text-sm text-red-600">{fileError}</p>
-            )}
+              <FileInputButton onClick={handleButtonClick} />
+              <input
+                type="file"
+                id="photo"
+                ref={fileInputRef}
+                onChange={handleFilesChange}
+                accept="image/*"
+                className="hidden"
+              />
+            </FormField>
 
             {/* プレビュー表示 */}
             <ImagePreview previewUrls={previewUrls} maxFiles={1} />
           </div>
 
           {/* 性別 */}
-          <div>
-            <label
-              htmlFor="gender"
-              className="block text-lg font-medium text-gray-900"
-            >
-              性別
-            </label>
+          <FormField label="性別" htmlFor="">
             <div className="mt-1 flex items-center gap-4">
               <label className="inline-flex items-center gap-2 cursor-pointer">
                 <input
@@ -162,7 +139,7 @@ export default function Register() {
                 </span>
               </label>
             </div>
-          </div>
+          </FormField>
 
           {/* メールアドレス */}
           <FormField label="メールアドレス" htmlFor="email">

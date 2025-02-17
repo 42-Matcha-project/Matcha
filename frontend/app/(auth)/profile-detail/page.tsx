@@ -107,10 +107,7 @@ export default function ProfileDetails() {
           </FormField>
 
           {/* タグ選択 */}
-          <div className="col-span-full">
-            <label className="block text-lg/6 font-medium text-gray-900">
-              趣味・興味
-            </label>
+          <FormField label="趣味・興味" htmlFor="">
             <p className="mt-1 text-sm/6 text-gray-600">
               興味のあるタグを選んでください。 (複数選択可)
             </p>
@@ -130,43 +127,38 @@ export default function ProfileDetails() {
                 </button>
               ))}
             </div>
-          </div>
+          </FormField>
 
           {/* 写真アップロード */}
           <div>
-            <label
-              htmlFor="photos"
-              className="block text-lg/9 font-medium text-gray-900"
-            >
-              あなたの写真
-            </label>
-            <FileInputButton onClick={handleButtonClick} />
-            <input
-              type="file"
-              id="photos"
-              ref={fileInputRef}
-              onChange={handleFilesChange}
-              accept="image/*"
-              multiple
-              className="hidden"
-            />
-            <p className="mt-2 text-sm text-gray-600">
-              写真は最大5枚までアップロードしてください。
-              <br />
-            </p>
-            <p className="mt-1 text-sm font-bold text-yellow-800 bg-yellow-50 p-2 rounded border border-yellow-300">
-              ※
-              1枚目の画像は、他のユーザーさんにあなたの顔写真として最初に見られる大切なものになります。
-              <br />
-              そのため、できればお顔がはっきり写ったものをおすすめします。
-              <br />
-              残りの4枚は、趣味の写真など、あなたらしさが伝わるお気に入りの写真をどうぞお選びください。
-            </p>
-
-            {/* エラーメッセージ表示 */}
-            {fileError && (
-              <p className="mt-2 text-sm text-red-600">{fileError}</p>
-            )}
+            <FormField label="あなたの写真" htmlFor="photos">
+              <FileInputButton onClick={handleButtonClick} />
+              <input
+                type="file"
+                id="photos"
+                ref={fileInputRef}
+                onChange={handleFilesChange}
+                accept="image/*"
+                multiple
+                className="hidden"
+              />
+              <p className="mt-2 text-sm text-gray-600">
+                写真は最大5枚までアップロードしてください。
+                <br />
+              </p>
+              <p className="mt-1 text-sm font-bold text-yellow-800 bg-yellow-50 p-2 rounded border border-yellow-300">
+                ※
+                1枚目の画像は、他のユーザーさんにあなたの顔写真として最初に見られる大切なものになります。
+                <br />
+                そのため、できればお顔がはっきり写ったものをおすすめします。
+                <br />
+                残りの4枚は、趣味の写真など、あなたらしさが伝わるお気に入りの写真をどうぞお選びください。
+              </p>
+              {/* エラーメッセージ表示 */}
+              {fileError && (
+                <p className="mt-2 text-sm text-red-600">{fileError}</p>
+              )}
+            </FormField>
 
             {/* プレビュー表示 */}
             <ImagePreview previewUrls={previewUrls} maxFiles={5} />
