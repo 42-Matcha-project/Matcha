@@ -6,6 +6,7 @@ import { useRef, useState, ChangeEvent } from "react";
 import FileInputButton from "@/app/components/ FileInputButton";
 import ImagePreview from "@/app/components/ImagePreview";
 import Button from "@/app/components/Button";
+import FormField from "@/app/components/FormField";
 
 export default function ProfileDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -75,50 +76,35 @@ export default function ProfileDetails() {
           </h2>
 
           {/* 好み */}
-          <div className="col-span-full">
-            <label
-              htmlFor="preference"
-              className="block text-lg/6 font-medium text-gray-900"
-            >
-              好み
-            </label>
-            <p className="mt-1 text-sm/6 text-gray-600">
-              あなたが理想とする相手のタイプや、求める特徴を教えてください。
-            </p>
-            <div className="mt-2">
-              <textarea
-                id="preference"
-                name="preference"
-                placeholder="例）優しい人、メガネをかけている人、音楽が好きな人など"
-                rows={3}
-                className="block w-full rounded-md bg-gray-100 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6 focus:outline-green-900 border border-gray-300"
-                defaultValue={""}
-              />
-            </div>
-          </div>
+          <FormField
+            label="好み"
+            htmlFor="preference"
+            description="あなたが理想とする相手のタイプや、求める特徴を教えてください。"
+          >
+            <textarea
+              id="preference"
+              name="preference"
+              placeholder="例）優しい人、メガネをかけている人、音楽が好きな人など"
+              rows={3}
+              className="block w-full rounded-md bg-gray-100 px-3 py-1.5 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 sm:text-sm/6 focus:outline-green-900 border border-gray-300"
+              defaultValue={""}
+            />
+          </FormField>
 
           {/* 自己紹介 */}
-          <div className="col-span-full">
-            <label
-              htmlFor="about-you"
-              className="block text-lg/6 font-medium text-gray-900"
-            >
-              自己紹介
-            </label>
-            <p className="mt-1 text-sm/6 text-gray-600">
-              あなたの好きなことやこだわりを教えてください。
-            </p>
-            <div className="mt-2">
-              <textarea
-                id="about-you"
-                name="about-you"
-                placeholder="例）ねこが大好きで、休みの日はよく猫カフェに行きます。動物が好きな人と出会えたら嬉しいです！"
-                rows={3}
-                className="block w-full rounded-md bg-gray-100 px-3 py-1.5 text-base text-gray-900 border border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:outline-green-900 focus:-outline-offset-2 outline-gray-300"
-                defaultValue={""}
-              />
-            </div>
-          </div>
+          <FormField
+            label="自己紹介"
+            htmlFor="about-you"
+            description="あなたの好きなことやこだわりを教えてください。"
+          >
+            <textarea
+              id="about-you"
+              name="about-you"
+              placeholder="例）ねこが大好きで、休みの日はよく猫カフェに行きます。"
+              rows={3}
+              className="block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 border border-gray-300 placeholder:text-gray-400 focus:outline-green-900"
+            />
+          </FormField>
 
           {/* タグ選択 */}
           <div className="col-span-full">

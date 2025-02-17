@@ -6,6 +6,7 @@ import { useRef, useState, ChangeEvent } from "react";
 import FileInputButton from "@/app/components/ FileInputButton";
 import ImagePreview from "@/app/components/ImagePreview";
 import Button from "@/app/components/Button";
+import FormField from "@/app/components/FormField";
 
 export default function Register() {
   const router = useRouter();
@@ -61,14 +62,8 @@ export default function Register() {
           </h2>
 
           {/* ユーザー名 */}
-          <div>
-            <label
-              htmlFor="username"
-              className="block text-lg font-medium text-gray-900"
-            >
-              ユーザー名
-            </label>
-            <div className="mt-1 flex shadow-sm">
+          <FormField label="ユーザー名" htmlFor="username">
+            <div className="flex shadow-sm">
               <span className="inline-flex items-center px-3 rounded-l-md border border-gray-300 bg-gray-50 text-gray-500">
                 @
               </span>
@@ -82,19 +77,14 @@ export default function Register() {
                 className="flex-1 block w-full rounded-none rounded-r-md border border-gray-300 bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900"
               />
             </div>
-          </div>
+          </FormField>
 
           {/* ニックネーム */}
-          <div>
-            <label
-              htmlFor="nickname"
-              className="block text-lg font-medium text-gray-900"
-            >
-              ニックネーム
-              <p className="mt-1 text-sm text-gray-600">
-                他のユーザーさんに表示されるあなたの名前です。
-              </p>
-            </label>
+          <FormField
+            label="ニックネーム"
+            htmlFor="nickname"
+            description="他のユーザーさんに表示されるあなたの名前です。"
+          >
             <input
               id="nickname"
               name="nickname"
@@ -104,7 +94,7 @@ export default function Register() {
               placeholder="例）太郎、あき、みっちゃんなど"
               className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
-          </div>
+          </FormField>
 
           {/* アイコン */}
           <div>
@@ -175,13 +165,7 @@ export default function Register() {
           </div>
 
           {/* メールアドレス */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-lg font-medium text-gray-900"
-            >
-              メールアドレス
-            </label>
+          <FormField label="メールアドレス" htmlFor="email">
             <input
               id="email"
               name="email"
@@ -189,16 +173,10 @@ export default function Register() {
               required
               className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
-          </div>
+          </FormField>
 
           {/* パスワード */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-lg/6 font-medium text-gray-900"
-            >
-              パスワード
-            </label>
+          <FormField label="パスワード" htmlFor="password">
             <input
               id="password"
               name="password"
@@ -206,16 +184,10 @@ export default function Register() {
               required
               className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
-          </div>
+          </FormField>
 
           {/* パスワード確認 */}
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-lg/6 font-medium text-gray-900"
-            >
-              パスワード確認
-            </label>
+          <FormField label="パスワード確認" htmlFor="confirmPassword">
             <input
               id="confirmPassword"
               name="confirmPassword"
@@ -223,7 +195,7 @@ export default function Register() {
               required
               className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
-          </div>
+          </FormField>
 
           {/* ボタン */}
           <div className="flex items-center justify-end gap-4">
