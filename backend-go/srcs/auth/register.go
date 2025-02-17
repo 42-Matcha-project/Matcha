@@ -11,17 +11,17 @@ type RegisterInput struct {
 	/*
 		登録時にリクエストからJSONデータを抽出するための構造体。
 	*/
-	Username          string   `json:"Username" binding:"required"`
-	Email             string   `json:"Email" binding:"required"`
-	Password          string   `json:"Password" binding:"required"`
-	DisplayName       string   `json:"DisplayName" binding:"required"`
-	Gender            string   `json:"Gender" binding:"required"`
-	Introduction      string   `json:"Introduction"`
-	IconImageUrl      string   `json:"IconImageUrl"`
-	Affiliations      []string `json:"Affiliations"`
-	PictureUrls       []string `json:"PictureUrls"`
-	InterestTags      []string `json:"InterestTags"`
-	SexualPreferences []string `json:"SexualPreferences"`
+	Username         string   `json:"Username" binding:"required"`
+	Email            string   `json:"Email" binding:"required"`
+	Password         string   `json:"Password" binding:"required"`
+	DisplayName      string   `json:"DisplayName" binding:"required"`
+	Gender           string   `json:"Gender" binding:"required"`
+	Introduction     string   `json:"Introduction"`
+	IconImageUrl     string   `json:"IconImageUrl"`
+	Affiliations     []string `json:"Affiliations"`
+	PictureUrls      []string `json:"PictureUrls"`
+	InterestTags     []string `json:"InterestTags"`
+	SexualPreference string   `json:"SexualPreference"`
 }
 
 func registerUser(registerInput RegisterInput) (*models.TUser, error) {
@@ -29,13 +29,14 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 		UserをDBに保存する関数。
 	*/
 	registerUser := &models.TUser{
-		Username:     registerInput.Username,
-		Email:        registerInput.Email,
-		Password:     registerInput.Password,
-		DisplayName:  registerInput.DisplayName,
-		Gender:       registerInput.Gender,
-		Introduction: registerInput.Introduction,
-		IconImageURL: registerInput.IconImageUrl,
+		Username:         registerInput.Username,
+		Email:            registerInput.Email,
+		Password:         registerInput.Password,
+		DisplayName:      registerInput.DisplayName,
+		Gender:           registerInput.Gender,
+		Introduction:     registerInput.Introduction,
+		IconImageURL:     registerInput.IconImageUrl,
+		SexualPreference: registerInput.SexualPreference,
 	}
 
 	var err error

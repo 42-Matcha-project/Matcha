@@ -10,7 +10,7 @@ Table t_users {
   gender enum('male', 'female')
   introduction varchar(100)
   icon_image_url varchar(255)
-  sexual_preference varchar(200)
+  sexual_preference varchar(255)
   created_at timestamp
   updated_at timestamp
 }
@@ -174,7 +174,7 @@ Ref: t_users.id < t_user_pictures.user_id
 
 
 /*
-  userとinteresttag
+  userとinterest_tag
 */
 Table t_user_interest_tags {
   id integer [primary key]
