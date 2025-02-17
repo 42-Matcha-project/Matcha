@@ -11,13 +11,17 @@ type RegisterInput struct {
 	/*
 		登録時にリクエストからJSONデータを抽出するための構造体。
 	*/
-	Username     string `json:"Username" binding:"required"`
-	Email        string `json:"Email" binding:"required"`
-	Password     string `json:"Password" binding:"required"`
-	DisplayName  string `json:"DisplayName" binding:"required"`
-	Gender       string `json:"Gender" binding:"required"`
-	Introduction string `json:"Introduction"`
-	IconImageUrl string `json:"IconImageUrl"`
+	Username          string   `json:"Username" binding:"required"`
+	Email             string   `json:"Email" binding:"required"`
+	Password          string   `json:"Password" binding:"required"`
+	DisplayName       string   `json:"DisplayName" binding:"required"`
+	Gender            string   `json:"Gender" binding:"required"`
+	Introduction      string   `json:"Introduction"`
+	IconImageUrl      string   `json:"IconImageUrl"`
+	Affiliations      []string `json:"Affiliations"`
+	PictureUrls       []string `json:"PictureUrls"`
+	InterestTags      []string `json:"InterestTags"`
+	SexualPreferences []string `json:"SexualPreferences"`
 }
 
 func RegisterUser(reqContext *gin.Context) {
