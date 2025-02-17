@@ -1,6 +1,9 @@
 package models
 
-import "gorm.io/gorm"
+import (
+	"errors"
+	"gorm.io/gorm"
+)
 
 type TAffiliation struct {
 	/*
@@ -22,7 +25,7 @@ type TUserAffiliation struct {
 	AffiliationID int `gorm:"type:int(10);not null;column:affiliation_id"`
 }
 
-func (TUserAffiliation) TableName() string { return "t_user_affiliations" }
+func (*TUserAffiliation) TableName() string { return "t_user_affiliations" }
 
 func (affiliation *TAffiliation) CreateAffiliation() (*TAffiliation, error) {
 	/*
@@ -33,7 +36,7 @@ func (affiliation *TAffiliation) CreateAffiliation() (*TAffiliation, error) {
 	if err == nil {
 		return affiliation, nil
 	}
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = DB.Create(affiliation).Error
 		if err != nil {
 			return nil, err
@@ -53,7 +56,7 @@ func (user_affiliation *TUserAffiliation) CreateUserAffiliation() (*TUserAffilia
 	if err == nil {
 		return user_affiliation, nil
 	}
-	if err == gorm.ErrRecordNotFound {
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		err = DB.Create(user_affiliation).Error
 		if err != nil {
 			return nil, err
