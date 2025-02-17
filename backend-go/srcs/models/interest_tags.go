@@ -20,9 +20,9 @@ type TUserInterestTag struct {
 		t_user_interest_tagsテーブルの構造体
 		t_userとt_interest_tagsの中間テーブル
 	*/
-	ID     int `gorm:"primaryKey;autoIncrement;column:id"`
-	UserID int `gorm:"type:int(11);not null;gorm:column:user_id"`
-	TagID  int `gorm:"type:int(11);not null;gorm:column:tag_id"`
+	ID            int `gorm:"primaryKey;autoIncrement;column:id"`
+	UserID        int `gorm:"type:int(11);not null;gorm:column:user_id"`
+	InterestTagID int `gorm:"type:int(11);not null;gorm:column:interest_tag_id"`
 }
 
 func (*TUserInterestTag) TableName() string { return "t_user_interest_tags" }
@@ -52,7 +52,7 @@ func (userInterestTag *TUserInterestTag) CreateUserInterestTag() (*TUserInterest
 		DBにユーザーと趣味タグの中間テーブルの列を保存する関数。
 		user_idとinterest_tag_idの組が一致するものがすでにある場合はCreateしない。
 	*/
-	err := DB.Where("user_id = ? AND interest_tag_id = ?", userInterestTag.UserID, userInterestTag.TagID).First(userInterestTag).Error
+	err := DB.Where("user_id = ? AND interest_tag_id = ?", userInterestTag.UserID, userInterestTag.InterestTagID).First(userInterestTag).Error
 	if err == nil {
 		return userInterestTag, err
 	}

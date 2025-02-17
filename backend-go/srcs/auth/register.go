@@ -92,6 +92,34 @@ func registerPictures(registerInput RegisterInput, registerUserID int) error {
 	return nil
 }
 
+func registerInterestTags(registerInput RegisterInput, registerUserID int) error {
+	/*
+		InterestTagsを登録する関数。
+	*/
+	var err error
+	if registerInput.InterestTags != nil && len(registerInput.InterestTags) != 0 {
+		for i := 0; i < len(registerInput.InterestTags); i++ {
+			interestTag := &models.TInterestTag{
+				Name: registerInput.InterestTags[i],
+			}
+			interestTag, err = interestTag.CreateInterestTag()
+			if err != nil {
+				return err
+			}
+
+			userInterestTag := &models.TUserInterestTag{
+				UserID:        registerUserID,
+				InterestTagID: interestTag.ID,
+			}
+			userInterestTag, err = userInterestTag.CreateUserInterestTag()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func Register(reqContext *gin.Context) {
 	/*
 		新規ユーザーを登録する関数。
@@ -122,6 +150,12 @@ func Register(reqContext *gin.Context) {
 
 	if err = registerPictures(registerInput, user.ID); err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create pictures"})
+		reqContext.Error(err)
+		return
+	}
+
+	if err = registerInterestTags(registerInput, user.ID); err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create interest tags"})
 		reqContext.Error(err)
 		return
 	}
