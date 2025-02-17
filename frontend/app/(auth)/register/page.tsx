@@ -3,20 +3,19 @@
 import { useRouter } from "next/navigation";
 import Layout from "../../components/Layout";
 import { useRef, useState, ChangeEvent } from "react";
-import Image from "next/image";
+import FileInputButton from "@/app/components/ FileInputButton";
+import ImagePreview from "@/app/components/ImagePreview";
 
 export default function Register() {
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // 必要ならバリデーション等の処理を追加
     router.push("/profile-detail");
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [previewUrls, setPreviewUrl] = useState<string[]>([]);
   const [fileError, setFileError] = useState<string>("");
 
   const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -37,12 +36,10 @@ export default function Register() {
     const reader = new FileReader();
     reader.onloadend = () => {
       if (reader.result) {
-        setPreviewUrl(reader.result as string);
+        setPreviewUrl([reader.result as string]);
       }
     };
     reader.readAsDataURL(file);
-    setUploadedFile(file);
-
     // inputの値をリセット
     e.target.value = "";
   };
@@ -119,13 +116,7 @@ export default function Register() {
                 いつでも画像を変更できます。
               </p>
             </label>
-            <button
-              type="button"
-              onClick={handleButtonClick}
-              className="rounded-md bg-emerald-700 text-white px-5 py-1 hover:bg-emerald-900 transition duration-200"
-            >
-              ファイル選択
-            </button>
+            <FileInputButton onClick={handleButtonClick} />
             <input
               type="file"
               id="photo"
@@ -141,21 +132,7 @@ export default function Register() {
             )}
 
             {/* プレビュー表示 */}
-            <div className="mt-4 flex gap-4">
-              {previewUrl ? (
-                <Image
-                  src={previewUrl}
-                  alt="プレビュー"
-                  width={128}
-                  height={128}
-                  className="w-32 h-32 object-cover rounded-md"
-                />
-              ) : (
-                <div className="w-32 h-32 border border-dashed border-gray-400 flex items-center justify-center rounded-full">
-                  <span className="text-sm text-gray-500">画像なし</span>
-                </div>
-              )}
-            </div>
+            <ImagePreview previewUrls={previewUrls} maxFiles={1} />
           </div>
 
           {/* 性別 */}

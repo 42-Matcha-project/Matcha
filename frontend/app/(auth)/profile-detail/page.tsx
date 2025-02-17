@@ -1,9 +1,10 @@
 "use client";
 
-import Image from "next/image";
 import Layout from "../../components/Layout";
 import Link from "next/link";
 import { useRef, useState, ChangeEvent } from "react";
+import FileInputButton from "@/app/components/ FileInputButton";
+import ImagePreview from "@/app/components/ImagePreview";
 
 export default function ProfileDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -152,13 +153,7 @@ export default function ProfileDetails() {
             >
               あなたの写真
             </label>
-            <button
-              type="button"
-              onClick={handleButtonClick}
-              className="rounded-md bg-emerald-700 text-white px-4 py-2 hover:bg-emerald-900 transition duration-200"
-            >
-              ファイル選択
-            </button>
+            <FileInputButton onClick={handleButtonClick} />
             <input
               type="file"
               id="photos"
@@ -187,28 +182,7 @@ export default function ProfileDetails() {
             )}
 
             {/* プレビュー表示 */}
-            <div className="mt-4 flex gap-4">
-              {Array.from({ length: 5 }).map((_, index) => {
-                const url = previewUrls[index];
-                return url ? (
-                  <Image
-                    key={index}
-                    src={url}
-                    alt={`プレビュー ${index + 1}`}
-                    width={128}
-                    height={128}
-                    className="w-32 h-32 object-cover rounded-md"
-                  />
-                ) : (
-                  <div
-                    key={index}
-                    className="w-32 h-32 border border-dashed border-gray-400 flex items-center justify-center rounded-md"
-                  >
-                    <span className="text-sm text-gray-500">画像なし</span>
-                  </div>
-                );
-              })}
-            </div>
+            <ImagePreview previewUrls={previewUrls} maxFiles={5} />
           </div>
 
           {/* ボタン */}
