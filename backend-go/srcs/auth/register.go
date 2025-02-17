@@ -59,11 +59,31 @@ func registerAffiliations(registerInput RegisterInput, registerUserID int) error
 				return err
 			}
 
-			user_affliation := &models.TUserAffiliation{
+			userAffiliation := &models.TUserAffiliation{
 				UserID:        registerUserID,
 				AffiliationID: affiliation.ID,
 			}
-			user_affliation, err = user_affliation.CreateUserAffiliation()
+			userAffiliation, err = userAffiliation.CreateUserAffiliation()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func registerPictures(registerInput RegisterInput, registerUserID int) error {
+	/*
+		Picturesを登録する関数。
+	*/
+	var err error
+	if registerInput.PictureUrls != nil && len(registerInput.PictureUrls) != 0 {
+		for i := 0; i < len(registerInput.PictureUrls); i++ {
+			picture := &models.TPicture{
+				UserID:     registerUserID,
+				PictureURL: registerInput.PictureUrls[i],
+			}
+			picture, err = picture.CreatePicture()
 			if err != nil {
 				return err
 			}
@@ -96,6 +116,12 @@ func Register(reqContext *gin.Context) {
 
 	if err = registerAffiliations(registerInput, user.ID); err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create affiliation"})
+		reqContext.Error(err)
+		return
+	}
+
+	if err = registerPictures(registerInput, user.ID); err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create pictures"})
 		reqContext.Error(err)
 		return
 	}

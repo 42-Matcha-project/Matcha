@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-type Picture struct {
+type TPicture struct {
 	/*
 		t_picturesテーブルの構造体
 	*/
@@ -14,9 +14,13 @@ type Picture struct {
 	PictureURL string `gorm:"type:varchar(255);not null;column:picture_url"`
 }
 
-func (*Picture) TableName() string { return "t_pictures" }
+func (*TPicture) TableName() string { return "t_pictures" }
 
-func (picture *Picture) CreatePicture() (*Picture, error) {
+func (picture *TPicture) CreatePicture() (*TPicture, error) {
+	/*
+		DBにPictureを保存する関数。
+		user_idとpicture_urlの組が一致するものがすでにある場合はCreateしない。
+	*/
 	err := DB.Where("user_id = ? AND picture_url = ?", picture.UserID, picture.PictureURL).First(&picture).Error
 	if err == nil {
 		return picture, nil
