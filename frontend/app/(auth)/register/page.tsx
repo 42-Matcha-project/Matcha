@@ -5,6 +5,7 @@ import Layout from "../../components/Layout";
 import { useRef, useState, ChangeEvent } from "react";
 import FileInputButton from "@/app/components/ FileInputButton";
 import ImagePreview from "@/app/components/ImagePreview";
+import Button from "@/app/components/Button";
 
 export default function Register() {
   const router = useRouter();
@@ -226,19 +227,16 @@ export default function Register() {
 
           {/* ボタン */}
           <div className="flex items-center justify-end gap-4">
-            <button
+            <Button
+              variant="secondary"
               type="button"
               onClick={() => router.push("/")}
-              className="border border-emerald-700 text-emerald-800 px-6 py-2 rounded hover:bg-emerald-900 hover:text-white transition duration-200"
             >
               キャンセル
-            </button>
-            <button
-              type="submit"
-              className="bg-emerald-700 text-white px-6 py-2 rounded shadow hover:bg-emerald-900 transition duration-200"
-            >
+            </Button>
+            <Button variant="primary" type="submit">
               次へ
-            </button>
+            </Button>
           </div>
         </form>
       </div>

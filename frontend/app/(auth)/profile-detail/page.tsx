@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRef, useState, ChangeEvent } from "react";
 import FileInputButton from "@/app/components/ FileInputButton";
 import ImagePreview from "@/app/components/ImagePreview";
+import Button from "@/app/components/Button";
 
 export default function ProfileDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -188,20 +189,14 @@ export default function ProfileDetails() {
           {/* ボタン */}
           <div className="flex items-center justify-end gap-4">
             <Link href="/register">
-              <button
-                type="button"
-                className="border border-emerald-700 text-emerald-800 px-6 py-2 rounded hover:bg-emerald-900 hover:text-white transition duration-200"
-              >
+              <Button variant="secondary" type="button">
                 戻る
-              </button>
+              </Button>
             </Link>
             <Link href="/affiliations-filter">
-              <button
-                type="button"
-                className="bg-emerald-700 text-white px-6 py-2 rounded shadow hover:bg-emerald-900 transition duration-200"
-              >
+              <Button variant="primary" type="button">
                 次へ
-              </button>
+              </Button>
             </Link>
           </div>
         </form>
