@@ -54,6 +54,18 @@ func RegisterUser(reqContext *gin.Context) {
 		return
 	}
 
+	if registerInput.Affiliations != nil && len(registerInput.Affiliations) != 0 {
+		for i := 0; i < len(registerInput.Affiliations); i++ {
+			affiliation := &models.TAffiliation{
+				Affiliation: registerInput.Affiliations[i],
+			}
+			affiliation, err = affiliation.CreateAffiliation()
+			if err != nil {
+
+			}
+		}
+	}
+
 	reqContext.JSON(http.StatusOK, gin.H{
 		"user_data": registerUser.PrepareOutput(),
 	})
