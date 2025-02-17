@@ -33,4 +33,6 @@ func ConnectDataBase() {
 	}
 
 	DB.AutoMigrate(&TUser{})
+	DB.AutoMigrate(&TAffiliation{})
+	DB.AutoMigrate(&TUserAffiliation{})
 }

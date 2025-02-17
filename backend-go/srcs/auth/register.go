@@ -63,7 +63,20 @@ func RegisterUser(reqContext *gin.Context) {
 			}
 			affiliation, err = affiliation.CreateAffiliation()
 			if err != nil {
+				reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create affiliation"})
+				reqContext.Error(err)
+				return
+			}
 
+			user_affliation := &models.TUserAffiliation{
+				UserID:        registerUser.ID,
+				AffiliationID: affiliation.ID,
+			}
+			user_affliation, err = user_affliation.CreateUserAffiliation()
+			if err != nil {
+				reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create user_affiliation"})
+				reqContext.Error(err)
+				return
 			}
 		}
 	}
