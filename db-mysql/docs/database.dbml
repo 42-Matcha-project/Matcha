@@ -118,19 +118,13 @@ Table t_user_like_posts {
   postとimage_url
 */
 
-Table t_post_post_image_urls {
-  id integer [primary key]
-  post_id integer
-  post_image_url_id integer
-}
-
 Table t_post_image_urls {
   id integer [primary key]
+  post_id integer
   post_image_url varchar(255)
 }
 
-Ref: t_posts.id < t_post_post_image_urls.post_id
-Ref: t_post_image_urls.id < t_post_post_image_urls.post_image_url_id
+Ref: t_posts.id < t_post_image_urls.post_id
 
 /*
   postとinterest_tag
