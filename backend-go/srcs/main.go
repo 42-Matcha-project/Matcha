@@ -24,7 +24,7 @@ func main() {
 	})
 
 	authRoutes := router.Group("/auth")
-	authRoutes.POST("/register", auth.RegisterUser)
+	authRoutes.POST("/register", auth.Register)
 	authRoutes.POST("/login", auth.Login)
 
 	settingRoutes := router.Group("/settings")

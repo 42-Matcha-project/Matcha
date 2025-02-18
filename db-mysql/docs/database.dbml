@@ -1,7 +1,7 @@
 // Use DBML to define your database structure
 // Docs: https://dbml.dbdiagram.io/docs
 
-Table users {
+Table t_users {
   id integer [primary key]
   username varchar(30) [unique]
   email varchar(255) [unique]
@@ -10,6 +10,7 @@ Table users {
   gender enum('male', 'female')
   introduction varchar(100)
   icon_image_url varchar(255)
+  sexual_preference varchar(255)
   created_at timestamp
   updated_at timestamp
 }
@@ -17,50 +18,52 @@ Table users {
 /*
   userとreport
 */
-Table user_reports {
+Table t_user_reports {
   id integer [primary key]
   user_id integer
   report_id integer
 }
 
-Table reports {
+Table t_reports {
   id integer [primary key]
+  post_id integer
+  to_user_id integer
   kind enum('violence')// 後々追加
   text varchar(200)
 }
 
-Ref: users.id < user_reports.user_id
-Ref: reports.id < user_reports.report_id
-
+Ref: t_users.id < t_user_reports.user_id
+Ref: t_reports.id < t_user_reports.report_id
+Ref: t_users.id < t_reports.to_user_id
 
 /*
   userとopinion
 */
-Table user_opinions {
+Table t_user_opinions {
   id integer [primary key]
   user_id integer
   opinion_id integer
 }
 
-Table opinions {
+Table t_opinions {
   id integer [primary key]
   text varchar(200)
 }
 
-Ref: users.id < user_opinions.user_id
-Ref: opinions.id < user_opinions.opinion_id
+Ref: t_users.id < t_user_opinions.user_id
+Ref: t_opinions.id < t_user_opinions.opinion_id
 
 
 /*
   userとdirect_message
 */
-Table user_direct_messages {
+Table t_user_direct_messages {
   id integer [primary key]
   user_id integer
   direct_message_id integer
 }
 
-Table direct_messages {
+Table t_direct_messages {
   id integer [primary key]
   to_user_id integer
   text varchar(200)
@@ -69,49 +72,49 @@ Table direct_messages {
   reaction enum('smile', 'cry', 'good')
 }
 
-Ref: users.id < user_direct_messages.user_id
-Ref: direct_messages.id < user_direct_messages.direct_message_id
+Ref: t_users.id < t_user_direct_messages.user_id
+Ref: t_direct_messages.id < t_user_direct_messages.direct_message_id
 
 
 /*
   !!!!!!!!!!!!!!!
   userとfootprint
 */
-Table footprints {
+Table t_footprints {
   id integer [primary key]
   user_id integer
   to_user_id integer
   create_at timestamp
 }
 
-Ref: users.id < footprints.user_id
-Ref: users.id < footprints.to_user_id
+Ref: t_users.id < t_footprints.user_id
+Ref: t_users.id < t_footprints.to_user_id
 
 
 /*
   userと投稿したpost
 */
-Table user_posts {
+Table t_user_posts {
   id integer [primary key]
   user_id integer
   post_id integer
 }
 
-Ref: users.id < user_posts.user_id
-Ref: posts.id < user_posts.post_id
+Ref: t_users.id < t_user_posts.user_id
+Ref: t_posts.id < t_user_posts.post_id
 
 
 /*
   userといいねしたpost
 */
-Table user_like_posts {
+Table t_user_like_posts {
   id integer [primary key]
   user_id integer
   post_id integer
   create_at timestamp //DEFAULT current_time
 }
 
-Table posts {
+Table t_posts {
   id integer [primary key]
   text varchar(200)
   image_url varchar(255)
@@ -120,15 +123,15 @@ Table posts {
   is_draft bool //ひとりひとつ
 }
 
-Ref: users.id < user_like_posts.user_id
-Ref: posts.id < user_like_posts.post_id
+Ref: t_users.id < t_user_like_posts.user_id
+Ref: t_posts.id < t_user_like_posts.post_id
 
 
 /*
   !!!!!!!!!!!!
   user同士の関係
 */
-Table user_relations {
+Table t_user_relations {
   id integer [primary key]
   user_id integer
   to_user_id integer
@@ -136,79 +139,60 @@ Table user_relations {
   create_at timestamp
 }
 
-Ref: users.id < user_relations.user_id
-Ref: users.id < user_relations.to_user_id
+Ref: t_users.id < t_user_relations.user_id
+Ref: t_users.id < t_user_relations.to_user_id
 
 
 /*
   userとaffiliation
 */
-Table user_affiliations {
+Table t_user_affiliations {
   id integer [primary key]
   user_id integer
   affiliation_id integer
 }
 
-Table affiliations {
+Table t_affiliations {
   id integer [primary key]
   affiliation varchar(100)
 }
 
-Ref: users.id < user_affiliations.user_id
-Ref: affiliations.id < user_affiliations.affiliation_id
+Ref: ft_users.id < t_user_affiliations.user_id
+Ref: ft_affiliations.id < t_user_affiliations.affiliation_id
 
 
 /*
   userとpicture
 */
-Table user_pictures {
+Table t_user_pictures {
   id integer [primary key]
   user_id integer
   picture_url varchar(255)
 }
 
-Ref: users.id < user_pictures.user_id
+Ref: t_users.id < t_user_pictures.user_id
 
 
 /*
-  userとtag
+  userとinterest_tag
 */
-Table user_tags {
+Table t_user_interest_tags {
   id integer [primary key]
   user_id integer // 外部キー
   tag_id integer // 外部キー
 }
 
-Table tags {
+Table t_interest_tags {
   id integer [primary key]
   name varchar(20)
 }
 
-Ref: users.id < user_tags.user_id
-Ref: tags.id < user_tags.tag_id
-
-
-/*
-  userとsexual_preferences
-*/
-Table user_sexual_preferences {
-  id integer [primary key]
-  user_id integer
-  sexual_preference_id integer
-}
-
-Table sexual_preferences {
-  id integer [primary key]
-  name varchar(20)
-}
-
-Ref: users.id < user_sexual_preferences.user_id
-Ref: sexual_preferences.id < user_sexual_preferences.sexual_preference_id
-
+Ref: t_users.id < t_user_tags.user_id
+Ref: t_tags.id < t_user_tags.tag_id
 
 /*
   今日の格言
 */
-Table todays_quotes {
+Table t_todays_quotes {
   text varchar(50)
 }
