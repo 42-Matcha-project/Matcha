@@ -2,11 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import Layout from "../../components/Layout";
-import { useRef, useState, ChangeEvent } from "react";
-import FileInputButton from "@/app/components/ FileInputButton";
+import { useRef } from "react";
+import FileInputButton from "@/app/components/FileInputButton";
 import ImagePreview from "@/app/components/ImagePreview";
 import Button from "@/app/components/Button";
 import FormField from "@/app/components/FormField";
+import useFileUploader from "@/app/hooks/useFileUploader";
 
 export default function Register() {
   const router = useRouter();
@@ -17,25 +18,8 @@ export default function Register() {
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewUrls, setPreviewUrl] = useState<string[]>([]);
-
-  const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    const file = files[0];
-
-    // ファイルのプレビュー表示用にFileReaderを使用
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (reader.result) {
-        setPreviewUrl([reader.result as string]);
-      }
-    };
-    reader.readAsDataURL(file);
-    // inputの値をリセット
-    e.target.value = "";
-  };
+  // 最大アップロード枚数を1に設定（アイコンなので1枚のみ）
+  const { previewUrls, fileError, handleFilesChange } = useFileUploader(1);
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -101,8 +85,12 @@ export default function Register() {
                 ref={fileInputRef}
                 onChange={handleFilesChange}
                 accept="image/*"
+                // 複数アップロードは不可（アイコンなので1枚のみ）
                 className="hidden"
               />
+              {fileError && (
+                <p className="mt-2 text-sm text-red-600">{fileError}</p>
+              )}
             </FormField>
 
             {/* プレビュー表示 */}

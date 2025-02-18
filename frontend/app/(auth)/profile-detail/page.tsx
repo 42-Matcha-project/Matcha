@@ -2,70 +2,23 @@
 
 import Layout from "../../components/Layout";
 import Link from "next/link";
-import { useRef, useState, ChangeEvent } from "react";
-import FileInputButton from "@/app/components/ FileInputButton";
+import { useRef, useState } from "react";
+import FileInputButton from "@/app/components/FileInputButton";
 import ImagePreview from "@/app/components/ImagePreview";
 import Button from "@/app/components/Button";
 import FormField from "@/app/components/FormField";
 import TagSelector from "@/app/components/TagSelector";
+import useFileUploader from "@/app/hooks/useFileUploader";
 
 export default function ProfileDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewUrls, setPreviewUrls] = useState<string[]>([]);
+  const { previewUrls, fileError, handleFilesChange } = useFileUploader(5);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [fileError, setFileError] = useState<string>("");
 
   const availableTags = ["スポーツ", "動物", "映画", "音楽", "旅行"];
 
-  const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (files) {
-      if (previewUrls.length + files.length > 5) {
-        setFileError("写真はすでに5枚アップロードされています。");
-        e.target.value = "";
-        return;
-      }
-
-      const newUrls: string[] = [];
-      const newFiles: File[] = [];
-
-      Array.from(files).forEach((file) => {
-        const duplicate = [...uploadedFiles, ...newFiles].some(
-          (uploaded) =>
-            uploaded.name === file.name && uploaded.size === file.size,
-        );
-        if (duplicate) {
-          setFileError(`"${file.name}" はすでにアップロードされています。`);
-          return;
-        }
-
-        newFiles.push(file);
-
-        const reader = new FileReader();
-        reader.onloadend = () => {
-          if (reader.result) {
-            newUrls.push(reader.result as string);
-          }
-          if (newUrls.length === newFiles.length) {
-            setPreviewUrls((prev) => [...prev, ...newUrls]);
-            setUploadedFiles((prev) => [...prev, ...newFiles]);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-      e.target.value = "";
-    }
-  };
-
   const handleButtonClick = () => {
     fileInputRef.current?.click();
-  };
-
-  const handleTagClick = (tag: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag],
-    );
   };
 
   return (
