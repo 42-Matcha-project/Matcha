@@ -59,6 +59,26 @@ func submitInterestTags(submitInput SubmitInput, post_id int) error {
 	return nil
 }
 
+func submitPostImageUrls(submitInput SubmitInput, post_id int) error {
+	/*
+		PostImageUrlsと登録する関数。
+	*/
+	var err error
+	if submitInput.PostImageUrls != nil && len(submitInput.PostImageUrls) != 0 {
+		for i := 0; i < len(submitInput.PostImageUrls); i++ {
+			postImageUrl := &models.TPostImageURL{
+				PostID:       post_id,
+				PostImageUrl: submitInput.PostImageUrls[i],
+			}
+			postImageUrl, err = postImageUrl.CreatePostImageURL()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func Submit(reqContext *gin.Context) {
 	/*
 		新規投稿を提出する関数。
@@ -82,6 +102,12 @@ func Submit(reqContext *gin.Context) {
 
 	if err = submitInterestTags(submitInput, post.ID); err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to submit interest tags"})
+		reqContext.Error(err)
+		return
+	}
+
+	if err = submitPostImageUrls(submitInput, post.ID); err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to submit post image urls"})
 		reqContext.Error(err)
 		return
 	}

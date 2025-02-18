@@ -16,7 +16,7 @@ type TPostImageURL struct {
 
 func (*TPostImageURL) TableName() string { return "t_post_image_urls" }
 
-func (postImageUrl *TPostImageURL) AddPostImageURL() (*TPostImageURL, error) {
+func (postImageUrl *TPostImageURL) CreatePostImageURL() (*TPostImageURL, error) {
 	/*
 		DBに新規投稿画像URLを保存する関数。
 		post_idとpost_image_urlの組が一致するものがすでにある場合はCreateしない。
