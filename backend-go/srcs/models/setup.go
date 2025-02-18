@@ -33,4 +33,9 @@ func ConnectDataBase() {
 	}
 
 	DB.AutoMigrate(&TUser{})
+	DB.AutoMigrate(&TAffiliation{})
+	DB.AutoMigrate(&TUserAffiliation{})
+	DB.AutoMigrate(&TPicture{})
+	DB.AutoMigrate(&TInterestTag{})
+	DB.AutoMigrate(&TUserInterestTag{})
 }
