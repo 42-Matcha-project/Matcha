@@ -2,50 +2,24 @@
 
 import { useRouter } from "next/navigation";
 import Layout from "../../components/Layout";
-import { useRef, useState, ChangeEvent } from "react";
-import Image from "next/image";
+import { useRef } from "react";
+import FileInputButton from "@/app/components/FileInputButton";
+import ImagePreview from "@/app/components/ImagePreview";
+import Button from "@/app/components/Button";
+import FormField from "@/app/components/FormField";
+import useFileUploader from "@/app/hooks/useFileUploader";
 
 export default function Register() {
   const router = useRouter();
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // 必要ならバリデーション等の処理を追加
     router.push("/profile-detail");
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [previewUrl, setPreviewUrl] = useState<string>("");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [fileError, setFileError] = useState<string>("");
-
-  const handleFilesChange = (e: ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    // 複数ファイル選択された場合はエラー表示
-    if (files.length > 1) {
-      setFileError("ファイルは一つのみアップロード可能です。");
-      e.target.value = "";
-      return;
-    }
-
-    setFileError("");
-    const file = files[0];
-
-    // ファイルのプレビュー表示用にFileReaderを使用
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      if (reader.result) {
-        setPreviewUrl(reader.result as string);
-      }
-    };
-    reader.readAsDataURL(file);
-    setUploadedFile(file);
-
-    // inputの値をリセット
-    e.target.value = "";
-  };
+  // 最大アップロード枚数を1に設定（アイコンなので1枚のみ）
+  const { previewUrls, fileError, handleFilesChange } = useFileUploader(1);
 
   const handleButtonClick = () => {
     fileInputRef.current?.click();
@@ -63,14 +37,8 @@ export default function Register() {
           </h2>
 
           {/* ユーザー名 */}
-          <div>
-            <label
-              htmlFor="username"
-              className="block text-lg font-medium text-gray-900"
-            >
-              ユーザー名
-            </label>
-            <div className="mt-1 flex shadow-sm">
+          <FormField label="ユーザー名" htmlFor="username">
+            <div className="flex shadow-sm">
               <span className="inline-flex items-center px-3 rounded-l-md border border-gray-300 bg-gray-50 text-gray-500">
                 @
               </span>
@@ -84,19 +52,14 @@ export default function Register() {
                 className="flex-1 block w-full rounded-none rounded-r-md border border-gray-300 bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900"
               />
             </div>
-          </div>
+          </FormField>
 
           {/* ニックネーム */}
-          <div>
-            <label
-              htmlFor="nickname"
-              className="block text-lg font-medium text-gray-900"
-            >
-              ニックネーム
-              <p className="mt-1 text-sm text-gray-600">
-                他のユーザーさんに表示されるあなたの名前です。
-              </p>
-            </label>
+          <FormField
+            label="ニックネーム"
+            htmlFor="nickname"
+            description="他のユーザーさんに表示されるあなたの名前です。"
+          >
             <input
               id="nickname"
               name="nickname"
@@ -106,66 +69,36 @@ export default function Register() {
               placeholder="例）太郎、あき、みっちゃんなど"
               className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
-          </div>
+          </FormField>
 
           {/* アイコン */}
           <div>
-            <label
+            <FormField
+              label="アイコン"
               htmlFor="photo"
-              className="block text-lg font-medium text-gray-900"
+              description="いつでも画像を変更できます。"
             >
-              アイコン
-              <p className="m-1 text-sm text-gray-600">
-                いつでも画像を変更できます。
-              </p>
-            </label>
-            <button
-              type="button"
-              onClick={handleButtonClick}
-              className="rounded-md bg-emerald-700 text-white px-5 py-1 hover:bg-emerald-900 transition duration-200"
-            >
-              ファイル選択
-            </button>
-            <input
-              type="file"
-              id="photo"
-              ref={fileInputRef}
-              onChange={handleFilesChange}
-              accept="image/*"
-              className="hidden"
-            />
-
-            {/* エラーメッセージ表示 */}
-            {fileError && (
-              <p className="mt-2 text-sm text-red-600">{fileError}</p>
-            )}
+              <FileInputButton onClick={handleButtonClick} />
+              <input
+                type="file"
+                id="photo"
+                ref={fileInputRef}
+                onChange={handleFilesChange}
+                accept="image/*"
+                // 複数アップロードは不可（アイコンなので1枚のみ）
+                className="hidden"
+              />
+              {fileError && (
+                <p className="mt-2 text-sm text-red-600">{fileError}</p>
+              )}
+            </FormField>
 
             {/* プレビュー表示 */}
-            <div className="mt-4 flex gap-4">
-              {previewUrl ? (
-                <Image
-                  src={previewUrl}
-                  alt="プレビュー"
-                  width={128}
-                  height={128}
-                  className="w-32 h-32 object-cover rounded-md"
-                />
-              ) : (
-                <div className="w-32 h-32 border border-dashed border-gray-400 flex items-center justify-center rounded-full">
-                  <span className="text-sm text-gray-500">画像なし</span>
-                </div>
-              )}
-            </div>
+            <ImagePreview previewUrls={previewUrls} maxFiles={1} />
           </div>
 
           {/* 性別 */}
-          <div>
-            <label
-              htmlFor="gender"
-              className="block text-lg font-medium text-gray-900"
-            >
-              性別
-            </label>
+          <FormField label="性別" htmlFor="">
             <div className="mt-1 flex items-center gap-4">
               <label className="inline-flex items-center gap-2 cursor-pointer">
                 <input
@@ -194,16 +127,10 @@ export default function Register() {
                 </span>
               </label>
             </div>
-          </div>
+          </FormField>
 
           {/* メールアドレス */}
-          <div>
-            <label
-              htmlFor="email"
-              className="block text-lg font-medium text-gray-900"
-            >
-              メールアドレス
-            </label>
+          <FormField label="メールアドレス" htmlFor="email">
             <input
               id="email"
               name="email"
@@ -211,16 +138,10 @@ export default function Register() {
               required
               className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
-          </div>
+          </FormField>
 
           {/* パスワード */}
-          <div>
-            <label
-              htmlFor="password"
-              className="block text-lg/6 font-medium text-gray-900"
-            >
-              パスワード
-            </label>
+          <FormField label="パスワード" htmlFor="password">
             <input
               id="password"
               name="password"
@@ -228,16 +149,10 @@ export default function Register() {
               required
               className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
-          </div>
+          </FormField>
 
           {/* パスワード確認 */}
-          <div>
-            <label
-              htmlFor="confirmPassword"
-              className="block text-lg/6 font-medium text-gray-900"
-            >
-              パスワード確認
-            </label>
+          <FormField label="パスワード確認" htmlFor="confirmPassword">
             <input
               id="confirmPassword"
               name="confirmPassword"
@@ -245,23 +160,20 @@ export default function Register() {
               required
               className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
             />
-          </div>
+          </FormField>
 
           {/* ボタン */}
           <div className="flex items-center justify-end gap-4">
-            <button
+            <Button
+              variant="secondary"
               type="button"
               onClick={() => router.push("/")}
-              className="border border-emerald-700 text-emerald-800 px-6 py-2 rounded hover:bg-emerald-900 hover:text-white transition duration-200"
             >
               キャンセル
-            </button>
-            <button
-              type="submit"
-              className="bg-emerald-700 text-white px-6 py-2 rounded shadow hover:bg-emerald-900 transition duration-200"
-            >
+            </Button>
+            <Button variant="primary" type="submit">
               次へ
-            </button>
+            </Button>
           </div>
         </form>
       </div>
