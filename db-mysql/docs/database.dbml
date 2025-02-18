@@ -92,19 +92,6 @@ Ref: t_users.id < t_footprints.to_user_id
 
 
 /*
-  userと投稿したpost
-*/
-Table t_user_posts {
-  id integer [primary key]
-  user_id integer
-  post_id integer
-}
-
-Ref: t_users.id < t_user_posts.user_id
-Ref: t_posts.id < t_user_posts.post_id
-
-
-/*
   userといいねしたpost
 */
 Table t_user_like_posts {
@@ -139,18 +126,19 @@ Table t_post_interest_tags {
 Ref: t_posts.id < t_post_interest_tags.post_id
 Ref: t_interest_tags.id < t_post_interest_tags.id
 
+Ref: t_users.id < t_user_like_posts.user_id
+Ref: t_posts.id < t_user_like_posts.post_id
 
 Table t_posts {
   id integer [primary key]
+  user_id integer
   text varchar(200)
   create_at timestamp //DEFAULT current_timestamp
   // location point
   is_draft bool //ひとりひとつ
 }
 
-Ref: t_users.id < t_user_like_posts.user_id
-Ref: t_posts.id < t_user_like_posts.post_id
-
+Ref: t_users.id < t_posts.user_id
 
 /*
   !!!!!!!!!!!!
@@ -182,8 +170,8 @@ Table t_affiliations {
   affiliation varchar(100)
 }
 
-Ref: ft_users.id < t_user_affiliations.user_id
-Ref: ft_affiliations.id < t_user_affiliations.affiliation_id
+Ref: t_users.id < t_user_affiliations.user_id
+Ref: t_affiliations.id < t_user_affiliations.affiliation_id
 
 
 /*
@@ -212,8 +200,8 @@ Table t_interest_tags {
   name varchar(20)
 }
 
-Ref: t_users.id < t_user_tags.user_id
-Ref: t_tags.id < t_user_tags.tag_id
+Ref: t_users.id < t_user_interest_tags.user_id
+Ref: t_interest_tags.id < t_user_interest_tags.tag_id
 
 /*
   今日の格言
