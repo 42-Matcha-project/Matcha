@@ -7,6 +7,7 @@ import FileInputButton from "@/app/components/ FileInputButton";
 import ImagePreview from "@/app/components/ImagePreview";
 import Button from "@/app/components/Button";
 import FormField from "@/app/components/FormField";
+import TagSelector from "@/app/components/TagSelector";
 
 export default function ProfileDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -111,22 +112,11 @@ export default function ProfileDetails() {
             <p className="mt-1 text-sm/6 text-gray-600">
               興味のあるタグを選んでください。 (複数選択可)
             </p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              {availableTags.map((tag) => (
-                <button
-                  key={tag}
-                  type="button"
-                  onClick={() => handleTagClick(tag)}
-                  className={`px-3 py-1 rounded-full border transition-all ${
-                    selectedTags.includes(tag)
-                      ? "bg-emerald-700 text-white border-emerald-700 hover:bg-emerald-600"
-                      : "bg-white text-gray-900 border-gray-300 hover:bg-emerald-600"
-                  }`}
-                >
-                  {tag}
-                </button>
-              ))}
-            </div>
+            <TagSelector
+              availableTags={availableTags}
+              selectedTags={selectedTags}
+              onChange={setSelectedTags}
+            />
           </FormField>
 
           {/* 写真アップロード */}
