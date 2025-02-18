@@ -29,7 +29,7 @@ func main() {
 	authRoutes.POST("/login", auth.Login)
 
 	postRoutes := router.Group("/post")
-	postRoutes.POST("/posts", post.SubmitPost)
+	postRoutes.POST("/submit", post.SubmitPost)
 
 	settingRoutes := router.Group("/settings")
 	settingRoutes.Use(middlewares.JWTValidationMiddleware())
