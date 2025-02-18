@@ -59,7 +59,7 @@ func submitInterestTags(submitInput SubmitInput, post_id int) error {
 	return nil
 }
 
-func SubmitPost(reqContext *gin.Context) {
+func Submit(reqContext *gin.Context) {
 	/*
 		新規投稿を提出する関数。
 		リクエストからJSONデータを抽出してDBに保存する。
@@ -85,4 +85,8 @@ func SubmitPost(reqContext *gin.Context) {
 		reqContext.Error(err)
 		return
 	}
+
+	reqContext.JSON(http.StatusOK, gin.H{
+		"post": post,
+	})
 }
