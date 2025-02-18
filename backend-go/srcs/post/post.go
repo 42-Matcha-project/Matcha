@@ -31,6 +31,34 @@ func submitPost(submitInput SubmitInput) (*models.TPost, error) {
 	return submitPost, err
 }
 
+func submitInterestTags(submitInput SubmitInput, post_id int) error {
+	/*
+		InterestTagsを登録する関数。
+	*/
+	var err error
+	if submitInput.InterestTags != nil && len(submitInput.InterestTags) != 0 {
+		for i := 0; i < len(submitInput.InterestTags); i++ {
+			interestTag := &models.TInterestTag{
+				Name: submitInput.InterestTags[i],
+			}
+			interestTag, err = interestTag.CreateInterestTag()
+			if err != nil {
+				return err
+			}
+
+			postInterestTag := &models.TPostInterestTag{
+				PostID:        post_id,
+				InterestTagID: interestTag.ID,
+			}
+			postInterestTag, err = postInterestTag.CreatePostInterestTag()
+			if err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
 func SubmitPost(reqContext *gin.Context) {
 	/*
 		新規投稿を提出する関数。
@@ -48,6 +76,12 @@ func SubmitPost(reqContext *gin.Context) {
 	post, err := submitPost(submitInput)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to submit post"})
+		reqContext.Error(err)
+		return
+	}
+
+	if err = submitInterestTags(submitInput, post.ID); err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to submit interest tags"})
 		reqContext.Error(err)
 		return
 	}
