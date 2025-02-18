@@ -24,7 +24,7 @@ export default function ProfileDetails() {
   return (
     <Layout>
       <div className="flex items-center justify-center min-h-screen p-4">
-        <form className="w-full max-w-4xl bg-white p-8 rounded-md shadow flex flex-col gap-8">
+        <form className="w-full max-w-4xl  p-8 rounded-md  flex flex-col gap-8l">
           <h2 className="text-base/7 font-semibold text-gray-900 text-center">
             プロフィール情報
           </h2>

@@ -30,7 +30,7 @@ export default function Register() {
       <div className="flex items-center justify-center min-h-screen p-4">
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-4xl bg-white p-8 rounded-md shadow flex flex-col gap-8"
+          className="w-full max-w-4xl  p-8 rounded-md  flex flex-col gap-8"
         >
           <h2 className="text-base font-semibold text-gray-900 text-center">
             プロフィール情報
