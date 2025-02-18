@@ -114,10 +114,41 @@ Table t_user_like_posts {
   create_at timestamp //DEFAULT current_time
 }
 
+/*
+  postとimage_url
+*/
+
+Table t_post_post_image_urls {
+  id integer [primary key]
+  post_id integer
+  post_image_url_id integer
+}
+
+Table t_post_image_urls {
+  id integer [primary key]
+  post_image_url varchar(255)
+}
+
+Ref: t_posts.id < t_post_post_image_urls.post_id
+Ref: t_post_image_urls.id < t_post_post_image_urls.post_image_url_id
+
+/*
+  postとinterest_tag
+*/
+
+Table t_post_interest_tags {
+  id integer [primary key]
+  post_id integer
+  interest_tag_id integer
+}
+
+Ref: t_posts.id < t_post_interest_tags.post_id
+Ref: t_interest_tags.id < t_post_interest_tags.id
+
+
 Table t_posts {
   id integer [primary key]
   text varchar(200)
-  image_url varchar(255)
   create_at timestamp //DEFAULT current_timestamp
   // location point
   is_draft bool //ひとりひとつ
