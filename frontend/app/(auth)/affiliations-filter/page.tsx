@@ -5,9 +5,9 @@ import Link from "next/link";
 import { useState } from "react";
 import Button from "@/app/components/Button";
 import FormField from "@/app/components/FormField";
+import { normalizeString } from "@/utils/normalize";
 
 export default function AffiliationsFilter() {
-  // 入力中の値と、確定した所属情報（配列）を管理
   const [inputValue, setInputValue] = useState("");
   const [affiliations, setAffiliations] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
@@ -18,7 +18,12 @@ export default function AffiliationsFilter() {
     const trimmedValue = inputValue.trim();
     if (trimmedValue === "") return;
 
-    if (affiliations.includes(trimmedValue)) {
+    // 入力値を正規化（全角英数字を半角に変換し、小文字に変換）
+    const normalizedInput = normalizeString(trimmedValue);
+
+    if (
+      affiliations.some((item) => normalizeString(item) === normalizedInput)
+    ) {
       setErrorMsg("すでに登録済みです");
       setInputValue("");
       return;
