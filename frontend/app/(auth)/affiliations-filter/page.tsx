@@ -30,6 +30,10 @@ export default function AffiliationsFilter() {
     setErrorMsg("");
   };
 
+  const removeAffiliation = (indexToRemove: number) => {
+    setAffiliations(affiliations.filter((_, index) => index !== indexToRemove));
+  };
+
   return (
     <Layout>
       <div className="flex items-center justify-center min-h-screen p-4">
@@ -63,6 +67,7 @@ export default function AffiliationsFilter() {
                 }
               }}
             />
+
             {/* 例　*/}
             <p className="mt-2 text-sm text-gray-500">
               例）42Tokyoを入力した場合、42Tokyoに所属している方とのマッチングが抑えられます。
@@ -82,9 +87,16 @@ export default function AffiliationsFilter() {
                 {affiliations.map((item, index) => (
                   <div
                     key={index}
-                    className="inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-x text-green-800 border border-green-200"
+                    className="relative inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-xl text-green-800 border border-green-200"
                   >
                     <span className="ml-1 font-bold">{item}</span>
+                    <button
+                      type="button"
+                      onClick={() => removeAffiliation(index)}
+                      className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-green-900 text-white text-xs"
+                    >
+                      ×
+                    </button>
                   </div>
                 ))}
               </div>
