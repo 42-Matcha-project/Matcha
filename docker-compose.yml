@@ -37,12 +37,12 @@ services:
       start_period: 10s
       timeout: 10s
 
-  frontend:
-    build: frontend
+  frontend-nodejs:
+    build: frontend-nodejs
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend/srcs/:/usr/src/app/srcs
+      - ./frontend-nodejs/srcs/:/usr/src/app/srcs
     env_file:
       - .env
     tty: true
