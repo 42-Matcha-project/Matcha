@@ -36,3 +36,21 @@ services:
       retries: 3
       start_period: 10s
       timeout: 10s
+
+  frontend:
+    build: frontend
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/srcs/:/usr/src/app/srcs
+    env_file:
+      - .env
+    tty: true
+    depends_on:
+      - backend-go
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
