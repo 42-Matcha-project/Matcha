@@ -11,6 +11,8 @@ export default function AffiliationsFilter() {
   const [inputValue, setInputValue] = useState("");
   const [affiliations, setAffiliations] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState("");
+  // IME入力中かどうかのフラグ(日本語入力の確定時にEnterが押されるのを防ぐ)
+  const [isComposing, setIsComposing] = useState(false);
 
   const handleConfirm = () => {
     const trimmedValue = inputValue.trim();
@@ -52,8 +54,10 @@ export default function AffiliationsFilter() {
               className="mt-2 w-full rounded-full bg-gray-100 px-4 py-2 text-lg text-gray-900 border border-gray-300 focus:outline-none focus:ring-2 focus:ring-green-900 placeholder:text-gray-400"
               value={inputValue}
               onChange={(e) => setInputValue(e.target.value)}
+              onCompositionStart={() => setIsComposing(true)}
+              onCompositionEnd={() => setIsComposing(false)}
               onKeyDown={(e) => {
-                if (e.key === "Enter") {
+                if (!isComposing && e.key === "Enter") {
                   e.preventDefault();
                   handleConfirm();
                 }
@@ -63,6 +67,9 @@ export default function AffiliationsFilter() {
             <p className="mt-2 text-sm text-gray-500">
               例）42Tokyoを入力した場合、42Tokyoに所属している方とのマッチングが抑えられます。
             </p>
+            <br />
+            <br />
+
             {/* エラーメッセージを表示 */}
             {errorMsg && (
               <p className="mt-2 text-sm text-red-600">{errorMsg}</p>
@@ -71,12 +78,13 @@ export default function AffiliationsFilter() {
             {/* 複数の所属情報をタグ風に表示 */}
             {affiliations.length > 0 && (
               <div className="mt-3 flex flex-wrap gap-2">
+                <h1 className="text-xl font-bold text-gray-800">所属: </h1>
                 {affiliations.map((item, index) => (
                   <div
                     key={index}
-                    className="inline-flex items-center rounded-full bg-green-100 px-3 py-1 text-sm text-green-800 border border-green-200"
+                    className="inline-flex items-center rounded-full bg-green-100 px-4 py-2 text-x text-green-800 border border-green-200"
                   >
-                    所属: <span className="ml-1 font-bold">{item}</span>
+                    <span className="ml-1 font-bold">{item}</span>
                   </div>
                 ))}
               </div>
