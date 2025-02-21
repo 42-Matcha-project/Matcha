@@ -2,10 +2,10 @@
 
 import Layout from "../../components/Layout";
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Button from "@/app/components/Button";
 import FormField from "@/app/components/FormField";
-import { normalizeString } from "@/utils/normalize";
+import { normalizeString } from "../../../utils/normalize";
 
 export default function AffiliationsFilter() {
   const [inputValue, setInputValue] = useState("");
@@ -13,30 +13,78 @@ export default function AffiliationsFilter() {
   const [errorMsg, setErrorMsg] = useState("");
   // IME入力中かどうかのフラグ(日本語入力の確定時にEnterが押されるのを防ぐ)
   const [isComposing, setIsComposing] = useState(false);
+  const [suggestions, setSuggestions] = useState<string[]>([]);
 
-  const handleConfirm = () => {
-    const trimmedValue = inputValue.trim();
-    if (trimmedValue === "") return;
+  /**
+   * 所属を追加する共通関数
+   * @param affiliation 追加したい文字列
+   */
+  const addAffiliation = (affiliation: string) => {
+    // 前後の空白を除去
+    const trimmedValue = affiliation.trim();
+    if (!trimmedValue) return;
 
-    // 入力値を正規化（全角英数字を半角に変換し、小文字に変換）
+    // 正規化（全角英数字→半角, 小文字変換 など）
     const normalizedInput = normalizeString(trimmedValue);
 
+    // すでに同じ所属があるかチェック
     if (
       affiliations.some((item) => normalizeString(item) === normalizedInput)
     ) {
       setErrorMsg("すでに登録済みです");
-      setInputValue("");
       return;
     }
 
-    // 重複していない場合は、所属情報を追加
-    setAffiliations([...affiliations, trimmedValue]);
-    setInputValue("");
+    // 重複していなければ追加
+    setAffiliations((prev) => [...prev, trimmedValue]);
     setErrorMsg("");
   };
 
+  // 「Enter」で確定
+  const handleConfirm = () => {
+    addAffiliation(inputValue);
+
+    // 入力欄とサジェストをクリア
+    setInputValue("");
+    setSuggestions([]);
+  };
+
+  // サジェストのクリックで確定
+  const handleSuggestionClick = (suggest: string) => {
+    addAffiliation(suggest);
+
+    // 入力欄とサジェストをクリア
+    setInputValue("");
+    setSuggestions([]);
+  };
+
+  // 入力が変更されたときにサジェストを取得
+  useEffect(() => {
+    if (!inputValue) {
+      setSuggestions([]);
+      return;
+    }
+
+    const fetchSuggestions = async () => {
+      try {
+        const res = await fetch(`/api/affiliations?q=${inputValue}`);
+        if (!res.ok) throw new Error("Failed to fetch");
+        const data = await res.json();
+        setSuggestions(data.suggestions || []);
+      } catch (err) {
+        console.error(err);
+        setSuggestions([]);
+      }
+    };
+
+    fetchSuggestions();
+  }, [inputValue]);
+
+  // タグ削除
   const removeAffiliation = (indexToRemove: number) => {
-    setAffiliations(affiliations.filter((_, index) => index !== indexToRemove));
+    setAffiliations((prev) =>
+      prev.filter((_, index) => index !== indexToRemove),
+    );
   };
 
   return (
@@ -83,6 +131,21 @@ export default function AffiliationsFilter() {
             {/* エラーメッセージを表示 */}
             {errorMsg && (
               <p className="mt-2 text-sm text-red-600">{errorMsg}</p>
+            )}
+
+            {/* サジェストの表示 */}
+            {suggestions.length > 0 && (
+              <ul className="mt-1 w-full bg-white border border-gray-200 rounded shadow-md">
+                {suggestions.map((suggest, idx) => (
+                  <li
+                    key={idx}
+                    className="cursor-pointer px-4 py-2 hover:bg-gray-100"
+                    onClick={() => handleSuggestionClick(suggest)}
+                  >
+                    {suggest}
+                  </li>
+                ))}
+              </ul>
             )}
 
             {/* 複数の所属情報をタグ風に表示 */}
