@@ -156,7 +156,7 @@
         "header": [
           {
             "key": "Authorization",
-            "value": " {{jwt_token}}",
+            "value": " Bearer {{jwt_token}}",
             "type": "text"
           }
         ],
