@@ -5,6 +5,7 @@ import (
 	"srcs/auth"
 	"srcs/middlewares"
 	"srcs/models"
+	"srcs/post"
 
 	"github.com/gin-gonic/gin"
 )
@@ -26,6 +27,9 @@ func main() {
 	authRoutes := router.Group("/auth")
 	authRoutes.POST("/register", auth.Register)
 	authRoutes.POST("/login", auth.Login)
+
+	postRoutes := router.Group("/posts")
+	postRoutes.POST("/submit", post.Submit)
 
 	settingRoutes := router.Group("/settings")
 	settingRoutes.Use(middlewares.JWTValidationMiddleware())
