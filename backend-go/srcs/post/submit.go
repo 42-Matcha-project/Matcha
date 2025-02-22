@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"srcs/models"
+	"srcs/token"
 )
 
 type SubmitInput struct {
@@ -17,11 +18,12 @@ type SubmitInput struct {
 	IsDraft       bool     `json:"IsDraft"`
 }
 
-func submitPost(submitInput SubmitInput) (*models.TPost, error) {
+func submitPost(submitInput SubmitInput, userId uint) (*models.TPost, error) {
 	/*
 		postをDBに保存する関数。
 	*/
 	submitPost := &models.TPost{
+		UserID:  userId,
 		Text:    submitInput.Text,
 		IsDraft: submitInput.IsDraft,
 	}
@@ -85,6 +87,20 @@ func Submit(reqContext *gin.Context) {
 		リクエストからJSONデータを抽出してDBに保存する。
 		成功すればstatus200と保存した投稿のデータを返す。
 	*/
+	userId, err := token.ExtractUserIdFromRequest(reqContext)
+	if err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to extract user id"})
+		reqContext.Error(err)
+		return
+	}
+	user := &models.TUser{}
+	err = models.DB.First(user, userId).Error
+	if err != nil {
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "User not found"})
+		reqContext.Error(err)
+		return
+	}
+
 	var submitInput SubmitInput
 
 	if err := reqContext.ShouldBindJSON(&submitInput); err != nil {
@@ -93,7 +109,7 @@ func Submit(reqContext *gin.Context) {
 		return
 	}
 
-	post, err := submitPost(submitInput)
+	post, err := submitPost(submitInput, userId)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to submit post"})
 		reqContext.Error(err)
