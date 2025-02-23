@@ -39,7 +39,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"Username\": \"@test1234\",\n    \"Email\": \"test@test.com\",\n    \"Password\": \"12345\",\n    \"DisplayName\": \"TestName\",\n    \"Gender\": \"male\"\n}",
+          "raw": "{\n    \"Username\": \"@test1234\",\n    \"Email\": \"test@test.com\",\n    \"Password\": \"12345\",\n    \"DisplayName\": \"TestName\",\n    \"Gender\": \"male\",\n    \"Introduction\": \"会社員やってます。よろしくお願いします。\",\n    \"IconImageURL\": \"icon_url\",\n    \"Affiliations\": [\"所属1\", \"所属2\", \"所属2\"],\n    \"PictureUrls\": [\"url1\", \"url2\", \"url2\"],\n    \"InterestTags\": [\"tag1\", \"tag2\", \"tag2\"],\n    \"SexualPreference\": \"優しい人が好きです。\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -58,7 +58,7 @@
             "register"
           ]
         },
-        "description": "**説明**\n\nユーザーの登録を行うAPI。\n\n**JSONデータ**\n\n``` json\n{\n    \"Username\": \"文字列\",// 必須\n    \"Email\": \"文字列\",// 必須\n    \"Password\": \"文字列\",// 必須\n    \"DisplayName\": \"文字列\",// 必須\n    \"Gender\": \"maleかfemale\",// 必須\n    \"Introduction\": \"文字列\",\n    \"IconImageUrl\": \"文字列\"\n}\n\n ```"
+        "description": "**説明**\n\nユーザーの登録を行うAPI。\n\n**JSONデータ**\n\n``` json\n{\n    \"Username\": \"文字列\",// 必須\n    \"Email\": \"文字列\",// 必須\n    \"Password\": \"文字列\",// 必須\n    \"DisplayName\": \"文字列\",// 必須\n    \"Gender\": \"maleかfemale\",// 必須\n    \"Introduction\": \"文字列\",\n    \"IconImageUrl\": \"文字列\",\n    \"Affiliations\": [\"所属1\", \"所属2\"...],\n    \"Pictures\": [\"url1\", \"url2\"...],\n    \"InterestTags\": [\"tag1\", \"tag2\"...],\n    \"SexualPreferences\": \"文字列\"\n}\n\n ```"
       },
       "response": []
     },
@@ -123,85 +123,26 @@
       "response": []
     },
     {
-      "name": "ユーザー情報取得",
+      "name": "投稿提出",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "// ステータスコードが200であることを確認",
-              "pm.test('Status code is 200', function () {",
+              "// ステータスコードが 200 であることを確認",
+              "pm.test(\"Status code is 200\", function () {",
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "// レスポンスに 'user' フィールドが含まれていることを確認",
-              "pm.test('Response contains user field', function () {",
-              "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.have.property('user');",
-              "});",
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {}
-          }
-        },
-        {
-          "listen": "prerequest",
-          "script": {
-            "exec": [
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": " Bearer {{jwt_token}}",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "http://localhost:8080/settings/user",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "settings",
-            "user"
-          ]
-        },
-        "description": "**説明**\n\nユーザー情報を取得できるAPI。"
-      },
-      "response": []
-    },
-    {
-      "name": "ユーザー情報更新",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "// ステータスコードが200であることを確認",
-              "pm.test('Status code is 200', function () {",
-              "    pm.response.to.have.status(200);",
+              "// レスポンスが JSON 形式であることを確認",
+              "pm.test(\"Response is in JSON format\", function () {",
+              "    pm.response.to.have.header(\"Content-Type\", \"application/json; charset=utf-8\");",
               "});",
               "",
-              "// レスポンスがJSON形式であることを確認",
-              "pm.test('Response is JSON', function () {",
-              "    pm.response.to.be.json;",
-              "});",
-              "",
-              "// レスポンスに 'data' フィールドが含まれていることを確認",
-              "pm.test('Response contains data field', function () {",
+              "// レスポンスに `post` フィールドが含まれていることを確認",
+              "pm.test(\"Response contains 'post' field\", function () {",
               "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.have.property('data');",
+              "    pm.expect(jsonData).to.have.property(\"post\");",
               "});",
               ""
             ],
@@ -211,7 +152,7 @@
         }
       ],
       "request": {
-        "method": "PUT",
+        "method": "POST",
         "header": [
           {
             "key": "Authorization",
@@ -221,7 +162,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"DisplayName\": \"updatedName\",\n    \"Gender\": \"female\",\n    \"Introduction\": \"Hello! This is updated Introduction!\"\n}",
+          "raw": "{\n    \"Text\": \"今日は東京で遊びました。\",\n    \"InterestTags\": [\"tag1\", \"tag2\", \"tag3\"],\n    \"PostImageUrls\": [\"url1\", \"url2\", \"url2\"],\n    \"Location\": \"座標\",\n    \"IsDraft\": false\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -229,61 +170,18 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/settings/user",
+          "raw": "http://localhost:8080/posts/submit",
           "protocol": "http",
           "host": [
             "localhost"
           ],
           "port": "8080",
           "path": [
-            "settings",
-            "user"
+            "posts",
+            "submit"
           ]
         },
-        "description": "**説明**\n\nユーザーの情報を更新するAPI。\n\n**JSONデータ**\n\n``` json\n{\n    \"Password\": \"文字列\",\n    \"DisplayName\": \"文字列\",\n    \"Gender\": \"maleかfemale\",\n    \"Introduction\": \"文字列\",\n    \"IconImageUrl\": \"文字列\"\n}\n\n ```"
-      },
-      "response": []
-    },
-    {
-      "name": "ユーザー削除",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "// ステータスコードが200であることを確認",
-              "pm.test('Status code is 200', function () {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "DELETE",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": " Bearer {{jwt_token}}",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "http://localhost:8080/settings/user",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "settings",
-            "user"
-          ]
-        },
-        "description": "**説明**\n\nユーザーを削除するAPI。"
+        "description": "**説明**\n\n**投稿を提出するAPI**\n\n**JSONデータ**\n\n``` json\n{\n    \"Text\": \"文字列\",\n    \"InterestTags\": [\"tag1\", \"tag2\"...],\n    \"PostImageUrls\": [\"url1\", \"url2\"...],\n    \"Location\": \"座標\",\n    \"IsDraft\": \"trueかfalse\"\n}\n\n ```"
       },
       "response": []
     }
