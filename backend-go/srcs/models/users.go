@@ -30,6 +30,7 @@ type TUser struct {
 	Affiliations     []TAffiliation `gorm:"many2many:t_user_affiliations;"`
 	InterestTags     []TInterestTag `gorm:"many2many:t_user_interest_tags;"`
 	Posts            []TPost        `gorm:"foreignKey:UserID;references:ID"`
+	Pictures         []TPicture     `gorm:"foreignKey:UserID;references:ID"`
 }
 
 func (*TUser) TableName() string {
