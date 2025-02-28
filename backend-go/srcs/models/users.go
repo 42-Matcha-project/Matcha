@@ -28,6 +28,7 @@ type TUser struct {
 	CreatedAt        time.Time      `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`
 	UpdatedAt        time.Time      `gorm:"type:timestamp;default:CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP;column:updated_at"`
 	Affiliations     []TAffiliation `gorm:"many2many:t_user_affiliations;"`
+	InterestTags     []TInterestTag `gorm:"many2many:t_user_interest_tags;"`
 }
 
 func (*TUser) TableName() string {

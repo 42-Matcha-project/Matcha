@@ -40,6 +40,18 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 		affiliations = append(affiliations, affiliation)
 	}
 
+	var interestTags []models.TInterestTag
+	for _, name := range registerInput.InterestTags {
+		interestTag := models.TInterestTag{
+			Name: name,
+		}
+		err := models.DB.Where("name = ?", name).FirstOrCreate(&interestTag).Error
+		if err != nil {
+			return nil, err
+		}
+		interestTags = append(interestTags, interestTag)
+	}
+
 	registerUser := &models.TUser{
 		Username:         registerInput.Username,
 		Email:            registerInput.Email,
@@ -50,6 +62,7 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 		IconImageURL:     registerInput.IconImageUrl,
 		SexualPreference: registerInput.SexualPreference,
 		Affiliations:     affiliations,
+		InterestTags:     interestTags,
 	}
 
 	var err error
@@ -69,34 +82,6 @@ func registerPictures(registerInput RegisterInput, registerUserID int) error {
 				PictureURL: registerInput.PictureUrls[i],
 			}
 			picture, err = picture.CreatePicture()
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func registerInterestTags(registerInput RegisterInput, registerUserID int) error {
-	/*
-		InterestTagsを登録する関数。
-	*/
-	var err error
-	if registerInput.InterestTags != nil && len(registerInput.InterestTags) != 0 {
-		for i := 0; i < len(registerInput.InterestTags); i++ {
-			interestTag := &models.TInterestTag{
-				Name: registerInput.InterestTags[i],
-			}
-			interestTag, err = interestTag.CreateInterestTag()
-			if err != nil {
-				return err
-			}
-
-			userInterestTag := &models.TUserInterestTag{
-				UserID:        registerUserID,
-				InterestTagID: interestTag.ID,
-			}
-			userInterestTag, err = userInterestTag.CreateUserInterestTag()
 			if err != nil {
 				return err
 			}
@@ -129,12 +114,6 @@ func Register(reqContext *gin.Context) {
 
 	if err = registerPictures(registerInput, user.ID); err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create pictures"})
-		reqContext.Error(err)
-		return
-	}
-
-	if err = registerInterestTags(registerInput, user.ID); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create interest tags"})
 		reqContext.Error(err)
 		return
 	}
