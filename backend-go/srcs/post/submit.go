@@ -50,14 +50,13 @@ func submitPostImageUrls(submitInput SubmitInput, post_id int) error {
 	/*
 		PostImageUrlsと登録する関数。
 	*/
-	var err error
 	if submitInput.PostImageUrls != nil && len(submitInput.PostImageUrls) != 0 {
 		for i := 0; i < len(submitInput.PostImageUrls); i++ {
-			postImageUrl := &models.TPostImageURL{
+			var postImageUrls models.TPostImageURL
+			err := models.DB.FirstOrCreate(&postImageUrls, models.TPostImageURL{
 				PostID:       post_id,
 				PostImageUrl: submitInput.PostImageUrls[i],
-			}
-			postImageUrl, err = postImageUrl.CreatePostImageURL()
+			}).Error
 			if err != nil {
 				return err
 			}

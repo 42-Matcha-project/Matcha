@@ -24,12 +24,9 @@ type RegisterInput struct {
 	SexualPreference string   `json:"SexualPreference"`
 }
 
-func registerUser(registerInput RegisterInput) (*models.TUser, error) {
-	/*
-		UserをDBに保存する関数。
-	*/
+func registerAffiliations(inputAffiliations []string) ([]models.TAffiliation, error) {
 	var affiliations []models.TAffiliation
-	for _, name := range registerInput.Affiliations {
+	for _, name := range inputAffiliations {
 		affiliation := models.TAffiliation{
 			Name: name,
 		}
@@ -39,9 +36,12 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 		}
 		affiliations = append(affiliations, affiliation)
 	}
+	return affiliations, nil
+}
 
+func registerInterestTags(inputInterestTags []string) ([]models.TInterestTag, error) {
 	var interestTags []models.TInterestTag
-	for _, name := range registerInput.InterestTags {
+	for _, name := range inputInterestTags {
 		interestTag := models.TInterestTag{
 			Name: name,
 		}
@@ -50,6 +50,26 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 			return nil, err
 		}
 		interestTags = append(interestTags, interestTag)
+	}
+	return interestTags, nil
+}
+
+func registerUser(registerInput RegisterInput) (*models.TUser, error) {
+	/*
+		UserをDBに保存する関数。
+	*/
+	var affiliations []models.TAffiliation
+	var interestTags []models.TInterestTag
+	var err error
+
+	affiliations, err = registerAffiliations(registerInput.Affiliations)
+	if err != nil {
+		return nil, err
+	}
+
+	interestTags, err = registerInterestTags(registerInput.InterestTags)
+	if err != nil {
+		return nil, err
 	}
 
 	registerUser := &models.TUser{
@@ -65,7 +85,6 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 		InterestTags:     interestTags,
 	}
 
-	var err error
 	registerUser, err = registerUser.CreateUser()
 	return registerUser, err
 }
@@ -74,14 +93,13 @@ func registerPictures(registerInput RegisterInput, registerUserID int) error {
 	/*
 		Picturesを登録する関数。
 	*/
-	var err error
 	if registerInput.PictureUrls != nil && len(registerInput.PictureUrls) != 0 {
 		for i := 0; i < len(registerInput.PictureUrls); i++ {
-			picture := &models.TPicture{
+			var picture models.TPicture
+			err := models.DB.FirstOrCreate(&picture, models.TPicture{
 				UserID:     registerUserID,
 				PictureURL: registerInput.PictureUrls[i],
-			}
-			picture, err = picture.CreatePicture()
+			}).Error
 			if err != nil {
 				return err
 			}
