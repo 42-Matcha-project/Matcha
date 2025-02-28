@@ -12,6 +12,7 @@ type TPostImageURL struct {
 	ID           int    `gorm:"primaryKey;autoIncrement;column:id"`
 	PostID       int    `gorm:"type:int(10);not null;column:post_id"`
 	PostImageUrl string `gorm:"type:varchar(255);not null;column:post_image_url"`
+	Post         TPost  `gorm:"foreignKey:PostID;references:ID"`
 }
 
 func (*TPostImageURL) TableName() string { return "t_post_image_urls" }
