@@ -12,7 +12,7 @@ type TPost struct {
 	ID        int       `gorm:"primaryKey;autoIncrement;column:id"`
 	UserID    uint      `gorm:"type:int(10);not null;column:user_id"`
 	Text      string    `gorm:"type:varchar(30);column:text"`
-	IsDraft   bool      `gorm:"type:boolean;column:is_draft"`
+	IsDraft   bool      `gorm:"type:boolean;not null;column:is_draft"`
 	CreatedAt time.Time `gorm:"column:created_at"`
 }
 
