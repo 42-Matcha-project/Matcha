@@ -24,10 +24,54 @@ type RegisterInput struct {
 	SexualPreference string   `json:"SexualPreference"`
 }
 
+func registerAffiliations(inputAffiliations []string) ([]models.TAffiliation, error) {
+	var affiliations []models.TAffiliation
+	for _, name := range inputAffiliations {
+		affiliation := models.TAffiliation{
+			Name: name,
+		}
+		err := models.DB.Where("name = ?", name).FirstOrCreate(&affiliation).Error
+		if err != nil {
+			return nil, err
+		}
+		affiliations = append(affiliations, affiliation)
+	}
+	return affiliations, nil
+}
+
+func registerInterestTags(inputInterestTags []string) ([]models.TInterestTag, error) {
+	var interestTags []models.TInterestTag
+	for _, name := range inputInterestTags {
+		interestTag := models.TInterestTag{
+			Name: name,
+		}
+		err := models.DB.Where("name = ?", name).FirstOrCreate(&interestTag).Error
+		if err != nil {
+			return nil, err
+		}
+		interestTags = append(interestTags, interestTag)
+	}
+	return interestTags, nil
+}
+
 func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 	/*
 		UserをDBに保存する関数。
 	*/
+	var affiliations []models.TAffiliation
+	var interestTags []models.TInterestTag
+	var err error
+
+	affiliations, err = registerAffiliations(registerInput.Affiliations)
+	if err != nil {
+		return nil, err
+	}
+
+	interestTags, err = registerInterestTags(registerInput.InterestTags)
+	if err != nil {
+		return nil, err
+	}
+
 	registerUser := &models.TUser{
 		Username:         registerInput.Username,
 		Email:            registerInput.Email,
@@ -37,82 +81,25 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 		Introduction:     registerInput.Introduction,
 		IconImageURL:     registerInput.IconImageUrl,
 		SexualPreference: registerInput.SexualPreference,
+		Affiliations:     affiliations,
+		InterestTags:     interestTags,
 	}
 
-	var err error
 	registerUser, err = registerUser.CreateUser()
 	return registerUser, err
-}
-
-func registerAffiliations(registerInput RegisterInput, registerUserID int) error {
-	/*
-		AffiliationをDBに保存する関数。
-		Affiliationの配列を受け取りそれらを各要素ごとにDBに保存する。
-	*/
-	var err error
-	if registerInput.Affiliations != nil && len(registerInput.Affiliations) != 0 {
-		for i := 0; i < len(registerInput.Affiliations); i++ {
-			affiliation := &models.TAffiliation{
-				Affiliation: registerInput.Affiliations[i],
-			}
-			affiliation, err = affiliation.CreateAffiliation()
-			if err != nil {
-				return err
-			}
-
-			userAffiliation := &models.TUserAffiliation{
-				UserID:        registerUserID,
-				AffiliationID: affiliation.ID,
-			}
-			userAffiliation, err = userAffiliation.CreateUserAffiliation()
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func registerPictures(registerInput RegisterInput, registerUserID int) error {
 	/*
 		Picturesを登録する関数。
 	*/
-	var err error
 	if registerInput.PictureUrls != nil && len(registerInput.PictureUrls) != 0 {
 		for i := 0; i < len(registerInput.PictureUrls); i++ {
-			picture := &models.TPicture{
+			var picture models.TPicture
+			err := models.DB.FirstOrCreate(&picture, models.TPicture{
 				UserID:     registerUserID,
 				PictureURL: registerInput.PictureUrls[i],
-			}
-			picture, err = picture.CreatePicture()
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
-}
-
-func registerInterestTags(registerInput RegisterInput, registerUserID int) error {
-	/*
-		InterestTagsを登録する関数。
-	*/
-	var err error
-	if registerInput.InterestTags != nil && len(registerInput.InterestTags) != 0 {
-		for i := 0; i < len(registerInput.InterestTags); i++ {
-			interestTag := &models.TInterestTag{
-				Name: registerInput.InterestTags[i],
-			}
-			interestTag, err = interestTag.CreateInterestTag()
-			if err != nil {
-				return err
-			}
-
-			userInterestTag := &models.TUserInterestTag{
-				UserID:        registerUserID,
-				InterestTagID: interestTag.ID,
-			}
-			userInterestTag, err = userInterestTag.CreateUserInterestTag()
+			}).Error
 			if err != nil {
 				return err
 			}
@@ -143,20 +130,8 @@ func Register(reqContext *gin.Context) {
 		return
 	}
 
-	if err = registerAffiliations(registerInput, user.ID); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create affiliation"})
-		reqContext.Error(err)
-		return
-	}
-
 	if err = registerPictures(registerInput, user.ID); err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create pictures"})
-		reqContext.Error(err)
-		return
-	}
-
-	if err = registerInterestTags(registerInput, user.ID); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create interest tags"})
 		reqContext.Error(err)
 		return
 	}

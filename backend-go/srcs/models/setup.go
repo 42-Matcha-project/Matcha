@@ -26,7 +26,11 @@ func ConnectDataBase() {
 
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
 	var err error
-	DB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(
+		mysql.Open(dsn),
+		&gorm.Config{
+			PrepareStmt: true,
+		})
 
 	if err != nil {
 		log.Fatal("Could not connect to the database", err)
@@ -34,11 +38,8 @@ func ConnectDataBase() {
 
 	DB.AutoMigrate(&TUser{})
 	DB.AutoMigrate(&TAffiliation{})
-	DB.AutoMigrate(&TUserAffiliation{})
 	DB.AutoMigrate(&TPicture{})
 	DB.AutoMigrate(&TInterestTag{})
-	DB.AutoMigrate(&TUserInterestTag{})
 	DB.AutoMigrate(&TPost{})
-	DB.AutoMigrate(&TPostInterestTag{})
 	DB.AutoMigrate(&TPostImageURL{})
 }
