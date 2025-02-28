@@ -35,6 +35,7 @@ func submitPost(submitInput SubmitInput, userId uint) (*models.TPost, error) {
 	}
 
 	submitPost := &models.TPost{
+		UserID:       userId,
 		Text:         submitInput.Text,
 		IsDraft:      submitInput.IsDraft,
 		InterestTags: interestTags,
