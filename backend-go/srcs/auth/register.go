@@ -28,6 +28,18 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 	/*
 		UserをDBに保存する関数。
 	*/
+	var affiliations []models.TAffiliation
+	for _, name := range registerInput.Affiliations {
+		affiliation := models.TAffiliation{
+			Name: name,
+		}
+		err := models.DB.Where("name = ?", name).FirstOrCreate(&affiliation).Error
+		if err != nil {
+			return nil, err
+		}
+		affiliations = append(affiliations, affiliation)
+	}
+
 	registerUser := &models.TUser{
 		Username:         registerInput.Username,
 		Email:            registerInput.Email,
@@ -37,40 +49,12 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 		Introduction:     registerInput.Introduction,
 		IconImageURL:     registerInput.IconImageUrl,
 		SexualPreference: registerInput.SexualPreference,
+		Affiliations:     affiliations,
 	}
 
 	var err error
 	registerUser, err = registerUser.CreateUser()
 	return registerUser, err
-}
-
-func registerAffiliations(registerInput RegisterInput, registerUserID int) error {
-	/*
-		AffiliationをDBに保存する関数。
-		Affiliationの配列を受け取りそれらを各要素ごとにDBに保存する。
-	*/
-	var err error
-	if registerInput.Affiliations != nil && len(registerInput.Affiliations) != 0 {
-		for i := 0; i < len(registerInput.Affiliations); i++ {
-			affiliation := &models.TAffiliation{
-				Affiliation: registerInput.Affiliations[i],
-			}
-			affiliation, err = affiliation.CreateAffiliation()
-			if err != nil {
-				return err
-			}
-
-			userAffiliation := &models.TUserAffiliation{
-				UserID:        registerUserID,
-				AffiliationID: affiliation.ID,
-			}
-			userAffiliation, err = userAffiliation.CreateUserAffiliation()
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func registerPictures(registerInput RegisterInput, registerUserID int) error {
@@ -139,12 +123,6 @@ func Register(reqContext *gin.Context) {
 	user, err := registerUser(registerInput)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create user"})
-		reqContext.Error(err)
-		return
-	}
-
-	if err = registerAffiliations(registerInput, user.ID); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create affiliation"})
 		reqContext.Error(err)
 		return
 	}
