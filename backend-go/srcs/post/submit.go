@@ -22,43 +22,28 @@ func submitPost(submitInput SubmitInput, userId uint) (*models.TPost, error) {
 	/*
 		postをDBに保存する関数。
 	*/
+	var interestTags []models.TInterestTag
+	for _, name := range submitInput.InterestTags {
+		interestTag := models.TInterestTag{
+			Name: name,
+		}
+		err := models.DB.Where("name = ?", name).FirstOrCreate(&interestTag).Error
+		if err != nil {
+			return nil, err
+		}
+		interestTags = append(interestTags, interestTag)
+	}
+
 	submitPost := &models.TPost{
-		UserID:  userId,
-		Text:    submitInput.Text,
-		IsDraft: submitInput.IsDraft,
+		UserID:       userId,
+		Text:         submitInput.Text,
+		IsDraft:      submitInput.IsDraft,
+		InterestTags: interestTags,
 	}
 
 	var err error
 	submitPost, err = submitPost.CreatePost()
 	return submitPost, err
-}
-
-func submitInterestTags(submitInput SubmitInput, post_id int) error {
-	/*
-		InterestTagsを登録する関数。
-	*/
-	var err error
-	if submitInput.InterestTags != nil && len(submitInput.InterestTags) != 0 {
-		for i := 0; i < len(submitInput.InterestTags); i++ {
-			interestTag := &models.TInterestTag{
-				Name: submitInput.InterestTags[i],
-			}
-			interestTag, err = interestTag.CreateInterestTag()
-			if err != nil {
-				return err
-			}
-
-			postInterestTag := &models.TPostInterestTag{
-				PostID:        post_id,
-				InterestTagID: interestTag.ID,
-			}
-			postInterestTag, err = postInterestTag.CreatePostInterestTag()
-			if err != nil {
-				return err
-			}
-		}
-	}
-	return nil
 }
 
 func submitPostImageUrls(submitInput SubmitInput, post_id int) error {
@@ -112,12 +97,6 @@ func Submit(reqContext *gin.Context) {
 	post, err := submitPost(submitInput, userId)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to submit post"})
-		reqContext.Error(err)
-		return
-	}
-
-	if err = submitInterestTags(submitInput, post.ID); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to submit interest tags"})
 		reqContext.Error(err)
 		return
 	}

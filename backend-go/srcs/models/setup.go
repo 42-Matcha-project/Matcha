@@ -41,6 +41,5 @@ func ConnectDataBase() {
 	DB.AutoMigrate(&TPicture{})
 	DB.AutoMigrate(&TInterestTag{})
 	DB.AutoMigrate(&TPost{})
-	DB.AutoMigrate(&TPostInterestTag{})
 	DB.AutoMigrate(&TPostImageURL{})
 }
