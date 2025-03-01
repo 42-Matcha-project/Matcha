@@ -2,10 +2,12 @@ package main
 
 import (
 	"net/http"
+	"os"
 	"srcs/auth"
 	"srcs/middlewares"
 	"srcs/models"
 	"srcs/post"
+	"srcs/utils"
 
 	"github.com/gin-gonic/gin"
 )
@@ -16,7 +18,14 @@ func main() {
 	*/
 	models.ConnectDataBase()
 
-	router := gin.Default()
+	var router *gin.Engine
+	if os.Getenv("ENVIRONMENT") == "production" {
+		router = gin.New()
+		router.Use(utils.ProductionLogger())
+		router.Use(gin.Recovery())
+	} else {
+		router = gin.Default()
+	}
 
 	router.GET("/health", func(reqContext *gin.Context) {
 		reqContext.JSON(http.StatusOK, gin.H{
