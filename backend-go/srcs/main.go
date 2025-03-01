@@ -23,8 +23,10 @@ func main() {
 		router = gin.New()
 		router.Use(utils.ProductionLogger())
 		router.Use(gin.Recovery())
+		gin.SetMode(gin.ReleaseMode)
 	} else {
 		router = gin.Default()
+		gin.SetMode(gin.DebugMode)
 	}
 
 	router.GET("/health", func(reqContext *gin.Context) {
