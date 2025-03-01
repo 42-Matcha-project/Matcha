@@ -253,14 +253,14 @@ const MainContent = () => {
       alt: "赤い花",
       width: 300,
       height: 300,
-      className: "fixed right-0 bottom-10 w-24 md:w-32 lg:w-64 z-10",
+      className: "fixed left-10 bottom-10 w-24 md:w-32 lg:w-64 z-10",
     },
     {
       src: "/images/welcome-hiyoko.webp",
       alt: "ひよこ",
       width: 160,
       height: 160,
-      className: "fixed right-40 bottom-10 w-24 md:w-32 lg:w-40 z-10",
+      className: "fixed right-40 bottom-0 w-24 md:w-32 lg:w-40 z-10",
     },
     {
       src: "/images/welcome-fox.webp",
@@ -271,11 +271,18 @@ const MainContent = () => {
         "fixed left-20 md:left-32 lg:left-80 bottom-20 w-30 md:w-32 lg:w-64 z-10",
     },
     {
-      src: "/images/macha-neko2.png",
-      alt: "ロゴネコ",
+      src: "/images/welcome-flower&butterfly.webp",
+      alt: "花と蝶",
       width: 250,
       height: 250,
-      className: "fixed right-[20.5rem] bottom-20 w-32 md:w-48 lg:w-80 z-20",
+      className: "fixed right-0 bottom-0 w-24 md:w-32 lg:w-64",
+    },
+    {
+      src: "/images/macha-neko2.png",
+      alt: "ロゴネコ",
+      width: 400,
+      height: 400,
+      className: "fixed right-[28.5rem] bottom-20 w-32 md:w-48 lg:w-100 z-20",
     },
     {
       src: "/images/welcome-butterfly.webp",
@@ -297,6 +304,19 @@ const MainContent = () => {
         "absolute right-8 md:left-16 lg:left-24 top-1/3 transform -translate-y-1/2 w-20 md:w-24 lg:w-64",
       style: {
         animation: "float 3s ease-in-out infinite alternate",
+      },
+    },
+    {
+      src: "/images/welcome-emmyu.webp",
+      alt: "エミュー",
+      width: 200,
+      height: 200,
+      className:
+        "fixed right-[20rem] bottom-20 w-24 md:w-20 lg:w-24 opacity-90 z-5",
+      style: {
+        animation: "float 3s ease-in-out infinite alternate",
+        filter: "blur(0.5px)",
+        transform: "scale(0.25)", // サイズをわずかに縮小
       },
     },
   ];
