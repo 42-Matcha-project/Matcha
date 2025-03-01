@@ -167,7 +167,7 @@ Table t_user_affiliations {
 
 Table t_affiliations {
   id integer [primary key]
-  affiliation varchar(100)
+  name varchar(100)
 }
 
 Ref: t_users.id < t_user_affiliations.user_id
