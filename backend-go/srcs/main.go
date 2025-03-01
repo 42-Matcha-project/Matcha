@@ -24,6 +24,12 @@ func main() {
 		router.Use(utils.ProductionLogger())
 		router.Use(gin.Recovery())
 		gin.SetMode(gin.ReleaseMode)
+		//router.Use(cors.New(cors.Config{
+		//	AllowOrigins:     []string{os.Getenv("ALLOWED_ORIGINS")}, // 本番環境のドメインのみ許可
+		//	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE"},
+		//	AllowHeaders:     []string{"Content-Type", "Authorization"},
+		//	AllowCredentials: true,
+		//}))
 	} else {
 		router = gin.Default()
 		gin.SetMode(gin.DebugMode)
