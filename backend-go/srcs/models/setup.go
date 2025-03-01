@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -42,4 +43,16 @@ func ConnectDataBase() {
 	DB.AutoMigrate(&TInterestTag{})
 	DB.AutoMigrate(&TPost{})
 	DB.AutoMigrate(&TPostImageURL{})
+
+	if os.Getenv("ENVIRONMENT") == "production" {
+		mysqlDB, err := DB.DB()
+		if err != nil {
+			log.Fatal("DB取得失敗:", err)
+		}
+		mysqlDB.SetMaxIdleConns(10)
+		mysqlDB.SetMaxOpenConns(100)
+		mysqlDB.SetConnMaxLifetime(time.Hour)
+
+		fmt.Println("DB接続成功！")
+	}
 }
