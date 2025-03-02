@@ -10,7 +10,7 @@ type TPost struct {
 		postsテーブルの構造体
 	*/
 	ID           int             `gorm:"primaryKey;autoIncrement;column:id"`
-	UserID       uint            `gorm:"type:int(10);not null;column:user_id"`
+	UserID       uint            `gorm:"type:int(10);not null;column:user_id" json:"-"`
 	Text         string          `gorm:"type:varchar(30);column:text"`
 	IsDraft      bool            `gorm:"type:boolean;not null;column:is_draft"`
 	CreatedAt    time.Time       `gorm:"column:created_at"`
