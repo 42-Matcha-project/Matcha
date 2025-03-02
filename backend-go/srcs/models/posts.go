@@ -15,7 +15,7 @@ type TPost struct {
 	IsDraft      bool            `gorm:"type:boolean;not null;column:is_draft"`
 	CreatedAt    time.Time       `gorm:"column:created_at"`
 	InterestTags []TInterestTag  `gorm:"many2many:t_post_interest_tags;"`
-	User         TUser           `gorm:"foreignkey:UserID;references:ID"`
+	User         TUser           `gorm:"foreignkey:UserID;references:ID" json:"-"`
 	PostImageURL []TPostImageURL `gorm:"foreignkey:PostID;references:ID"`
 }
 
