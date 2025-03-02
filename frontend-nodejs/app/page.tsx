@@ -310,7 +310,7 @@ const MainContent = () => {
       width: 400,
       height: 400,
       containerClassName:
-        "absolute bottom-[10%] right-[25%] w-[18%] max-w-[220px] z-20",
+        "absolute bottom-[10%] right-[25%] w-[18%] max-w-[280px] z-20",
     },
     {
       src: "/images/welcome-butterfly.webp",
