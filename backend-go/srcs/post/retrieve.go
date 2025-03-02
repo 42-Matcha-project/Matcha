@@ -28,5 +28,17 @@ func Retrieve(reqContext *gin.Context) {
 		reqContext.Error(err)
 		return
 	}
-	reqContext.JSON(http.StatusOK, interestTagIDs)
+
+	var posts []models.TPost
+	err = models.DB.Preload("InterestTags").
+		Where("is_draft = ?", false).
+		Joins("JOIN t_post_interest_tags pit ON t_posts.id = pit.t_post_id").
+		Where("pit.t_interest_tag_id IN (?)", interestTagIDs).
+		Order("created_at DESC").
+		Distinct().
+		Find(&posts).Error
+
+	reqContext.JSON(http.StatusOK, gin.H{
+		"posts": posts,
+	})
 }
