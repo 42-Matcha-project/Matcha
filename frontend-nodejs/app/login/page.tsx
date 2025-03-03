@@ -83,7 +83,7 @@ export default function Login() {
             戻る
           </Button>
           <Button variant="primary" type="submit">
-            
+            確定
           </Button>
         </div>
       </form>
