@@ -367,7 +367,7 @@ const MainContent = () => {
       <div className="fixed inset-0 w-full h-full z-0">
         <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-100" />
         <Image
-          src="/images/welcome-background.png"
+          src="/images/Welcome-background.png"
           alt="背景画像"
           fill
           className="object-cover opacity-90 pointer-events-none"
