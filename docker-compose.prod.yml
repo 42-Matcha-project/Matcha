@@ -1,0 +1,6 @@
+services:
+  backend-go:
+    volumes:
+      - ./backend-go/logs/:/usr/src/app/logs
+    env_file:
+      - .env.prod
