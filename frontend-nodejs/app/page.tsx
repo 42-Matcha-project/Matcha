@@ -117,6 +117,7 @@ const DecorativeImage = ({
   containerClassName,
   imageClassName = "",
   style,
+  unoptimized,
 }: {
   src: string;
   alt: string;
@@ -125,7 +126,14 @@ const DecorativeImage = ({
   containerClassName: string;
   imageClassName?: string;
   style?: React.CSSProperties;
+  unoptimized?: boolean;
 }) => {
+  // アニメーション画像かどうかを判定
+  const isWebP = src.toLowerCase().endsWith(".webp");
+
+  // 明示的に指定された場合はその値を使用、そうでなければWebPファイルではunoptimizedをtrueに
+  const shouldNotOptimize = unoptimized !== undefined ? unoptimized : isWebP;
+
   return (
     <div className={containerClassName}>
       <div className={imageClassName} style={style}>
@@ -136,6 +144,7 @@ const DecorativeImage = ({
           height={height}
           className="object-contain pointer-events-none w-full h-auto"
           priority={src.includes("flying") || src.includes("butterfly")}
+          unoptimized={shouldNotOptimize}
         />
       </div>
     </div>
