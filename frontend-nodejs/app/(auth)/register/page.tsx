@@ -2,19 +2,67 @@
 
 import { useRouter } from "next/navigation";
 import Layout from "../../components/Layout";
-import { useRef } from "react";
+import { useState, useRef } from "react";
 import FileInputButton from "@/app/components/FileInputButton";
 import ImagePreview from "@/app/components/ImagePreview";
 import Button from "@/app/components/Button";
 import FormField from "@/app/components/FormField";
 import useFileUploader from "@/app/hooks/useFileUploader";
+import { registerUser, uploadUserImage } from "@/lib/api";
 
 export default function Register() {
   const router = useRouter();
+  const [formError, setFormError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    router.push("/profile-detail");
+    setFormError(null);
+    setIsLoading(true);
+
+    // フォームデータ取得
+    const formData = new FormData(e.currentTarget);
+
+    // パスワード一致確認
+    const password = formData.get("password") as string;
+    const confirmPassword = formData.get("confirmPassword") as string;
+
+    if (password !== confirmPassword) {
+      setFormError("パスワードが一致しません。");
+      setIsLoading(false);
+      return;
+    }
+
+    // APIに送信するデータを準備
+    const userData = {
+      username: formData.get("username"),
+      nickname: formData.get("nickname"),
+      gender: formData.get("gender"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+    };
+
+    // ユーザーデータを取得
+    try {
+      const data = await registerUser(userData);
+
+      // 登録成功 - アイコン画像がある場合はアップロード
+      if (previewUrls.length > 0 && fileInputRef.current?.files?.length) {
+        await uploadUserImage(data.user.ID, fileInputRef.current.files[0]);
+      }
+
+      // 次のページへ
+      router.push("/profile-detail");
+    } catch (error) {
+      console.error("登録エラー:", error);
+      setFormError(
+        error instanceof Error
+          ? error.message
+          : "登録処理中にエラーが発生しました。",
+      );
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const fileInputRef = useRef<HTMLInputElement>(null);
