@@ -9,6 +9,7 @@ import (
 	"srcs/post"
 	"srcs/utils"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -33,6 +34,15 @@ func main() {
 	} else {
 		router = gin.Default()
 		gin.SetMode(gin.DebugMode)
+
+		// ここにCORS設定を追加
+		router.Use(cors.New(cors.Config{
+			AllowOrigins:     []string{"http://localhost:3000"},
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+			ExposeHeaders:    []string{"Content-Length"},
+			AllowCredentials: true,
+		}))
 	}
 
 	router.GET("/health", func(reqContext *gin.Context) {

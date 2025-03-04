@@ -5,7 +5,7 @@ export async function fetcher<T>(
   url: string,
   options?: RequestInit,
 ): Promise<T> {
-  // .env.localファイルからAPIのベースURLを取得 
+  // .env.localファイルからAPIのベースURLを取得
 
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
   const response = await fetch(`${baseUrl}${url}`, {
@@ -13,7 +13,6 @@ export async function fetcher<T>(
       "Content-Type": "application/json",
       ...options?.headers,
     },
-    mode: 'no-cors', // CORS制限を回避
     ...options,
   });
   console.log("APIリクエスト:", response);
@@ -59,16 +58,18 @@ export async function registerUser(userData: {
 }): Promise<RegisterResponse> {
   // バックエンド側の期待する形式に変換
   const requestData = {
-    Username: userData.username,
-    Email: userData.email,
-    Password: userData.password,
-    DisplayName: userData.nickname, // DisplayName = nickname
-    Gender: userData.gender,
+    Username: userData.username?.toString() || "",
+    Email: userData.email?.toString() || "",
+    Password: userData.password?.toString() || "",
+    DisplayName: userData.nickname?.toString() || "",
+    Gender: userData.gender?.toString() || "",
     Introduction: "",
     Affiliations: [],
     InterestTags: [],
     SexualPreference: "",
   };
+
+  console.log("送信データ:", JSON.stringify(requestData, null, 2));
 
   return fetcher<RegisterResponse>("/auth/register", {
     method: "POST",
