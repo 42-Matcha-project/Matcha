@@ -69,8 +69,6 @@ export async function registerUser(userData: {
     SexualPreference: "",
   };
 
-  console.log("送信データ:", JSON.stringify(requestData, null, 2));
-
   return fetcher<RegisterResponse>("/auth/register", {
     method: "POST",
     body: JSON.stringify(requestData),
