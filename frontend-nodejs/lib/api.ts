@@ -5,13 +5,15 @@ export async function fetcher<T>(
   url: string,
   options?: RequestInit,
 ): Promise<T> {
-  // .env.localファイルからAPIのベースURLを取得
+  // .env.localファイルからAPIのベースURLを取得 
+
   const baseUrl = process.env.NEXT_PUBLIC_API_URL || "";
   const response = await fetch(`${baseUrl}${url}`, {
     headers: {
       "Content-Type": "application/json",
       ...options?.headers,
     },
+    mode: 'no-cors', // CORS制限を回避
     ...options,
   });
   console.log("APIリクエスト:", response);
@@ -68,7 +70,7 @@ export async function registerUser(userData: {
     SexualPreference: "",
   };
 
-  return fetcher<RegisterResponse>("/api/auth/register", {
+  return fetcher<RegisterResponse>("/auth/register", {
     method: "POST",
     body: JSON.stringify(requestData),
   });
