@@ -210,17 +210,23 @@ export default function Register() {
             />
           </FormField>
 
+          {/* エラーメッセージ表示 */}
+          {formError && (
+            <div className="text-red-500 mt-2 text-sm">{formError}</div>
+          )}
+
           {/* ボタン */}
           <div className="flex items-center justify-end gap-4">
             <Button
               variant="secondary"
               type="button"
               onClick={() => router.push("/")}
+              disabled={isLoading}
             >
               キャンセル
             </Button>
-            <Button variant="primary" type="submit">
-              次へ
+            <Button variant="primary" type="submit" disabled={isLoading}>
+              {isLoading ? "送信中..." : "次へ"}
             </Button>
           </div>
         </form>

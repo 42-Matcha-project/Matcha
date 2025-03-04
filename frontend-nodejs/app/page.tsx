@@ -118,6 +118,7 @@ const DecorativeImage = ({
   imageClassName = "",
   style,
   unoptimized,
+  priority,
 }: {
   src: string;
   alt: string;
@@ -127,6 +128,7 @@ const DecorativeImage = ({
   imageClassName?: string;
   style?: React.CSSProperties;
   unoptimized?: boolean;
+  priority?: boolean;
 }) => {
   // アニメーション画像かどうかを判定
   const isWebP = src.toLowerCase().endsWith(".webp");
@@ -143,7 +145,9 @@ const DecorativeImage = ({
           width={width}
           height={height}
           className="object-contain pointer-events-none w-full h-auto"
-          priority={src.includes("flying") || src.includes("butterfly")}
+          priority={
+            priority || src.includes("flying") || src.includes("butterfly")
+          }
           unoptimized={shouldNotOptimize}
         />
       </div>
@@ -318,6 +322,7 @@ const MainContent = () => {
       alt: "ロゴネコ",
       width: 400,
       height: 400,
+      priority: true,
       containerClassName:
         "absolute bottom-[10%] right-[25%] w-[18%] max-w-[280px] z-20",
     },
