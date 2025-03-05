@@ -37,6 +37,11 @@ func Retrieve(reqContext *gin.Context) {
 		Where("id IN (?)", models.DB.Table("t_post_interest_tags").Select("t_post_id").Where("t_interest_tag_id IN (?)", interestTagIDs)).
 		Order("created_at DESC").
 		Find(&posts).Error
+	if err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to retrieve posts"})
+		reqContext.Error(err)
+		return
+	}
 
 	reqContext.JSON(http.StatusOK, gin.H{
 		"posts": posts,
