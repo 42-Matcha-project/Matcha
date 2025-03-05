@@ -184,6 +184,52 @@
         "description": "**説明**\n\n**投稿を提出するAPI**\n\n**JSONデータ**\n\n``` json\n{\n    \"Text\": \"文字列\",\n    \"InterestTags\": [\"tag1\", \"tag2\"...],\n    \"PostImageUrls\": [\"url1\", \"url2\"...],\n    \"Location\": \"座標\",\n    \"IsDraft\": \"trueかfalse\"\n}\n\n ```"
       },
       "response": []
+    },
+    {
+      "name": "投稿一覧取得",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスが200であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスに'posts'フィールドが含まれていることを確認\", function () {",
+              "    const jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"posts\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/posts/retrieve",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "posts",
+            "retrieve"
+          ]
+        }
+      },
+      "response": []
     }
   ]
 }
