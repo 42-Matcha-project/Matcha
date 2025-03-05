@@ -114,7 +114,7 @@ export default function ProfileDetails() {
                 戻る
               </Button>
             </Link>
-            <Link href="/affiliations-filter">
+            <Link href="/timeline">
               <Button variant="primary" type="button">
                 次へ
               </Button>
