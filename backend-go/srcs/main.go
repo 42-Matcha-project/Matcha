@@ -47,6 +47,7 @@ func main() {
 
 	postRoutes := router.Group("/posts")
 	postRoutes.POST("/submit", post.Submit)
+	postRoutes.GET("/retrieve", post.Retrieve)
 
 	settingRoutes := router.Group("/settings")
 	settingRoutes.Use(middlewares.JWTValidationMiddleware())
