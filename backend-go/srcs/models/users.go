@@ -4,7 +4,6 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
-	"reflect"
 	"srcs/token"
 	"strings"
 	"time"
@@ -16,21 +15,14 @@ type TUser struct {
 	/*
 		usersテーブルの構造体
 	*/
-	ID               int            `gorm:"primaryKey;autoIncrement;column:id"`
-	Username         string         `gorm:"type:varchar(30);not null;unique;column:username"`
-	Email            string         `gorm:"type:varchar(255);not null;unique;column:email"`
-	Password         string         `gorm:"type:varchar(60);not null;column:password"`
-	DisplayName      string         `gorm:"type:varchar(20);not null;column:display_name"`
-	Gender           string         `gorm:"type:enum('male','female');not null;column:gender"`
-	Introduction     string         `gorm:"type:varchar(255);column:introduction"`
-	IconImageURL     string         `gorm:"type:varchar(255);column:icon_image_url"`
-	SexualPreference string         `gorm:"type:varchar(255);column:sexual_preference"`
-	CreatedAt        time.Time      `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`
-	UpdatedAt        time.Time      `gorm:"type:timestamp;default:CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP;column:updated_at"`
-	Affiliations     []TAffiliation `gorm:"many2many:t_user_affiliations;"`
-	InterestTags     []TInterestTag `gorm:"many2many:t_user_interest_tags;"`
-	Posts            []TPost        `gorm:"foreignKey:UserID;references:ID" json:"-"`
-	Pictures         []TPicture     `gorm:"foreignKey:UserID;references:ID" json:"-"`
+	ID           int       `gorm:"primaryKey;autoIncrement;column:id"`
+	Username     string    `gorm:"type:varchar(30);not null;unique;column:username"`
+	Email        string    `gorm:"type:varchar(255);not null;unique;column:email"`
+	Password     string    `gorm:"type:varchar(60);not null;column:password"`
+	DisplayName  string    `gorm:"type:varchar(20);not null;column:display_name"`
+	IconImageURL string    `gorm:"type:varchar(255);column:icon_image_url"`
+	CreatedAt    time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP;column:created_at"`
+	UpdatedAt    time.Time `gorm:"type:timestamp;default:CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP;column:updated_at"`
 }
 
 func (*TUser) TableName() string {
@@ -126,104 +118,4 @@ func GetUserInfo(reqContext *gin.Context) {
 	reqContext.JSON(http.StatusOK, gin.H{
 		"user": user.PrepareOutput(),
 	})
-}
-
-type ChangeUserInfoInput struct {
-	/*
-		登録時にリクエストからJSONデータを抽出するための構造体。
-	*/
-	Password     string `json:"Password"`
-	DisplayName  string `json:"DisplayName"`
-	Gender       string `json:"Gender"`
-	Introduction string `json:"Introduction"`
-	IconImageUrl string `json:"IconImageUrl"`
-}
-
-func (user *TUser) UpdateUser(input ChangeUserInfoInput) error {
-	/*
-		ユーザーのDBを更新する関数。
-		列ごとに更新していく。
-	*/
-	inputValue := reflect.ValueOf(input)
-	for i := 0; i < inputValue.NumField(); i++ {
-		inputFieldName := inputValue.Type().Field(i).Name
-		inputFieldValue := inputValue.Field(i).Interface()
-
-		if inputFieldValue == "" {
-			continue
-		}
-
-		err := DB.Model(user).Update(inputFieldName, inputFieldValue).Error
-		if err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-func ChangeUserInfo(reqContext *gin.Context) {
-	/*
-		ユーザーの情報を更新する関数。
-		リクエストからuserのidを取得しDBから取り出す。
-		そのユーザーの情報を更新する。
-	*/
-	userId, err := token.ExtractUserIdFromRequest(reqContext)
-	if err != nil {
-		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to get user id from token"})
-		reqContext.Error(err)
-		return
-	}
-
-	user := &TUser{}
-	err = DB.First(&user, userId).Error
-	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		reqContext.Error(err)
-		return
-	}
-
-	var changeUserInfoInput ChangeUserInfoInput
-	if err := reqContext.ShouldBindJSON(&changeUserInfoInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
-		reqContext.Error(err)
-		return
-	}
-	if err := user.UpdateUser(changeUserInfoInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update user"})
-		reqContext.Error(err)
-		return
-	}
-
-	reqContext.JSON(http.StatusOK, gin.H{
-		"data": user.PrepareOutput(),
-	})
-}
-
-func DeleteUser(reqContext *gin.Context) {
-	/*
-		DBからユーザーを削除する関数。
-	*/
-	userId, err := token.ExtractUserIdFromRequest(reqContext)
-	if err != nil {
-		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to get user id from token"})
-		reqContext.Error(err)
-		return
-	}
-
-	user := &TUser{}
-	err = DB.First(&user, userId).Error
-	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
-		reqContext.Error(err)
-		return
-	}
-
-	err = DB.Delete(user).Error
-	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete user"})
-		reqContext.Error(err)
-		return
-	}
-
-	reqContext.Status(http.StatusOK)
 }

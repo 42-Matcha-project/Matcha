@@ -38,11 +38,6 @@ func ConnectDataBase() {
 	}
 
 	DB.AutoMigrate(&TUser{})
-	DB.AutoMigrate(&TAffiliation{})
-	DB.AutoMigrate(&TPicture{})
-	DB.AutoMigrate(&TInterestTag{})
-	DB.AutoMigrate(&TPost{})
-	DB.AutoMigrate(&TPostImageURL{})
 
 	if os.Getenv("ENVIRONMENT") == "production" {
 		mysqlDB, err := DB.DB()

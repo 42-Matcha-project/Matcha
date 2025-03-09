@@ -4,9 +4,7 @@ import (
 	"net/http"
 	"os"
 	"srcs/auth"
-	"srcs/middlewares"
 	"srcs/models"
-	"srcs/post"
 	"srcs/utils"
 
 	"github.com/gin-gonic/gin"
@@ -44,16 +42,6 @@ func main() {
 	authRoutes := router.Group("/auth")
 	authRoutes.POST("/register", auth.Register)
 	authRoutes.POST("/login", auth.Login)
-
-	postRoutes := router.Group("/posts")
-	postRoutes.POST("/submit", post.Submit)
-	postRoutes.GET("/retrieve", post.Retrieve)
-
-	settingRoutes := router.Group("/settings")
-	settingRoutes.Use(middlewares.JWTValidationMiddleware())
-	settingRoutes.GET("/user", models.GetUserInfo)
-	settingRoutes.PUT("/user", models.ChangeUserInfo)
-	settingRoutes.DELETE("/user", models.DeleteUser)
 
 	router.Run(":8080")
 }
