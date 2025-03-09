@@ -99,7 +99,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"Username\": \"@test1234\",\n    \"Password\": \"12345\"\n}",
+          "raw": "{\n    \"Username\": \"test\",\n    \"Password\": \"test\"\n}",
           "options": {
             "raw": {
               "language": "json"
