@@ -23,8 +23,6 @@ func ConnectDataBase() {
 	dbHost := os.Getenv("DATABASE_HOST")
 	dbPort := os.Getenv("DATABASE_PORT")
 
-	fmt.Printf("User: %s, Pass: %s, DB: %s, Host: %s, Port: %s\n", dbUser, dbPass, dbName, dbHost, dbPort)
-
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
 	var err error
 	DB, err = gorm.Open(
