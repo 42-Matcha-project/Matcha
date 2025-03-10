@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 	"srcs/auth"
@@ -8,7 +9,54 @@ import (
 	"srcs/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 )
+
+var upgrader = websocket.Upgrader{
+	CheckOrigin: func(r *http.Request) bool {
+		return true
+	},
+}
+
+var clients = make(map[*websocket.Conn]bool)
+
+func handleWebsocket(c *gin.Context) {
+	//
+	conn, err := upgrader.Upgrade(c.Writer, c.Request, nil)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	defer conn.Close()
+
+	clients[conn] = true
+	log.Println("Websocket connected")
+
+	for {
+		// メッセージが来るまで待機
+		messageType, msg, err := conn.ReadMessage()
+		if err != nil {
+			log.Println(err)
+			delete(clients, conn)
+			break
+		}
+
+		log.Printf("Received message from client: %s\n", string(msg))
+
+		// 自分を除いた全clientに送る
+		for client := range clients {
+			if client == conn {
+				continue
+			}
+			err := client.WriteMessage(messageType, msg)
+			if err != nil {
+				log.Println(err)
+				client.Close()
+				delete(clients, client)
+			}
+		}
+	}
+}
 
 func main() {
 	/*
@@ -42,6 +90,8 @@ func main() {
 	authRoutes := router.Group("/auth")
 	authRoutes.POST("/register", auth.Register)
 	authRoutes.POST("/login", auth.Login)
+
+	router.GET("/ws", handleWebsocket)
 
 	router.Run(":8080")
 }
