@@ -12,6 +12,20 @@ import (
 
 var DB *gorm.DB
 
+func createDataBase(dbUser string, dbPass string, dbHost string, dbPort string, dbName string) {
+	/*
+		データベース名を指定せずに接続したのち、データベースを作成する関数。
+		元々存在していたら実行されない。
+	*/
+	dsnWithoutDB := fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort)
+	DB, err := gorm.Open(mysql.Open(dsnWithoutDB), &gorm.Config{})
+	if err != nil {
+		log.Fatal("Could not connect to database")
+	}
+
+	DB.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbName))
+}
+
 func ConnectDataBase() {
 	/*
 		環境変数からDSNを生成し、DATABASEとの接続を確立する関数。
@@ -23,8 +37,7 @@ func ConnectDataBase() {
 	dbHost := os.Getenv("DATABASE_HOST")
 	dbPort := os.Getenv("DATABASE_PORT")
 
-	fmt.Printf("User: %s, Pass: %s, DB: %s, Host: %s, Port: %s\n", dbUser, dbPass, dbName, dbHost, dbPort)
-
+	createDataBase(dbUser, dbPass, dbHost, dbPort, dbName)
 	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
 	var err error
 	DB, err = gorm.Open(
