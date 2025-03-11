@@ -11,13 +11,16 @@ import (
 var StudyRooms = make(map[string]StudyRoom)
 
 type StudyRoom struct {
-	ImageURL string
-	Host     User
-	Clients  []User
+	StudyRoomName string
+	ImageURL      string
+	Host          User
+	Clients       []User
 }
 
 type User struct {
-	UserID   uint
+	UserID   int
+	Username string
+	IconURL  string
 	isOnline bool
 }
 
@@ -41,14 +44,17 @@ func generateRoomCode() (string, error) {
 	}
 }
 
-func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, userId uint) StudyRoom {
+func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, user models.TUser) StudyRoom {
 	/*
 		自習室を作成する関数。
 	*/
 	var studyRoom StudyRoom
+	studyRoom.StudyRoomName = createStudyRoomInput.StudyRoomName
 	studyRoom.ImageURL = createStudyRoomInput.StudyRoomImageURL
 	var host User
-	host.UserID = userId
+	host.UserID = user.ID
+	host.Username = user.DisplayName
+	host.IconURL = user.IconImageURL
 	host.isOnline = true
 	studyRoom.Host = host
 	studyRoom.Clients = make([]User, 0)
@@ -87,6 +93,6 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 		return
 	}
 
-	StudyRooms[roomCode] = createStudyRoom(createStudyRoomInput, userId)
+	StudyRooms[roomCode] = createStudyRoom(createStudyRoomInput, *user)
 	reqContext.JSON(http.StatusOK, gin.H{"roomCode": roomCode})
 }
