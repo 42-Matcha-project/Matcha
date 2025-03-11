@@ -5,7 +5,7 @@ import (
 	"os"
 	"srcs/auth"
 	"srcs/models"
-	"srcs/studyRoom"
+	"srcs/study_room"
 	"srcs/utils"
 
 	"github.com/gin-gonic/gin"
@@ -45,7 +45,7 @@ func main() {
 	authRoutes.POST("/login", auth.Login)
 
 	studyRoomRoutes := router.Group("/study-room")
-	studyRoomRoutes.POST("/create", studyRoom.CreateStudyRoomHandler)
+	studyRoomRoutes.POST("/create", study_room.CreateStudyRoomHandler)
 
 	router.Run(":8080")
 }

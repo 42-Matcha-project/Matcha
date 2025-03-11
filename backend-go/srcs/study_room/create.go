@@ -1,4 +1,4 @@
-package studyRoom
+package study_room
 
 import (
 	"github.com/gin-gonic/gin"
