@@ -26,6 +26,8 @@ func DeleteStudyRoomHandler(reqContext *gin.Context) {
 		return
 	}
 
+	StudyRoomMutex.Lock()
 	deleteStudyRoomByHostId(int(userId))
+	StudyRoomMutex.Unlock()
 	reqContext.JSON(http.StatusOK, gin.H{"status": "Delete Success"})
 }

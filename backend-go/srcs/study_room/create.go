@@ -2,13 +2,16 @@ package study_room
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/gorilla/websocket"
 	"net/http"
 	"srcs/models"
 	"srcs/token"
 	"srcs/utils"
+	"sync"
 )
 
-var StudyRooms = make(map[string]StudyRoom)
+var StudyRoomMutex sync.Mutex
+var StudyRooms = make(map[string]*StudyRoom)
 
 type StudyRoom struct {
 	StudyRoomName string
@@ -21,7 +24,8 @@ type User struct {
 	UserID   int
 	Username string
 	IconURL  string
-	isOnline bool
+	IsOnline bool
+	Conn     *websocket.Conn
 }
 
 type CreateStudyRoomInput struct {
@@ -33,6 +37,8 @@ func generateRoomCode() (string, error) {
 	/*
 		ルームコードを作成する関数。
 	*/
+	StudyRoomMutex.Lock()
+	defer StudyRoomMutex.Unlock()
 	for {
 		roomCode, err := utils.GenerateRandomCode(6)
 		if err != nil {
@@ -44,18 +50,19 @@ func generateRoomCode() (string, error) {
 	}
 }
 
-func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, user models.TUser) StudyRoom {
+func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, user models.TUser) *StudyRoom {
 	/*
 		自習室を作成する関数。
 	*/
-	var studyRoom StudyRoom
-	studyRoom.StudyRoomName = createStudyRoomInput.StudyRoomName
-	studyRoom.ImageURL = createStudyRoomInput.StudyRoomImageURL
+	studyRoom := &StudyRoom{
+		StudyRoomName: createStudyRoomInput.StudyRoomName,
+		ImageURL:      createStudyRoomInput.StudyRoomImageURL,
+	}
 	var host User
 	host.UserID = user.ID
 	host.Username = user.DisplayName
 	host.IconURL = user.IconImageURL
-	host.isOnline = true
+	host.IsOnline = true
 	studyRoom.Host = host
 	studyRoom.Clients = make([]User, 0)
 	return studyRoom
@@ -93,6 +100,8 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 		return
 	}
 
+	StudyRoomMutex.Lock()
 	StudyRooms[roomCode] = createStudyRoom(createStudyRoomInput, *user)
+	StudyRoomMutex.Unlock()
 	reqContext.JSON(http.StatusOK, gin.H{"roomCode": roomCode})
 }
