@@ -121,6 +121,102 @@
         "description": "**説明**\n\nユーザーのログイン処理を行うAPI。\n\n**JOSNデータ**\n\n``` json\n{\n    \"Username\": \"文字列\",\n    \"Email\": \"文字列\",// UsernameかEmailは必須(どちらも含んでも良い)\n    \"Password\": \"文字列\"// 必須\n}\n\n ```"
       },
       "response": []
+    },
+    {
+      "name": "自習室作成",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにroomCodeフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('roomCode');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"StudyRoomName\": \"test room\",\n    \"StudyRoomImageURL\": \"url/url1\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/study-room/create",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "study-room",
+            "create"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "自習室削除",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/study-room/delete",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "study-room",
+            "delete"
+          ]
+        }
+      },
+      "response": []
     }
   ]
 }
