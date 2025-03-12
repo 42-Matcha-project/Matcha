@@ -1,182 +1,230 @@
-"use client";
+'use client';
 
-import { useRouter } from "next/navigation";
-import Layout from "../../components/Layout";
-import { useRef } from "react";
-import FileInputButton from "@/app/components/FileInputButton";
-import ImagePreview from "@/app/components/ImagePreview";
-import Button from "@/app/components/Button";
-import FormField from "@/app/components/FormField";
-import useFileUploader from "@/app/hooks/useFileUploader";
+import React, { useState, ReactNode } from 'react';
+import Image from 'next/image';
 
-export default function Register() {
-  const router = useRouter();
+// 木の看板コンポーネント
+const WoodenSign = ({
+  children,
+  width = "w-72",
+  height = "h-16",
+}: {
+  children: ReactNode;
+  width?: string;
+  height?: string;
+  rotation?: string;
+}) => {
+  // 釘コンポーネント
+  const Nail = ({
+    position,
+  }: {
+    position: "topLeft" | "topRight" | "bottomLeft" | "bottomRight";
+  }) => {
+    const positionClasses = {
+      topLeft: "top-1 left-1",
+      topRight: "top-1 right-1",
+      bottomLeft: "bottom-1 left-1",
+      bottomRight: "bottom-1 right-1",
+    };
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    router.push("/profile-detail");
-  };
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  // 最大アップロード枚数を1に設定（アイコンなので1枚のみ）
-  const { previewUrls, fileError, handleFilesChange } = useFileUploader(1);
-
-  const handleButtonClick = () => {
-    fileInputRef.current?.click();
+    return (
+      <div
+        className={`absolute ${positionClasses[position]} w-1.5 h-1.5 rounded-full bg-gray-500 border border-gray-500 shadow-inner`}
+        style={{ boxShadow: "inset 0 0 2px rgba(255,255,255,0.5)" }}
+      />
+    );
   };
 
   return (
-    <Layout>
-      <div className="flex items-center justify-center min-h-screen p-4">
-        <form
-          onSubmit={handleSubmit}
-          className="w-full max-w-4xl bg-white p-8 rounded-md shadow flex flex-col gap-8"
-        >
-          <h2 className="text-base font-semibold text-gray-900 text-center">
-            プロフィール情報
-          </h2>
+    <div className={`relative ${width}`}>
+      {/* 影の要素 - 看板とサイズを合わせる */}
+      <div
+        className={`absolute w-full ${height} top-[5px] left-[6px] rounded`}
+        style={{
+          backgroundColor: "rgba(0,0,0,0.7)",
+          filter: "blur(2px)",
+          zIndex: 5,
+        }}
+      />
 
-          {/* ユーザー名 */}
-          <FormField label="ユーザー名" htmlFor="username">
-            <div className="flex shadow-sm">
-              <span className="inline-flex items-center px-3 rounded-l-md border border-gray-300 bg-gray-50 text-gray-500">
-                @
-              </span>
-              <input
-                id="username"
-                name="username"
-                type="text"
-                autoComplete="given-name"
-                required
-                placeholder="例）taro123、akiko、michanなど"
-                className="flex-1 block w-full rounded-none rounded-r-md border border-gray-300 bg-gray-100 px-3 py-1.5 text-gray-900 focus:border-indigo-600 focus:outline-green-900"
-              />
-            </div>
-          </FormField>
-
-          {/* ニックネーム */}
-          <FormField
-            label="ニックネーム"
-            htmlFor="nickname"
-            description="他のユーザーさんに表示されるあなたの名前です。"
-          >
-            <input
-              id="nickname"
-              name="nickname"
-              type="text"
-              autoComplete="nickname"
-              required
-              placeholder="例）太郎、あき、みっちゃんなど"
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
-            />
-          </FormField>
-
-          {/* アイコン */}
-          <div>
-            <FormField
-              label="アイコン"
-              htmlFor="photo"
-              description="いつでも画像を変更できます。"
-            >
-              <FileInputButton onClick={handleButtonClick} />
-              <input
-                type="file"
-                id="photo"
-                ref={fileInputRef}
-                onChange={handleFilesChange}
-                accept="image/*"
-                // 複数アップロードは不可（アイコンなので1枚のみ）
-                className="hidden"
-              />
-              {fileError && (
-                <p className="mt-2 text-sm text-red-600">{fileError}</p>
-              )}
-            </FormField>
-
-            {/* プレビュー表示 */}
-            <ImagePreview previewUrls={previewUrls} maxFiles={1} />
-          </div>
-
-          {/* 性別 */}
-          <FormField label="性別" htmlFor="">
-            <div className="mt-1 flex items-center gap-4">
-              <label className="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  id="gender-male"
-                  name="gender"
-                  value="male"
-                  required
-                  className="peer h-4 w-4 appearance-none rounded-full border border-gray-300 bg-white checked:bg-green-800 focus:outline-none"
-                />
-                <span className="text-gray-700 peer-checked:text-green-900">
-                  男性
-                </span>
-              </label>
-              <label className="inline-flex items-center gap-2 cursor-pointer">
-                <input
-                  type="radio"
-                  id="gender-female"
-                  name="gender"
-                  value="female"
-                  required
-                  className="peer h-4 w-4 appearance-none rounded-full border border-gray-300 bg-white checked:bg-green-800 focus:outline-none"
-                />
-                <span className="text-gray-700 peer-checked:text-green-900">
-                  女性
-                </span>
-              </label>
-            </div>
-          </FormField>
-
-          {/* メールアドレス */}
-          <FormField label="メールアドレス" htmlFor="email">
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
-            />
-          </FormField>
-
-          {/* パスワード */}
-          <FormField label="パスワード" htmlFor="password">
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
-            />
-          </FormField>
-
-          {/* パスワード確認 */}
-          <FormField label="パスワード確認" htmlFor="confirmPassword">
-            <input
-              id="confirmPassword"
-              name="confirmPassword"
-              type="password"
-              required
-              className="mt-1 block w-full rounded-md bg-gray-100 px-3 py-1.5 text-gray-900 focus:outline-green-900 border border-gray-300"
-            />
-          </FormField>
-
-          {/* ボタン */}
-          <div className="flex items-center justify-end gap-4">
-            <Button
-              variant="secondary"
-              type="button"
-              onClick={() => router.push("/")}
-            >
-              キャンセル
-            </Button>
-            <Button variant="primary" type="submit">
-              次へ
-            </Button>
-          </div>
-        </form>
+      <div
+        className={`relative ${width} ${height} bg-orange-300 flex items-center justify-center px-4 transform border-2 border-yellow-900 rounded z-10`}
+      >
+        <Nail position="topLeft" />
+        <Nail position="topRight" />
+        <Nail position="bottomLeft" />
+        <Nail position="bottomRight" />
+        {children}
       </div>
-    </Layout>
+    </div>
   );
-}
+};
+
+const JapaneseLogin = () => {
+  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [isComposing, setIsComposing] = useState(false);
+  
+  const handleUsername = (e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value);
+  const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
+  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
+  const handleConfirmPassword = (e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value);
+
+  const handleSubmit = async () => {
+    console.log('Registration submitted:', { username, email, password });
+    alert(`${username}として登録しました`);
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+      e.preventDefault();
+      handleSubmit();
+    }
+  };
+
+  return (
+    <div className="relative min-h-screen w-full overflow-hidden bg-orange-100">
+      {/* 背景の羊皮紙風テクスチャ */}
+      <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
+      
+      {/* 桜の枝 - 左上 */}
+      <div className="absolute top-0 left-0 w-64 h-64">
+        <Image 
+          src="/images/welcome-flower.webp" 
+          alt="桜の枝" 
+          width={300} 
+          height={300} 
+          className="object-contain"
+        />
+      </div>
+      
+      {/* 桜の花びら - 右下 */}
+      <div className="absolute bottom-0 right-0 w-64 h-64">
+        <Image 
+          src="/images/welcome-flower.webp" 
+          alt="桜の花びら" 
+          width={300} 
+          height={300} 
+          className="object-contain"
+        />
+      </div>
+      
+      {/* メインコンテンツ */}
+      <div className="relative flex flex-col items-center justify-center min-h-screen z-10 px-4">
+        {/* タイトル木の看板 */}
+        <div className="relative mb-8">
+          <WoodenSign>
+            <h1 className="text-yellow-950 text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">登録</h1>
+          </WoodenSign>
+        </div>
+        
+        <div className="w-full max-w-md">
+          {/* ユーザー名フィールド */}
+          <div className="mb-6">
+            <div className="relative">
+              <WoodenSign width="w-full" rotation="rotate-0">
+                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">ユーザー名</label>
+              </WoodenSign>
+            </div>
+            
+            <div className="relative mt-2 flex items-center">
+              <input
+                type="text"
+                value={username}
+                onChange={handleUsername}
+                onKeyDown={handleKeyDown}
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={() => setIsComposing(false)}
+                className="w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="例）taro"
+              />
+            </div>
+          </div>
+          
+          {/* メールアドレスフィールド */}
+          <div className="mb-6">
+            <div className="relative">
+              <WoodenSign width="w-full" rotation="-rotate-1">
+                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">メールアドレス</label>
+              </WoodenSign>
+            </div>
+            
+            <div className="relative mt-2">
+              <input
+                type="email"
+                value={email}
+                onChange={handleEmail}
+                onKeyDown={handleKeyDown}
+                className="w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="例）taro@example.com"
+              />
+            </div>
+          </div>
+          
+          {/* パスワードフィールド */}
+          <div className="mb-6">
+            <div className="relative">
+              <WoodenSign width="w-full" rotation="rotate-1">
+                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">パスワード</label>
+              </WoodenSign>
+            </div>
+            
+            <div className="relative mt-2 flex items-center">
+              <input
+                type="password"
+                value={password}
+                onChange={handlePassword}
+                onKeyDown={handleKeyDown}
+                className="w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="例）taro1234"
+              />
+            </div>
+          </div>
+          
+          {/* パスワード確認フィールド */}
+          <div className="mb-8">
+            <div className="relative">
+              <WoodenSign width="w-full" rotation="-rotate-1">
+                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">パスワード再入力</label>
+              </WoodenSign>
+            </div>
+            
+            <div className="relative mt-2 flex items-center">
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={handleConfirmPassword}
+                onKeyDown={handleKeyDown}
+                className="w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500"
+                placeholder="例）taro1234"
+              />
+            </div>
+          </div>
+          
+          {/* 登録ボタン */}
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={handleSubmit}
+              className="relative px-8 py-3 bg-amber-800 text-white font-bold rounded-lg transform hover:scale-105 transition-transform hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg"
+              style={{
+                textShadow: '0 2px 2px rgba(0,0,0,0.5)',
+                boxShadow: '0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)'
+              }}
+            >
+              登録する
+            </button>
+          </div>
+          
+          {/* 桜が降るアニメーション効果の説明 */}
+          <div className="mt-8 text-sm text-amber-900 italic opacity-70">
+            桜が降るようにする
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default JapaneseLogin;
