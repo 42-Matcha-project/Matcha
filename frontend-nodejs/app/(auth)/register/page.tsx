@@ -1,13 +1,13 @@
-'use client';
+"use client";
 
-import React, { useState, ReactNode } from 'react';
-import Image from 'next/image';
+import React, { useState, ReactNode } from "react";
+import Image from "next/image";
 
 // 木の看板コンポーネント
 const WoodenSign = ({
   children,
-  width = "w-72",
-  height = "h-16",
+  width = "w-64",
+  height = "h-12",
 }: {
   children: ReactNode;
   width?: string;
@@ -61,24 +61,28 @@ const WoodenSign = ({
 };
 
 const JapaneseLogin = () => {
-  const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [isComposing, setIsComposing] = useState(false);
-  
-  const handleUsername = (e: React.ChangeEvent<HTMLInputElement>) => setUsername(e.target.value);
-  const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value);
-  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => setPassword(e.target.value);
-  const handleConfirmPassword = (e: React.ChangeEvent<HTMLInputElement>) => setConfirmPassword(e.target.value);
+
+  const handleUsername = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setUsername(e.target.value);
+  const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setEmail(e.target.value);
+  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setPassword(e.target.value);
+  const handleConfirmPassword = (e: React.ChangeEvent<HTMLInputElement>) =>
+    setConfirmPassword(e.target.value);
 
   const handleSubmit = async () => {
-    console.log('Registration submitted:', { username, email, password });
+    console.log("Registration submitted:", { username, email, password });
     alert(`${username}として登録しました`);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey && !isComposing) {
+    if (e.key === "Enter" && !e.shiftKey && !isComposing) {
       e.preventDefault();
       handleSubmit();
     }
@@ -88,47 +92,58 @@ const JapaneseLogin = () => {
     <div className="relative min-h-screen w-full overflow-hidden bg-orange-100">
       {/* 背景の羊皮紙風テクスチャ */}
       <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
-      
+
       {/* 桜の枝 - 左上 */}
       <div className="absolute top-0 left-0 w-64 h-64">
-        <Image 
-          src="/images/welcome-flower.webp" 
-          alt="桜の枝" 
-          width={300} 
-          height={300} 
+        <Image
+          src="/images/welcome-flower.webp"
+          alt="桜の枝"
+          width={300}
+          height={300}
           className="object-contain"
         />
       </div>
-      
+
       {/* 桜の花びら - 右下 */}
       <div className="absolute bottom-0 right-0 w-64 h-64">
-        <Image 
-          src="/images/welcome-flower.webp" 
-          alt="桜の花びら" 
-          width={300} 
-          height={300} 
+        <Image
+          src="/images/welcome-flower.webp"
+          alt="桜の花びら"
+          width={300}
+          height={300}
           className="object-contain"
         />
       </div>
-      
+
       {/* メインコンテンツ */}
       <div className="relative flex flex-col items-center justify-center min-h-screen z-10 px-4">
         {/* タイトル木の看板 */}
-        <div className="relative mb-8">
-          <WoodenSign>
-            <h1 className="text-yellow-950 text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">登録</h1>
-          </WoodenSign>
+        <div className="flex justify-center mt-4 mb-8">
+          <button
+            className="relative px-10 py-3 bg-rose-900 text-white font-bold rounded-md transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg"
+            style={{
+              textShadow: "0 2px 2px rgba(0,0,0,0.5)",
+              boxShadow:
+                "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
+            }}
+          >
+            <h1 className="text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+              登録フォーム
+            </h1>
+          </button>
         </div>
-        
+
         <div className="w-full max-w-md">
           {/* ユーザー名フィールド */}
           <div className="mb-6">
             <div className="relative">
-              <WoodenSign width="w-full" rotation="rotate-0">
-                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">ユーザー名</label>
+              <WoodenSign width="w-full">
+                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                  ユーザー名
+                </label>
               </WoodenSign>
             </div>
-            
+
             <div className="relative mt-2 flex items-center">
               <input
                 type="text"
@@ -142,15 +157,17 @@ const JapaneseLogin = () => {
               />
             </div>
           </div>
-          
+
           {/* メールアドレスフィールド */}
           <div className="mb-6">
             <div className="relative">
               <WoodenSign width="w-full" rotation="-rotate-1">
-                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">メールアドレス</label>
+                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                  メールアドレス
+                </label>
               </WoodenSign>
             </div>
-            
+
             <div className="relative mt-2">
               <input
                 type="email"
@@ -162,15 +179,17 @@ const JapaneseLogin = () => {
               />
             </div>
           </div>
-          
+
           {/* パスワードフィールド */}
           <div className="mb-6">
             <div className="relative">
               <WoodenSign width="w-full" rotation="rotate-1">
-                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">パスワード</label>
+                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                  パスワード
+                </label>
               </WoodenSign>
             </div>
-            
+
             <div className="relative mt-2 flex items-center">
               <input
                 type="password"
@@ -182,15 +201,17 @@ const JapaneseLogin = () => {
               />
             </div>
           </div>
-          
+
           {/* パスワード確認フィールド */}
           <div className="mb-8">
             <div className="relative">
               <WoodenSign width="w-full" rotation="-rotate-1">
-                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">パスワード再入力</label>
+                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                  パスワード再入力
+                </label>
               </WoodenSign>
             </div>
-            
+
             <div className="relative mt-2 flex items-center">
               <input
                 type="password"
@@ -202,24 +223,20 @@ const JapaneseLogin = () => {
               />
             </div>
           </div>
-          
+
           {/* 登録ボタン */}
-          <div className="flex justify-center mt-4">
+          <div className="flex justify-center mt-4 mb-16">
             <button
               onClick={handleSubmit}
               className="relative px-8 py-3 bg-amber-800 text-white font-bold rounded-lg transform hover:scale-105 transition-transform hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg"
               style={{
-                textShadow: '0 2px 2px rgba(0,0,0,0.5)',
-                boxShadow: '0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)'
+                textShadow: "0 2px 2px rgba(0,0,0,0.5)",
+                boxShadow:
+                  "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
               }}
             >
               登録する
             </button>
-          </div>
-          
-          {/* 桜が降るアニメーション効果の説明 */}
-          <div className="mt-8 text-sm text-amber-900 italic opacity-70">
-            桜が降るようにする
           </div>
         </div>
       </div>
