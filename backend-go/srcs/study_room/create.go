@@ -10,13 +10,14 @@ import (
 	"sync"
 )
 
-var StudyRoomMutex sync.Mutex
+var StudyRoomsMutex sync.Mutex
 var StudyRooms = make(map[string]*StudyRoom)
 
 type StudyRoom struct {
 	StudyRoomName string
 	ImageURL      string
 	Clients       map[int]*User
+	Mutex         *sync.Mutex
 }
 
 type User struct {
@@ -37,8 +38,8 @@ func generateRoomCode() (string, error) {
 	/*
 		ルームコードを作成する関数。
 	*/
-	StudyRoomMutex.Lock()
-	defer StudyRoomMutex.Unlock()
+	StudyRoomsMutex.Lock()
+	defer StudyRoomsMutex.Unlock()
 	for {
 		roomCode, err := utils.GenerateRandomCode(6)
 		if err != nil {
@@ -58,6 +59,7 @@ func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, user models.TUse
 		StudyRoomName: createStudyRoomInput.StudyRoomName,
 		ImageURL:      createStudyRoomInput.StudyRoomImageURL,
 		Clients:       make(map[int]*User),
+		Mutex:         &sync.Mutex{},
 	}
 	host := &User{
 		UserId:   user.ID,
@@ -67,6 +69,8 @@ func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, user models.TUse
 		IsHost:   true,
 		Conn:     nil,
 	}
+	studyRoom.Mutex.Lock()
+	defer studyRoom.Mutex.Unlock()
 	studyRoom.Clients[user.ID] = host
 	return studyRoom
 }
@@ -103,8 +107,8 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 		return
 	}
 
-	StudyRoomMutex.Lock()
+	StudyRoomsMutex.Lock()
 	StudyRooms[roomCode] = createStudyRoom(createStudyRoomInput, *user)
-	StudyRoomMutex.Unlock()
+	StudyRoomsMutex.Unlock()
 	reqContext.JSON(http.StatusOK, gin.H{"roomCode": roomCode})
 }

@@ -8,10 +8,16 @@ import (
 
 func deleteStudyRoomByHostId(hostId int) {
 	for roomCode, room := range StudyRooms {
+		room.Mutex.Lock()
 		if _, IsExist := room.Clients[hostId]; IsExist {
+			for _, client := range room.Clients {
+				client.Conn.Close()
+			}
 			delete(StudyRooms, roomCode)
+			room.Mutex.Unlock()
 			return
 		}
+		room.Mutex.Unlock()
 	}
 }
 
@@ -26,8 +32,8 @@ func DeleteStudyRoomHandler(reqContext *gin.Context) {
 		return
 	}
 
-	StudyRoomMutex.Lock()
+	StudyRoomsMutex.Lock()
 	deleteStudyRoomByHostId(int(userId))
-	StudyRoomMutex.Unlock()
+	StudyRoomsMutex.Unlock()
 	reqContext.JSON(http.StatusOK, gin.H{"status": "Delete Success"})
 }
