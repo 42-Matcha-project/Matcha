@@ -183,7 +183,7 @@ const JapaneseLogin = () => {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-orange-100">
       {/* 背景の羊皮紙風テクスチャ */}
-      <div className="absolute inset-0 bg-[url('/images/register-background.png')] bg-cover bg-center opacity-80"></div>
+      <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
 
       {/* 桜の枝 - 左上 */}
       <div className="absolute top-0 left-0 w-64 h-64">
@@ -220,7 +220,7 @@ const JapaneseLogin = () => {
             }}
           >
             <h1 className="text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-              登録フォーム
+              入室受付フォーム
             </h1>
           </button>
         </div>
@@ -363,7 +363,7 @@ const JapaneseLogin = () => {
                   "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
               }}
             >
-              登録する
+              参加する
             </button>
           </div>
         </div>
