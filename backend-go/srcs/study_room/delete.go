@@ -11,7 +11,9 @@ func deleteStudyRoomByHostId(hostId int) {
 		room.Mutex.Lock()
 		if _, IsExist := room.Clients[hostId]; IsExist {
 			for _, client := range room.Clients {
-				client.Conn.Close()
+				if client.Conn != nil {
+					client.Conn.Close()
+				}
 			}
 			delete(StudyRooms, roomCode)
 			room.Mutex.Unlock()
