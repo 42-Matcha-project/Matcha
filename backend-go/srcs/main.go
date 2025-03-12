@@ -47,6 +47,7 @@ func main() {
 	studyRoomRoutes := router.Group("/study-room")
 	studyRoomRoutes.POST("/create", study_room.CreateStudyRoomHandler)
 	studyRoomRoutes.DELETE("/delete", study_room.DeleteStudyRoomHandler)
+	studyRoomRoutes.GET("/join/:roomCode", study_room.JoinStudyRoomHandler)
 
 	router.Run(":8080")
 }
