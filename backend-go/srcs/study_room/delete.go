@@ -8,7 +8,7 @@ import (
 
 func deleteStudyRoomByHostId(hostId int) {
 	for roomCode, room := range StudyRooms {
-		if room.Host.UserID == hostId {
+		if _, IsExist := room.Clients[hostId]; IsExist {
 			delete(StudyRooms, roomCode)
 			return
 		}

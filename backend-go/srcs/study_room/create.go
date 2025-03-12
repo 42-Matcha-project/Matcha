@@ -16,15 +16,15 @@ var StudyRooms = make(map[string]*StudyRoom)
 type StudyRoom struct {
 	StudyRoomName string
 	ImageURL      string
-	Host          User
-	Clients       []User
+	Clients       map[int]*User
 }
 
 type User struct {
-	UserID   int
+	UserId   int
 	Username string
 	IconURL  string
 	IsOnline bool
+	IsHost   bool
 	Conn     *websocket.Conn
 }
 
@@ -57,14 +57,17 @@ func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, user models.TUse
 	studyRoom := &StudyRoom{
 		StudyRoomName: createStudyRoomInput.StudyRoomName,
 		ImageURL:      createStudyRoomInput.StudyRoomImageURL,
+		Clients:       make(map[int]*User),
 	}
-	var host User
-	host.UserID = user.ID
-	host.Username = user.DisplayName
-	host.IconURL = user.IconImageURL
-	host.IsOnline = true
-	studyRoom.Host = host
-	studyRoom.Clients = make([]User, 0)
+	host := &User{
+		UserId:   user.ID,
+		Username: user.Username,
+		IconURL:  user.IconImageURL,
+		IsOnline: true,
+		IsHost:   true,
+		Conn:     nil,
+	}
+	studyRoom.Clients[user.ID] = host
 	return studyRoom
 }
 
