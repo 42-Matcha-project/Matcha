@@ -76,7 +76,6 @@ const JapaneseLogin = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isComposing, setIsComposing] = useState(false);
 
   // 入力エラー状態を管理
@@ -84,8 +83,6 @@ const JapaneseLogin = () => {
     username: false,
     email: false,
     password: false,
-    confirmPassword: false,
-    passwordMismatch: false,
   });
   // 送信が試行されたかどうか
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -108,17 +105,6 @@ const JapaneseLogin = () => {
     setPassword(e.target.value);
     if (submitAttempted) {
       validateField("password", e.target.value);
-      if (confirmPassword) {
-        validatePasswordMatch(e.target.value, confirmPassword);
-      }
-    }
-  };
-
-  const handleConfirmPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setConfirmPassword(e.target.value);
-    if (submitAttempted) {
-      validateField("confirmPassword", e.target.value);
-      validatePasswordMatch(password, e.target.value);
     }
   };
 
@@ -130,22 +116,12 @@ const JapaneseLogin = () => {
     }));
   };
 
-  // パスワード一致の検証
-  const validatePasswordMatch = (pass: string, confirm: string) => {
-    setErrors((prev) => ({
-      ...prev,
-      passwordMismatch: pass !== confirm && confirm !== "",
-    }));
-  };
-
   // 全フィールドの検証
   const validateAllFields = () => {
     const newErrors = {
       username: username.trim() === "",
       email: email.trim() === "",
       password: password.trim() === "",
-      confirmPassword: confirmPassword.trim() === "",
-      passwordMismatch: password !== confirmPassword && confirmPassword !== "",
     };
 
     setErrors(newErrors);
@@ -173,7 +149,7 @@ const JapaneseLogin = () => {
 
   // 入力枠のスタイル
   const getInputStyle = (
-    fieldName: "username" | "email" | "password" | "confirmPassword",
+    fieldName: "username" | "email" | "password",
   ) => {
     return errors[fieldName]
       ? "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-red-500 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 animate-pulse"
@@ -208,7 +184,7 @@ const JapaneseLogin = () => {
       </div>
 
       {/* メインコンテンツ */}
-      <div className="relative w-full py-10 z-10 px-4 flex flex-col items-center">
+      <div className="relative  w-full py-10 z-10 px-4 flex flex-col items-center">
         {/* タイトル木の看板 */}
         <div className="flex justify-center mt-4 mb-8">
           <button
@@ -220,7 +196,7 @@ const JapaneseLogin = () => {
             }}
           >
             <h1 className="text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-              入室受付フォーム
+              入室ログイン
             </h1>
           </button>
         </div>
@@ -248,7 +224,7 @@ const JapaneseLogin = () => {
 
         <div className="w-full max-w-md">
           {/* ユーザー名フィールド */}
-          <div className="mb-6">
+          <div className="mb-8">
             <div className="relative">
               <WoodenSign width="w-full">
                 <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
@@ -275,7 +251,7 @@ const JapaneseLogin = () => {
           </div>
 
           {/* メールアドレスフィールド */}
-          <div className="mb-6">
+          <div className="mb-8">
             <div className="relative">
               <WoodenSign width="w-full" rotation="-rotate-1">
                 <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
@@ -300,7 +276,7 @@ const JapaneseLogin = () => {
           </div>
 
           {/* パスワードフィールド */}
-          <div className="mb-6">
+          <div className="mb-8">
             <div className="relative">
               <WoodenSign width="w-full" rotation="rotate-1">
                 <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
@@ -324,34 +300,6 @@ const JapaneseLogin = () => {
             )}
           </div>
 
-          {/* パスワード確認フィールド */}
-          <div className="mb-8">
-            <div className="relative">
-              <WoodenSign width="w-full" rotation="-rotate-1">
-                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                  パスワード再入力
-                </label>
-              </WoodenSign>
-            </div>
-
-            <div className="relative mt-2 flex items-center">
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={handleConfirmPassword}
-                onKeyDown={handleKeyDown}
-                className={getInputStyle("confirmPassword")}
-                placeholder="例）taro1234"
-              />
-            </div>
-            {errors.confirmPassword && submitAttempted && (
-              <BookmarkError message="パスワードをもう一度入力してね！" />
-            )}
-            {errors.passwordMismatch && submitAttempted && (
-              <BookmarkError message="パスワードが一致していないよ！" />
-            )}
-          </div>
-
           {/* 登録ボタン */}
           <div className="flex justify-center mt-4 mb-16">
             <button
@@ -363,7 +311,21 @@ const JapaneseLogin = () => {
                   "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
               }}
             >
-              参加する
+              入室する
+            </button>
+          </div>
+
+          {/* パスワード忘れボタン */}
+          <div className="text-right mt-1">
+            <button
+              className="px-4 py-2 bg-amber-50 text-amber-800 text-sm rounded-full shadow-md hover:bg-amber-100 transition-colors duration-200 border border-amber-200 focus:outline-none focus:ring-2 focus:ring-amber-300"
+              style={{
+                boxShadow:
+                  "0 2px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.2)",
+              }}
+              onClick={() => alert("パスワード再設定メールを送信しました")}
+            >
+              パスワードを忘れた方はこちら
             </button>
           </div>
         </div>
