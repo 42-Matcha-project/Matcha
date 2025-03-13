@@ -389,7 +389,7 @@ const MainContent = () => {
         <div className="w-full max-w-md mx-auto mb-8">
           <div className="flex flex-col gap-10 ">
             <WoodenSignButton href="/register" primary direction="left">
-              登録
+              新規登録
             </WoodenSignButton>
             <WoodenSignButton href="/login" direction="right">
               ログイン

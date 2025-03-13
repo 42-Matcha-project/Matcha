@@ -181,7 +181,7 @@ const JapaneseLogin = () => {
   };
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-orange-100">
+    <div className="relative min-h-screen w-full overflow-hidden bg-orange-100 flex justify-center items-center">
       {/* 背景の羊皮紙風テクスチャ */}
       <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
 
@@ -208,7 +208,7 @@ const JapaneseLogin = () => {
       </div>
 
       {/* メインコンテンツ */}
-      <div className="relative flex flex-col items-center justify-center min-h-screen z-10 px-4">
+      <div className="relative w-full py-10 z-10 px-4 flex flex-col items-center">
         {/* タイトル木の看板 */}
         <div className="flex justify-center mt-4 mb-8">
           <button
