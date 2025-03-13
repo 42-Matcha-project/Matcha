@@ -74,6 +74,7 @@ const BookmarkError = ({ message }: { message: string }) => {
 
 const JapaneseLogin = () => {
   const [username, setUsername] = useState("");
+  const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -82,6 +83,7 @@ const JapaneseLogin = () => {
   // 入力エラー状態を管理
   const [errors, setErrors] = useState({
     username: false,
+    displayName: false,
     email: false,
     password: false,
     confirmPassword: false,
@@ -94,6 +96,13 @@ const JapaneseLogin = () => {
     setUsername(e.target.value);
     if (submitAttempted) {
       validateField("username", e.target.value);
+    }
+  };
+
+  const handleDisplayName = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDisplayName(e.target.value);
+    if (submitAttempted) {
+      validateField("displayName", e.target.value);
     }
   };
 
@@ -142,6 +151,7 @@ const JapaneseLogin = () => {
   const validateAllFields = () => {
     const newErrors = {
       username: username.trim() === "",
+      displayName: displayName.trim() === "",
       email: email.trim() === "",
       password: password.trim() === "",
       confirmPassword: confirmPassword.trim() === "",
@@ -156,7 +166,12 @@ const JapaneseLogin = () => {
     setSubmitAttempted(true);
 
     if (validateAllFields()) {
-      console.log("Registration submitted:", { username, email, password });
+      console.log("Registration submitted:", {
+        username,
+        displayName,
+        email,
+        password,
+      });
       alert(`${username}として登録しました`);
     } else {
       // エラーがある場合は、フォームへスクロール
@@ -173,7 +188,12 @@ const JapaneseLogin = () => {
 
   // 入力枠のスタイル
   const getInputStyle = (
-    fieldName: "username" | "email" | "password" | "confirmPassword",
+    fieldName:
+      | "username"
+      | "displayName"
+      | "email"
+      | "password"
+      | "confirmPassword",
   ) => {
     return errors[fieldName]
       ? "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-red-500 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 animate-pulse"
@@ -271,6 +291,31 @@ const JapaneseLogin = () => {
             </div>
             {errors.username && submitAttempted && (
               <BookmarkError message="ユーザー名を入力してね！" />
+            )}
+          </div>
+
+          {/* 表示名フィールド */}
+          <div className="mb-6">
+            <div className="relative">
+              <WoodenSign width="w-full">
+                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                  ニックネーム
+                </label>
+              </WoodenSign>
+            </div>
+
+            <div className="relative mt-2 flex items-center">
+              <input
+                type="text"
+                value={displayName}
+                onChange={handleDisplayName}
+                onKeyDown={handleKeyDown}
+                className={getInputStyle("displayName")}
+                placeholder="例）たっちゃん"
+              />
+            </div>
+            {errors.displayName && submitAttempted && (
+              <BookmarkError message="ニックネームを入力してね！" />
             )}
           </div>
 
