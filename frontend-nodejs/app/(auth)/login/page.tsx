@@ -76,7 +76,6 @@ const JapaneseLogin = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isComposing, setIsComposing] = useState(false);
 
   // 入力エラー状態を管理
@@ -84,8 +83,6 @@ const JapaneseLogin = () => {
     username: false,
     email: false,
     password: false,
-    confirmPassword: false,
-    passwordMismatch: false,
   });
   // 送信が試行されたかどうか
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -108,9 +105,6 @@ const JapaneseLogin = () => {
     setPassword(e.target.value);
     if (submitAttempted) {
       validateField("password", e.target.value);
-      if (confirmPassword) {
-        validatePasswordMatch(e.target.value, confirmPassword);
-      }
     }
   };
 
@@ -122,22 +116,12 @@ const JapaneseLogin = () => {
     }));
   };
 
-  // パスワード一致の検証
-  const validatePasswordMatch = (pass: string, confirm: string) => {
-    setErrors((prev) => ({
-      ...prev,
-      passwordMismatch: pass !== confirm && confirm !== "",
-    }));
-  };
-
   // 全フィールドの検証
   const validateAllFields = () => {
     const newErrors = {
       username: username.trim() === "",
       email: email.trim() === "",
       password: password.trim() === "",
-      confirmPassword: confirmPassword.trim() === "",
-      passwordMismatch: password !== confirmPassword && confirmPassword !== "",
     };
 
     setErrors(newErrors);
@@ -165,7 +149,7 @@ const JapaneseLogin = () => {
 
   // 入力枠のスタイル
   const getInputStyle = (
-    fieldName: "username" | "email" | "password" | "confirmPassword",
+    fieldName: "username" | "email" | "password",
   ) => {
     return errors[fieldName]
       ? "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-red-500 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 animate-pulse"
