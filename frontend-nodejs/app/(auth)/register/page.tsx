@@ -72,13 +72,17 @@ const BookmarkError = ({ message }: { message: string }) => {
   );
 };
 
-const JapaneseLogin = () => {
+const Register = () => {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isComposing, setIsComposing] = useState(false);
+  // 送信中かどうかを示す状態
+  const [isLoading, setIsLoading] = useState(false);
+  // APIエラーを示す状態
+  const [apiError, setApiError] = useState("");
 
   // 入力エラー状態を管理
   const [errors, setErrors] = useState({
@@ -164,18 +168,56 @@ const JapaneseLogin = () => {
 
   const handleSubmit = async () => {
     setSubmitAttempted(true);
+    setApiError(""); // API実行前にエラーをリセット
 
     if (validateAllFields()) {
-      console.log("Registration submitted:", {
-        username,
-        displayName,
-        email,
-        password,
-      });
-      alert(`${username}として登録しました`);
+      try {
+        setIsLoading(true);
+                
+        // APIリクエストの作成
+        const response = await fetch(`http://localhost:8080/auth/register`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            Username: username,
+            Email: email,
+            Password: password,
+            DisplayName: displayName,
+            IconImageUrl: '' // 任意項目、初期値は空文字列
+          }),
+          credentials: 'include',
+        });
+
+        // レスポンスの処理
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || '登録処理に失敗しました');
+        }
+
+        const data = await response.json();
+        console.log('Registration successful:', data);
+        
+        // 成功メッセージを表示
+        alert(`${username}として登録しました。ログイン画面に移動します。`);
+        
+        // ログインページへリダイレクト
+        window.location.href = '/login'; 
+      } catch (error: unknown) {
+        console.error('Registration error:', error);
+        // エラーオブジェクトからメッセージを安全に抽出
+        let errorMessage = '登録処理中にエラーが発生しました';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        }
+        setApiError(errorMessage);
+      } finally {
+        setIsLoading(false);
+      }
     } else {
       // エラーがある場合は、フォームへスクロール
-      window.scrollTo({ top: 0, behavior: "smooth" });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
@@ -244,6 +286,25 @@ const JapaneseLogin = () => {
             </h1>
           </button>
         </div>
+
+        {/* API エラーメッセージ */}
+        {apiError && (
+          <div className="mb-4 w-full max-w-md">
+            <div className="bg-red-100 border-l-4 border-red-500 p-4 rounded-md shadow-md">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <span className="text-2xl">⚠️</span>
+                </div>
+                <div className="ml-3">
+                  <p className="text-md font-medium text-red-900">
+                    エラーが発生しました
+                  </p>
+                  <p className="text-sm text-red-800 mt-1">{apiError}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 共通エラーメッセージ */}
         {submitAttempted && Object.values(errors).includes(true) && (
@@ -401,14 +462,17 @@ const JapaneseLogin = () => {
           <div className="flex justify-center mt-4 mb-16">
             <button
               onClick={handleSubmit}
-              className="relative px-8 py-3 bg-rose-900 text-white font-bold rounded-lg transform hover:scale-105 transition-transform hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg"
+              disabled={isLoading}
+              className={`relative px-8 py-3 bg-rose-900 text-white font-bold rounded-lg transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg ${
+                isLoading ? 'opacity-70 cursor-not-allowed' : 'hover:scale-105 hover:bg-amber-700'
+              }`}
               style={{
                 textShadow: "0 2px 2px rgba(0,0,0,0.5)",
                 boxShadow:
                   "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
               }}
             >
-              参加する
+              {isLoading ? '送信中...' : '参加する'}
             </button>
           </div>
         </div>
@@ -417,4 +481,4 @@ const JapaneseLogin = () => {
   );
 };
 
-export default JapaneseLogin;
+export default Register;
