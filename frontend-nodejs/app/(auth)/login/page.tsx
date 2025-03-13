@@ -148,9 +148,7 @@ const JapaneseLogin = () => {
   };
 
   // 入力枠のスタイル
-  const getInputStyle = (
-    fieldName: "username" | "email" | "password",
-  ) => {
+  const getInputStyle = (fieldName: "username" | "email" | "password") => {
     return errors[fieldName]
       ? "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-red-500 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 animate-pulse"
       : "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500";
