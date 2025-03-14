@@ -8,6 +8,7 @@ import (
 	"srcs/study_room"
 	"srcs/utils"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
@@ -32,7 +33,19 @@ func main() {
 	} else {
 		router = gin.Default()
 		gin.SetMode(gin.DebugMode)
+		// 開発環境でもCORS設定を適用
+		router.Use(cors.New(cors.Config{
+			AllowOrigins:     []string{"http://localhost:3000"},
+			AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+			AllowHeaders:     []string{"Content-Type", "Authorization"},
+			AllowCredentials: true,
+		}))
 	}
+
+	// OPTIONSリクエストに対するグローバルハンドラ
+	router.OPTIONS("/*path", func(c *gin.Context) {
+		c.Status(http.StatusOK)
+	})
 
 	router.GET("/health", func(reqContext *gin.Context) {
 		reqContext.JSON(http.StatusOK, gin.H{
