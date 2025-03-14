@@ -8,6 +8,7 @@ const WoodenSign = ({
   children,
   width = "w-64",
   height = "h-12",
+  rotation = "",
 }: {
   children: ReactNode;
   width?: string;
@@ -48,7 +49,7 @@ const WoodenSign = ({
       />
 
       <div
-        className={`relative ${width} ${height} bg-orange-300 flex items-center justify-center px-4 transform border-2 border-yellow-900 rounded z-10`}
+        className={`relative ${width} ${height} bg-orange-300 flex items-center justify-center px-4 transform ${rotation} border-2 border-yellow-900 rounded z-10`}
       >
         <Nail position="topLeft" />
         <Nail position="topRight" />
@@ -72,9 +73,17 @@ const BookmarkError = ({ message }: { message: string }) => {
   );
 };
 
+// 必須タグコンポーネント
+const RequiredTag = () => {
+  return (
+    <span className="ml-2 px-2 py-0.5 bg-amber-600 text-white text-xs font-bold rounded-full animate-pulse">
+      必須
+    </span>
+  );
+};
+
 const Login = () => {
-  const [username, setUsername] = useState("");
-  const [email, setEmail] = useState("");
+  const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isComposing, setIsComposing] = useState(false);
   // 送信中かどうかを示す状態
@@ -84,24 +93,16 @@ const Login = () => {
 
   // 入力エラー状態を管理
   const [errors, setErrors] = useState({
-    username: false,
-    email: false,
+    usernameOrEmail: false,
     password: false,
   });
   // 送信が試行されたかどうか
   const [submitAttempted, setSubmitAttempted] = useState(false);
 
-  const handleUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value);
+  const handleUsernameOrEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setUsernameOrEmail(e.target.value);
     if (submitAttempted) {
-      validateField("username", e.target.value);
-    }
-  };
-
-  const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-    if (submitAttempted) {
-      validateField("email", e.target.value);
+      validateField("usernameOrEmail", e.target.value);
     }
   };
 
@@ -123,8 +124,7 @@ const Login = () => {
   // 全フィールドの検証
   const validateAllFields = () => {
     const newErrors = {
-      username: username.trim() === "",
-      email: email.trim() === "",
+      usernameOrEmail: usernameOrEmail.trim() === "",
       password: password.trim() === "",
     };
 
@@ -140,17 +140,25 @@ const Login = () => {
       try {
         setIsLoading(true);
 
+        // リクエストのボディを準備
+        const requestBody: {Username?: string, Email?: string, Password: string} = {
+          Password: password
+        };
+
+        // ユーザー名かメールアドレスを判別して設定
+        if (usernameOrEmail.includes('@')) {
+          requestBody.Email = usernameOrEmail;
+        } else {
+          requestBody.Username = usernameOrEmail;
+        }
+
         // ログインAPIリクエストを送信
         const response = await fetch(`http://localhost:8080/auth/login`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({
-            Username: username,
-            Email: email,
-            Password: password,
-          }),
+          body: JSON.stringify(requestBody),
           credentials: "include",
         });
 
@@ -160,7 +168,7 @@ const Login = () => {
         }
 
         const data = await response.json();
-        console.log("Registration successful:", data);
+        console.log("Login successful:", data);
         const token = data.token;
 
         // トークンをローカルストレージに保存
@@ -192,8 +200,8 @@ const Login = () => {
   };
 
   // 入力枠のスタイル
-  const getInputStyle = (fieldName: "username" | "email" | "password") => {
-    return errors[fieldName]
+  const getInputStyle = (fieldName: "usernameOrEmail" | "password", value: string) => {
+    return (errors[fieldName] && (!value || value.trim() === ""))
       ? "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-red-500 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 animate-pulse"
       : "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500";
   };
@@ -243,6 +251,25 @@ const Login = () => {
           </button>
         </div>
 
+        {/* 入力フォームの説明 */}
+        <div className="mb-6 w-full max-w-md">
+          <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-md shadow-md">
+            <div className="flex">
+              <div className="flex-shrink-0">
+                <span className="text-2xl">📝</span>
+              </div>
+              <div className="ml-3">
+                <p className="text-md font-medium text-amber-900">
+                  入室に必要な情報
+                </p>
+                <p className="text-sm text-amber-800 mt-1">
+                  ユーザー名かメールアドレスのどちらか一方と、パスワードを入力してください。
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* API エラーメッセージ */}
         {apiError && (
           <div className="mb-4 w-full max-w-md">
@@ -275,7 +302,7 @@ const Login = () => {
                     まだ終わってないよ！
                   </p>
                   <p className="text-sm text-amber-800 mt-1">
-                    赤くなっている部分を入力してね。入力すると色が変わるよ！
+                    赤くなっている必須項目を入力してね。入力すると色が変わるよ！
                   </p>
                 </div>
               </div>
@@ -284,55 +311,33 @@ const Login = () => {
         )}
 
         <div className="w-full max-w-md">
-          {/* ユーザー名フィールド */}
-          <div className="mb-8">
-            <div className="relative">
-              <WoodenSign width="w-full">
-                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                  ユーザー名
-                </label>
-              </WoodenSign>
-            </div>
-
-            <div className="relative mt-2 flex items-center">
-              <input
-                type="text"
-                value={username}
-                onChange={handleUsername}
-                onKeyDown={handleKeyDown}
-                onCompositionStart={() => setIsComposing(true)}
-                onCompositionEnd={() => setIsComposing(false)}
-                className={getInputStyle("username")}
-                placeholder="例）taro"
-              />
-            </div>
-            {errors.username && submitAttempted && (
-              <BookmarkError message="ユーザー名を入力してね！" />
-            )}
-          </div>
-
-          {/* メールアドレスフィールド */}
+          {/* ユーザー名/メールアドレスフィールド */}
           <div className="mb-8">
             <div className="relative">
               <WoodenSign width="w-full" rotation="-rotate-1">
-                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                  メールアドレス
-                </label>
+                <div className="flex items-center">
+                  <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                    ユーザー名 または メールアドレス
+                  </label>
+                  <RequiredTag />
+                </div>
               </WoodenSign>
             </div>
 
             <div className="relative mt-2">
               <input
-                type="email"
-                value={email}
-                onChange={handleEmail}
+                type="text"
+                value={usernameOrEmail}
+                onChange={handleUsernameOrEmail}
                 onKeyDown={handleKeyDown}
-                className={getInputStyle("email")}
-                placeholder="例）taro@example.com"
+                onCompositionStart={() => setIsComposing(true)}
+                onCompositionEnd={() => setIsComposing(false)}
+                className={getInputStyle("usernameOrEmail", usernameOrEmail)}
+                placeholder="例）taro または taro@example.com"
               />
             </div>
-            {errors.email && submitAttempted && (
-              <BookmarkError message="メールアドレスを入力してね！" />
+            {errors.usernameOrEmail && submitAttempted && (
+              <BookmarkError message="ユーザー名またはメールアドレスを入力してね！" />
             )}
           </div>
 
@@ -340,9 +345,12 @@ const Login = () => {
           <div className="mb-8">
             <div className="relative">
               <WoodenSign width="w-full" rotation="rotate-1">
-                <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                  パスワード
-                </label>
+                <div className="flex items-center">
+                  <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                    パスワード
+                  </label>
+                  <RequiredTag />
+                </div>
               </WoodenSign>
             </div>
 
@@ -352,7 +360,7 @@ const Login = () => {
                 value={password}
                 onChange={handlePassword}
                 onKeyDown={handleKeyDown}
-                className={getInputStyle("password")}
+                className={getInputStyle("password", password)}
                 placeholder="例）taro1234"
               />
             </div>
