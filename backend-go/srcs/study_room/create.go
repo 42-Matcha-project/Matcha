@@ -20,11 +20,19 @@ type StudyRoom struct {
 	Mutex         *sync.Mutex
 }
 
+const (
+	Online UserStatus = iota
+	Offline
+	Lounge
+)
+
+type UserStatus int
+
 type User struct {
 	UserId   int
 	Username string
 	IconURL  string
-	IsOnline bool
+	Status   UserStatus
 	IsHost   bool
 	Conn     *websocket.Conn
 }
@@ -65,7 +73,7 @@ func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, user models.TUse
 		UserId:   user.ID,
 		Username: user.Username,
 		IconURL:  user.IconImageURL,
-		IsOnline: true,
+		Status:   Online,
 		IsHost:   true,
 		Conn:     nil,
 	}

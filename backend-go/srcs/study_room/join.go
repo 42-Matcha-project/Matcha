@@ -30,7 +30,7 @@ func joinStudyRoom(room *StudyRoom, user *models.TUser, conn *websocket.Conn) {
 			UserId:   user.ID,
 			Username: user.DisplayName,
 			IconURL:  user.IconImageURL,
-			IsOnline: true,
+			Status:   Online,
 			IsHost:   false,
 			Conn:     conn,
 		}
