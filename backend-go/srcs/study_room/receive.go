@@ -9,8 +9,8 @@ import (
 )
 
 type ReceivedMessage struct {
-	Type   string `json:"Type" binding:"required"`
-	Conent string `json:"Conent" default:""`
+	Type    string `json:"Type" binding:"required"`
+	Content string `json:"Content" default:""`
 }
 
 const (
