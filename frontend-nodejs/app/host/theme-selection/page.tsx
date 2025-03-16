@@ -107,6 +107,7 @@ export default function ThemeSelectionPage() {
   const [selectedTheme, setSelectedTheme] = useState<ThemeType | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
   const [isConfirming, setIsConfirming] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // 1ページあたりのテーマ数
   const themesPerPage = 4;
@@ -144,16 +145,89 @@ export default function ThemeSelectionPage() {
     if (!selectedTheme) return;
 
     setIsConfirming(true);
+    setError(null); // エラーをリセット
 
     try {
-      // 実際の実装ではAPIリクエストを行う
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      // テーマ情報を取得
+      const theme = themes.find((theme) => theme.id === selectedTheme);
 
-      // 成功したらダッシュボードへリダイレクト
-      router.push("/host/dashboard");
+      if (!theme) {
+        throw new Error("選択されたテーマが見つかりませんでした");
+      }
+
+      // リクエストボディをログに出力
+      const requestBody = {
+        StudyRoomName: `${theme.name}の自習室`,
+        StudyRoomImageURL: theme.image || "/placeholder.svg",
+      };
+      console.log("Request body:", JSON.stringify(requestBody));
+
+      // トークンの確認
+      const token = localStorage.getItem("token");
+      if (!token) {
+        console.warn(
+          "認証トークンがありません。ログインが必要かもしれません。",
+        );
+      }
+
+      // バックエンドAPIにリクエストを送信してルームコードを取得
+      const response = await fetch("http://localhost:8080/study-room/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(requestBody),
+        credentials: "include",
+      });
+
+      // レスポンスのステータスと生のテキストを出力してデバッグ
+      console.log("Response status:", response.status);
+      const responseText = await response.text();
+      console.log("Raw response text:", responseText);
+
+      if (!response.ok) {
+        // JSON解析を試みる前に、エラーかどうかを確認
+        try {
+          const errorData = JSON.parse(responseText);
+          throw new Error(errorData.error || "自習室の作成に失敗しました");
+        } catch (parseError) {
+          console.error("JSONパースエラー:", parseError);
+          throw new Error("サーバーからの応答の解析に失敗しました");
+        }
+      }
+
+      // JSONの解析を安全に行う
+      let data;
+      try {
+        data = JSON.parse(responseText);
+        console.log("ルーム作成成功:", data);
+      } catch (parseError) {
+        console.error("JSONパースエラー:", parseError);
+        throw new Error("サーバーからの応答の解析に失敗しました");
+      }
+
+      // ルームコードをlocalStorageに保存しておく（オプション）
+      if (data.roomCode) {
+        localStorage.setItem("currentRoomCode", data.roomCode);
+      }
+
+      // 成功したらダッシュボードへリダイレクト（ルームコードをクエリパラメータで渡す）
+      router.push(`/host/dashboard?roomCode=${data.roomCode || ""}`);
     } catch (error) {
       console.error("テーマの設定に失敗しました", error);
       setIsConfirming(false);
+
+      // エラー情報をより詳細に表示
+      if (error instanceof Error) {
+        setError(`自習室の作成に失敗しました: ${error.message}`);
+      } else if (typeof error === "string") {
+        setError(`自習室の作成に失敗しました: ${error}`);
+      } else {
+        setError(
+          "予期せぬエラーが発生しました。ネットワーク接続とログイン状態を確認してください。",
+        );
+      }
     }
   };
 
@@ -161,6 +235,17 @@ export default function ThemeSelectionPage() {
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-slate-900 dark:to-blue-900">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
+          {/* エラーメッセージの表示 */}
+          {error && (
+            <div
+              className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-6 rounded-md"
+              role="alert"
+            >
+              <p className="font-bold">エラー</p>
+              <p>{error}</p>
+            </div>
+          )}
+
           <div className="text-center mb-12">
             <h1 className="text-3xl md:text-4xl font-bold text-slate-800 dark:text-white mb-4">
               自習室のデザインを選んでください
@@ -303,7 +388,10 @@ export default function ThemeSelectionPage() {
 
           {/* カスタムテーマボタン */}
           <div className="mt-12 text-center">
-            <button className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300">
+            <button
+              className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-purple-500 to-indigo-500 text-white font-medium shadow-md hover:shadow-lg transition-all duration-300"
+              onClick={() => router.push("/host/theme-selection/customize")}
+            >
               <Sparkles className="h-5 w-5 mr-2" />
               カスタムテーマを作成
             </button>
