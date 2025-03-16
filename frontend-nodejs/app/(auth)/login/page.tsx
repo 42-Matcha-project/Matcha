@@ -141,12 +141,16 @@ const Login = () => {
         setIsLoading(true);
 
         // リクエストのボディを準備
-        const requestBody: {Username?: string, Email?: string, Password: string} = {
-          Password: password
+        const requestBody: {
+          Username?: string;
+          Email?: string;
+          Password: string;
+        } = {
+          Password: password,
         };
 
         // ユーザー名かメールアドレスを判別して設定
-        if (usernameOrEmail.includes('@')) {
+        if (usernameOrEmail.includes("@")) {
           requestBody.Email = usernameOrEmail;
         } else {
           requestBody.Username = usernameOrEmail;
@@ -162,20 +166,36 @@ const Login = () => {
           credentials: "include",
         });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "ログインに失敗しました");
+        let data;
+        try {
+          // レスポンスのテキストを取得してJSONとしてパース
+          const responseText = await response.text();
+
+          // JSONとしてパース
+          data = JSON.parse(responseText);
+
+          // エラーレスポンスの場合
+          if (!response.ok) {
+            console.error("詳細エラー情報:", data);
+            throw new Error("ログインに失敗しました");
+          }
+
+          // 成功レスポンスの処理
+          console.log("Login successful:", data);
+          const token = data.token;
+
+          // トークンをローカルストレージに保存
+          localStorage.setItem("token", token);
+
+          // ログイン成功後のリダイレクト
+          window.location.href = "/";
+        } catch (error) {
+          // JSONパースエラーまたはその他のエラー
+          console.error("Login error:", error);
+          throw new Error("ログインに失敗しました");
+        } finally {
+          setIsLoading(false);
         }
-
-        const data = await response.json();
-        console.log("Login successful:", data);
-        const token = data.token;
-
-        // トークンをローカルストレージに保存
-        localStorage.setItem("token", token);
-
-        // ログイン成功後のリダイレクト
-        window.location.href = "/";
       } catch (error: unknown) {
         console.log("Login error:", error);
         let errorMessage = "ログインに失敗しました";
@@ -183,8 +203,6 @@ const Login = () => {
           errorMessage = error.message;
         }
         setApiError(errorMessage);
-      } finally {
-        setIsLoading(false);
       }
     } else {
       // エラーがある場合は、フォームへスクロール
@@ -200,8 +218,11 @@ const Login = () => {
   };
 
   // 入力枠のスタイル
-  const getInputStyle = (fieldName: "usernameOrEmail" | "password", value: string) => {
-    return (errors[fieldName] && (!value || value.trim() === ""))
+  const getInputStyle = (
+    fieldName: "usernameOrEmail" | "password",
+    value: string,
+  ) => {
+    return errors[fieldName] && (!value || value.trim() === "")
       ? "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-red-500 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 animate-pulse"
       : "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500";
   };
