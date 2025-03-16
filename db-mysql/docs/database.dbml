@@ -35,7 +35,6 @@ Table t_work_logs {
   id integer [primary key]
   user_id integer [not null, ref: > t_users.id]
   work_id integer [not null, ref: > t_works.id]
-  date date [not null]
-  total_minutes bigint [not null, default: 0]
+  start_at timestamp [not null]
+  minutes bigint [not null]
 }
-
