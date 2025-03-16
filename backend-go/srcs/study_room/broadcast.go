@@ -5,7 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type ClientsListMessage struct {
+type ClientsListMessageStruct struct {
 	Type    string `json:"Type"`
 	Clients []User `json:"Clients"`
 }
@@ -14,7 +14,7 @@ func BroadcastClientsList(clients map[int]*User) error {
 	/*
 		クライアントリストを作成して全クライアントに通知する関数。
 	*/
-	clientsListMessage := ClientsListMessage{
+	clientsListMessage := ClientsListMessageStruct{
 		Type:    "ClientsList",
 		Clients: []User{},
 	}
