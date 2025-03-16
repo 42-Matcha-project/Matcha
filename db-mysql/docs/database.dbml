@@ -26,3 +26,16 @@ Table t_works {
   work_name varchar(60) [not null]
   icon_image_url varchar(255)
 }
+
+
+/*
+  作業ログ
+*/
+Table t_work_logs {
+  id integer [primary key]
+  user_id integer [not null, ref: > t_users.id]
+  work_id integer [not null, ref: > t_works.id]
+  date date [not null]
+  total_minutes bigint [not null, default: 0]
+}
+
