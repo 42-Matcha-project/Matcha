@@ -23,10 +23,7 @@ func addWork(addWorkInput AddWorkInput, user models.TUser) (*models.TWork, error
 	}
 
 	err := models.DB.Create(work).Error
-	if err != nil {
-		return nil, err
-	}
-	return work, nil
+	return work, err
 }
 
 func AddWorkHandler(reqContext *gin.Context) {
