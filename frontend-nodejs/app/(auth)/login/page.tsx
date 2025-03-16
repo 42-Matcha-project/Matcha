@@ -171,8 +171,17 @@ const Login = () => {
           // レスポンスのテキストを取得してJSONとしてパース
           const responseText = await response.text();
 
-          // JSONとしてパース
-          data = JSON.parse(responseText);
+          // 空のレスポンスチェック
+          if (!responseText.trim()) {
+            console.error("空のレスポンスを受信しました");
+            if (!response.ok) {
+              throw new Error("ログインに失敗しました");
+            }
+            data = {}; // 空のオブジェクトをデフォルト値として使用
+          } else {
+            // JSONとしてパース
+            data = JSON.parse(responseText);
+          }
 
           // エラーレスポンスの場合
           if (!response.ok) {
