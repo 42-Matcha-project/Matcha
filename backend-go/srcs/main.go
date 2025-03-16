@@ -7,6 +7,7 @@ import (
 	"srcs/models"
 	"srcs/study_room"
 	"srcs/utils"
+	"srcs/works"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -61,6 +62,9 @@ func main() {
 	studyRoomRoutes.POST("/create", study_room.CreateStudyRoomHandler)
 	studyRoomRoutes.DELETE("/delete", study_room.DeleteStudyRoomHandler)
 	studyRoomRoutes.GET("/join/:roomCode", study_room.JoinStudyRoomHandler)
+
+	worksRoutes := router.Group("/works")
+	worksRoutes.POST("/add", works.AddWorkHandler)
 
 	router.Run(":8080")
 }
