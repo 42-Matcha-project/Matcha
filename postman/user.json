@@ -136,6 +136,8 @@
               "pm.test(\"レスポンスのJSONにroomCodeフィールドが含まれていること\", function() {",
               "    var jsonResponse = pm.response.json();",
               "    pm.expect(jsonResponse).to.have.property('roomCode');",
+              "",
+              "    pm.environment.set(\"roomCode\", jsonResponse.roomCode);",
               "});",
               ""
             ],
@@ -213,6 +215,208 @@
           "path": [
             "study-room",
             "delete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業追加",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにworkフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('work');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"WorkName\": \"C言語\",\n    \"IconImageURL\": \"url\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/add",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "add"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業一覧取得",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにworksフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('works');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/works/get",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "get"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業ログ記録",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにworkLogフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('workLog');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"WorkID\": 1,\n    \"Minutes\": 100\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/log",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "log"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業ログ取得",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにworkLogsフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('workLogs');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/works/log",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "log"
           ]
         }
       },
