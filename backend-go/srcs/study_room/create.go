@@ -5,7 +5,6 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"srcs/models"
-	"srcs/token"
 	"srcs/utils"
 	"sync"
 )
@@ -79,16 +78,9 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 	/*
 		自習室を作成リクエストに対するハンドラー関数。
 	*/
-	userId, err := token.ExtractUserIdFromRequest(reqContext)
+	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusUnauthorized, gin.H{"status": "Failed to extract user id"})
-		reqContext.Error(err)
-		return
-	}
-	user := &models.TUser{}
-	err = models.DB.First(user, userId).Error
-	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"status": "User not found"})
+		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		reqContext.Error(err)
 		return
 	}

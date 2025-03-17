@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"os"
 	"srcs/models"
-	"srcs/token"
+	"srcs/utils"
 	"time"
 )
 
@@ -43,14 +43,7 @@ func LogWorkHandler(reqContext *gin.Context) {
 	/*
 		作業ログを記録するリクエストに対するハンドラー関数
 	*/
-	userId, err := token.ExtractUserIdFromRequest(reqContext)
-	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to extract user id"})
-		reqContext.Error(err)
-		return
-	}
-	user := &models.TUser{}
-	err = models.DB.First(user, userId).Error
+	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
 		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		reqContext.Error(err)
@@ -72,5 +65,5 @@ func LogWorkHandler(reqContext *gin.Context) {
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, workLog)
+	reqContext.JSON(http.StatusOK, gin.H{"workLog": workLog})
 }

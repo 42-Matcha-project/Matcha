@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"srcs/models"
-	"srcs/token"
+	"srcs/utils"
 )
 
 var upgrader = websocket.Upgrader{
@@ -54,14 +54,7 @@ func JoinStudyRoomHandler(reqContext *gin.Context) {
 	StudyRoomsMutex.Unlock()
 
 	// JWTトークンからuserIdを抽出し、userをDBから取り出す。
-	userId, err := token.ExtractUserIdFromRequest(reqContext)
-	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to extract user id"})
-		reqContext.Error(err)
-		return
-	}
-	user := &models.TUser{}
-	err = models.DB.First(user, userId).Error
+	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
 		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
 		reqContext.Error(err)
