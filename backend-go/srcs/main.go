@@ -66,6 +66,7 @@ func main() {
 	worksRoutes := router.Group("/works")
 	worksRoutes.POST("/add", works.AddWorkHandler)
 	worksRoutes.GET("/get", works.GetWorksHandler)
+	worksRoutes.POST("/log", works.LogWorkHandler)
 
 	router.Run(":8080")
 }
