@@ -197,7 +197,7 @@ const Login = () => {
           localStorage.setItem("token", token);
 
           // ログイン成功後のリダイレクト
-          window.location.href = "/";
+          window.location.href = "/host/theme-selection";
         } catch (error) {
           // JSONパースエラーまたはその他のエラー
           console.error("Login error:", error);
