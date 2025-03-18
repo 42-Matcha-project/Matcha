@@ -55,5 +55,16 @@ jobs:
       - name: Test API
         run: newman run ./postman/user.json --reporters cli,junit --reporter-junit-export results.xml
 
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: pip install ./tools/websocket_client/requirements.txt
+
+      - name: Run WebSocket API test
+        run: python ./tools/websocket_client/websocket_client.py
+
       - name: Stop app
         run: docker compose down -v
