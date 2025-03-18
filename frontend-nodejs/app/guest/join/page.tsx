@@ -60,7 +60,7 @@ export default function JoinRoomAlt2() {
                   setError("");
                   setRoomCode(e.target.value.toUpperCase());
                 }}
-                className="text-lg tracking-wider h-14 dark:bg-gray-700 dark:text-white dark:border-gray-600"
+                className="text-lg tracking-wider h-14 text-gray-900 dark:bg-gray-700 dark:text-gray-100 dark:border-gray-600 dark:placeholder-gray-400 placeholder-gray-500"
               />
               {error && (
                 <p className="text-sm text-destructive dark:text-red-400 animate-shake">

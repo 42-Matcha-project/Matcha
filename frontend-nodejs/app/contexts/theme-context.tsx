@@ -19,12 +19,9 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     if (savedMode !== null) {
       setIsDarkMode(savedMode === "true");
     } else {
-      // 保存されていない場合はシステム設定を使用
-      const prefersDark = window.matchMedia(
-        "(prefers-color-scheme: dark)",
-      ).matches;
-      setIsDarkMode(prefersDark);
-      localStorage.setItem("darkMode", String(prefersDark));
+      // 保存されていない場合はライトモードをデフォルトに設定
+      setIsDarkMode(false);
+      localStorage.setItem("darkMode", "false");
     }
   }, []);
 
