@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 import { cn } from "@/lib/utils";
+import ThemeToggle from "@/app/components/ThemeToggle";
 
 // テーマの種類
 type ThemeType =
@@ -235,6 +236,10 @@ export default function ThemeSelectionPage() {
     <div className="min-h-screen bg-gradient-to-br from-teal-50 to-blue-50 dark:from-slate-900 dark:to-blue-900">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
+          <div className="flex justify-end mb-4">
+            <ThemeToggle />
+          </div>
+
           {/* エラーメッセージの表示 */}
           {error && (
             <div
