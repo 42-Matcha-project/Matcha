@@ -1,211 +1,40 @@
 // Use DBML to define your database structure
 // Docs: https://dbml.dbdiagram.io/docs
 
+
+/*
+  ユーザーテーブル
+*/
 Table t_users {
   id integer [primary key]
   username varchar(30) [unique]
   email varchar(255) [unique]
   password varchar(60)
   display_name varchar(20)
-  gender enum('male', 'female')
-  introduction varchar(100)
   icon_image_url varchar(255)
-  sexual_preference varchar(255)
   created_at timestamp
   updated_at timestamp
 }
 
-/*
-  userとreport
-*/
-Table t_user_reports {
-  id integer [primary key]
-  user_id integer
-  report_id integer
-}
-
-Table t_reports {
-  id integer [primary key]
-  post_id integer
-  to_user_id integer
-  kind enum('violence')// 後々追加
-  text varchar(200)
-}
-
-Ref: t_users.id < t_user_reports.user_id
-Ref: t_reports.id < t_user_reports.report_id
-Ref: t_users.id < t_reports.to_user_id
 
 /*
-  userとopinion
+  作業内容
 */
-Table t_user_opinions {
+Table t_works {
   id integer [primary key]
-  user_id integer
-  opinion_id integer
+  user_id integer [not null, ref: > t_users.id]
+  work_name varchar(60) [not null]
+  icon_image_url varchar(255)
 }
-
-Table t_opinions {
-  id integer [primary key]
-  text varchar(200)
-}
-
-Ref: t_users.id < t_user_opinions.user_id
-Ref: t_opinions.id < t_user_opinions.opinion_id
 
 
 /*
-  userとdirect_message
+  作業ログ
 */
-Table t_user_direct_messages {
+Table t_work_logs {
   id integer [primary key]
-  user_id integer
-  direct_message_id integer
-}
-
-Table t_direct_messages {
-  id integer [primary key]
-  to_user_id integer
-  text varchar(200)
-  image_url varchar(255)
-  create_at timestamp
-  reaction enum('smile', 'cry', 'good')
-}
-
-Ref: t_users.id < t_user_direct_messages.user_id
-Ref: t_direct_messages.id < t_user_direct_messages.direct_message_id
-
-
-/*
-  !!!!!!!!!!!!!!!
-  userとfootprint
-*/
-Table t_footprints {
-  id integer [primary key]
-  user_id integer
-  to_user_id integer
-  create_at timestamp
-}
-
-Ref: t_users.id < t_footprints.user_id
-Ref: t_users.id < t_footprints.to_user_id
-
-
-/*
-  userといいねしたpost
-*/
-Table t_user_like_posts {
-  id integer [primary key]
-  user_id integer
-  post_id integer
-  create_at timestamp //DEFAULT current_time
-}
-
-/*
-  postとimage_url
-*/
-
-Table t_post_image_urls {
-  id integer [primary key]
-  post_id integer
-  post_image_url varchar(255)
-}
-
-Ref: t_posts.id < t_post_image_urls.post_id
-
-/*
-  postとinterest_tag
-*/
-
-Table t_post_interest_tags {
-  id integer [primary key]
-  post_id integer
-  interest_tag_id integer
-}
-
-Ref: t_posts.id < t_post_interest_tags.post_id
-Ref: t_interest_tags.id < t_post_interest_tags.id
-
-Ref: t_users.id < t_user_like_posts.user_id
-Ref: t_posts.id < t_user_like_posts.post_id
-
-Table t_posts {
-  id integer [primary key]
-  user_id integer
-  text varchar(200)
-  create_at timestamp //DEFAULT current_timestamp
-  // location point
-  is_draft bool //ひとりひとつ
-}
-
-Ref: t_users.id < t_posts.user_id
-
-/*
-  !!!!!!!!!!!!
-  user同士の関係
-*/
-Table t_user_relations {
-  id integer [primary key]
-  user_id integer
-  to_user_id integer
-  relation enum('like', 'dislike')
-  create_at timestamp
-}
-
-Ref: t_users.id < t_user_relations.user_id
-Ref: t_users.id < t_user_relations.to_user_id
-
-
-/*
-  userとaffiliation
-*/
-Table t_user_affiliations {
-  id integer [primary key]
-  user_id integer
-  affiliation_id integer
-}
-
-Table t_affiliations {
-  id integer [primary key]
-  name varchar(100)
-}
-
-Ref: t_users.id < t_user_affiliations.user_id
-Ref: t_affiliations.id < t_user_affiliations.affiliation_id
-
-
-/*
-  userとpicture
-*/
-Table t_user_pictures {
-  id integer [primary key]
-  user_id integer
-  picture_url varchar(255)
-}
-
-Ref: t_users.id < t_user_pictures.user_id
-
-
-/*
-  userとinterest_tag
-*/
-Table t_user_interest_tags {
-  id integer [primary key]
-  user_id integer // 外部キー
-  tag_id integer // 外部キー
-}
-
-Table t_interest_tags {
-  id integer [primary key]
-  name varchar(20)
-}
-
-Ref: t_users.id < t_user_interest_tags.user_id
-Ref: t_interest_tags.id < t_user_interest_tags.tag_id
-
-/*
-  今日の格言
-*/
-Table t_todays_quotes {
-  text varchar(50)
+  user_id integer [not null, ref: > t_users.id]
+  work_id integer [not null, ref: > t_works.id]
+  start_at timestamp [not null]
+  minutes bigint [not null]
 }
