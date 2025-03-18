@@ -61,7 +61,7 @@ jobs:
           python-version: "3.x"
 
       - name: Install dependencies
-        run: pip install ./tools/websocket_client/requirements.txt
+        run: pip install -r ./tools/websocket_client/requirements.txt
 
       - name: Run WebSocket API test
         run: python ./tools/websocket_client/websocket_client.py
