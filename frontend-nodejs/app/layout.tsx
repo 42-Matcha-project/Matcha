@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeProvider } from "./contexts/theme-context";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,7 +24,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ja">
+    <html lang="ja" suppressHydrationWarning>
       <body
         className={`
           relative min-h-screen
@@ -31,9 +32,11 @@ export default function RootLayout({
           antialiased
         `}
       >
-        <div className="absolute inset-0 bg-[url('/images/Welcome-background.png')] bg-cover bg-center bg-no-repeat" />
-        <div className="absolute inset-0 bg-white bg-opacity-40" />
-        <div className="relative z-10">{children}</div>
+        <ThemeProvider>
+          <div className="absolute inset-0 bg-[url('/images/Welcome-background.png')] bg-cover bg-center bg-no-repeat dark:opacity-80" />
+          <div className="absolute inset-0 bg-white bg-opacity-40 dark:bg-gray-900 dark:bg-opacity-70" />
+          <div className="relative z-10">{children}</div>
+        </ThemeProvider>
       </body>
     </html>
   );

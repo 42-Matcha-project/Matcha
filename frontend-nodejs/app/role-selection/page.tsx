@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Moon, Sun, Home, Users, ChevronRight, LogOut } from "lucide-react";
+import { Home, Users, ChevronRight, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -18,11 +18,11 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import ThemeToggle from "../components/ThemeToggle";
 
 export default function RoleSelectionPage() {
   const router = useRouter();
   const [username, setUsername] = useState("");
-  const [isDarkMode, setIsDarkMode] = useState(false);
 
   useEffect(() => {
     // ログイン済みかチェック
@@ -37,17 +37,7 @@ export default function RoleSelectionPage() {
     if (storedUsername) {
       setUsername(storedUsername);
     }
-
-    // システムのダークモード設定を確認
-    const prefersDark = window.matchMedia(
-      "(prefers-color-scheme: dark)",
-    ).matches;
-    setIsDarkMode(prefersDark);
   }, [router]);
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode);
-  };
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -57,7 +47,7 @@ export default function RoleSelectionPage() {
   };
 
   return (
-    <div className={`min-h-screen w-full ${isDarkMode ? "dark" : ""}`}>
+    <div className="min-h-screen w-full">
       <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 transition-colors duration-500">
         {/* 背景のパターン */}
         <div className="absolute inset-0 bg-grid-pattern opacity-5 dark:opacity-10"></div>
@@ -72,29 +62,7 @@ export default function RoleSelectionPage() {
             Study Room
           </div>
           <div className="flex items-center gap-4">
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={toggleDarkMode}
-                    className="rounded-full"
-                  >
-                    {isDarkMode ? (
-                      <Sun className="h-5 w-5" />
-                    ) : (
-                      <Moon className="h-5 w-5" />
-                    )}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>
-                    {isDarkMode ? "ライトモード" : "ダークモード"}に切り替え
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <ThemeToggle />
 
             <TooltipProvider>
               <Tooltip>
