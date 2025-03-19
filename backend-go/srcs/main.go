@@ -56,6 +56,7 @@ func main() {
 	})
 
 	authRoutes := router.Group("/auth")
+	authRoutes.POST("/otp/generate", auth.GenerateOTPHandler)
 	authRoutes.POST("/register", auth.Register)
 	authRoutes.POST("/login", auth.Login)
 
