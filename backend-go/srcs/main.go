@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"srcs/auth"
+	"srcs/middlewares"
 	"srcs/models"
 	"srcs/study_room"
 	"srcs/utils"
@@ -59,11 +60,13 @@ func main() {
 	authRoutes.POST("/login", auth.Login)
 
 	studyRoomRoutes := router.Group("/study-room")
+	studyRoomRoutes.Use(middlewares.JWTValidationMiddleware())
 	studyRoomRoutes.POST("/create", study_room.CreateStudyRoomHandler)
 	studyRoomRoutes.DELETE("/delete", study_room.DeleteStudyRoomHandler)
 	studyRoomRoutes.GET("/join/:roomCode", study_room.JoinStudyRoomHandler)
 
 	worksRoutes := router.Group("/works")
+	studyRoomRoutes.Use(middlewares.JWTValidationMiddleware())
 	worksRoutes.POST("/add", works.AddWorkHandler)
 	worksRoutes.GET("/get", works.GetWorksHandler)
 	worksRoutes.POST("/log", works.LogWorkHandler)
