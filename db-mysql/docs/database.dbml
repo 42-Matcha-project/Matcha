@@ -39,12 +39,3 @@ Table t_work_logs {
   minutes bigint [not null]
 }
 
-
-/*
-  OTP
-*/
-Table t_otp {
-  id integer [primary key]
-  email varchar(255) [unique]
-  otp varchar(6)
-}
