@@ -4,18 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"gopkg.in/gomail.v2"
 	"net/http"
 	"os"
+	"srcs/mail"
 	"srcs/mail_contents"
 	"srcs/utils"
 	"sync"
 	"time"
-)
-
-var (
-	dialer     *gomail.Dialer
-	dialerInit sync.Once
 )
 
 type OTPEntry struct {
@@ -27,27 +22,6 @@ var (
 	EmailOTPPairsMutex sync.Mutex
 	EmailOTPPairs      = make(map[string]*OTPEntry)
 )
-
-func sendOTP(recipientEmail string, OTP string) error {
-	/*
-		OTP含んだメールをemailに送信する関数
-	*/
-	mailContent := gomail.NewMessage()
-
-	mailContent.SetHeader("From", os.Getenv("ADMIN_EMAIL"))
-	mailContent.SetHeader("To", recipientEmail)
-	mailContent.SetHeader("Subject", "[Matcha]登録を完了させてください")
-	mailContent.SetHeader("List-Unsubscribe", "mailto:"+os.Getenv("ADMIN_EMAIL"))
-	mailContent.SetBody("text/plain", mail_contents.CreateOTPMailText(OTP))
-	mailContent.AddAlternative("text/html", mail_contents.CreateOTPMailHTML(OTP))
-
-	dialerInit.Do(func() {
-		dialer = gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("ADMIN_EMAIL"), os.Getenv("ADMIN_EMAIL_PASSWORD"))
-	})
-
-	err := dialer.DialAndSend(mailContent)
-	return err
-}
 
 func saveOTP(Email string, OTP string) error {
 	/*
@@ -124,7 +98,7 @@ func GenerateOTPHandler(reqContext *gin.Context) {
 		return
 	}
 
-	err = sendOTP(generateOTPInput.Email, OTP)
+	err = mail.SendMail(generateOTPInput.Email, mail_contents.CreateOTPSubject(), mail_contents.CreateOTPMailText(OTP), mail_contents.CreateOTPMailHTML(OTP))
 	if err != nil {
 		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate OTP"})
 		reqContext.Error(err)
