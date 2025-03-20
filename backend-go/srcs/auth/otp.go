@@ -145,7 +145,10 @@ func GenerateOTPHandler(reqContext *gin.Context) {
 		return
 	}
 
-	reqContext.Status(http.StatusOK)
+	if os.Getenv("ENVIRONMENT") == "development" {
+		reqContext.JSON(http.StatusCreated, gin.H{"OTP": OTP})
+	}
+	reqContext.Status(http.StatusCreated)
 }
 
 func verifyOTP(Email string, OTP string) error {
