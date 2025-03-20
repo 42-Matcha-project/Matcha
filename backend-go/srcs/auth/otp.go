@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"errors"
+	"fmt"
 	"github.com/gin-gonic/gin"
 	"gopkg.in/gomail.v2"
 	"net/http"
@@ -10,13 +12,6 @@ import (
 	"sync"
 	"time"
 )
-
-type GenerateOTPInput struct {
-	/*
-		OTP生成時にリクエストから抽出するJSONデータの構造体
-	*/
-	Email string `json:"email" binding:"required"`
-}
 
 var (
 	dialer     *gomail.Dialer
@@ -70,7 +65,43 @@ func saveOTP(Email string, OTP string) error {
 		OTP:       OTP,
 		CreatedAt: time.Now().In(location),
 	}
+	if os.Getenv("ENVIRONMENT") == "development" {
+		fmt.Println("Saving OTP Pair: ", Email)
+	}
+
 	return nil
+}
+
+func cleanupExpiredOTPs() error {
+	/*
+		期限切れのOTPを削除する関数
+	*/
+	timeZone := os.Getenv("TIME_ZONE")
+	location, err := time.LoadLocation(timeZone)
+	if err != nil {
+		return err
+	}
+
+	EmailOTPPairsMutex.Lock()
+	defer EmailOTPPairsMutex.Unlock()
+	for email, aOTPEntry := range EmailOTPPairs {
+		elapsedTime := time.Now().In(location).Sub(aOTPEntry.CreatedAt)
+		if elapsedTime > 30*time.Minute {
+			if os.Getenv("ENVIRONMENT") == "development" {
+				fmt.Println("Deleting expired OTP:", email)
+			}
+			delete(EmailOTPPairs, email)
+		}
+	}
+
+	return nil
+}
+
+type GenerateOTPInput struct {
+	/*
+		OTP生成時にリクエストから抽出するJSONデータの構造体
+	*/
+	Email string `json:"email" binding:"required"`
 }
 
 func GenerateOTPHandler(reqContext *gin.Context) {
@@ -103,6 +134,74 @@ func GenerateOTPHandler(reqContext *gin.Context) {
 	err = saveOTP(generateOTPInput.Email, OTP)
 	if err != nil {
 		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save OTP"})
+		reqContext.Error(err)
+		return
+	}
+
+	err = cleanupExpiredOTPs()
+	if err != nil {
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cleanup expired OTPs"})
+		reqContext.Error(err)
+		return
+	}
+
+	reqContext.Status(http.StatusOK)
+}
+
+func verifyOTP(Email string, OTP string) error {
+	/*
+		OTPを認証する関数
+	*/
+	EmailOTPPairsMutex.Lock()
+	defer EmailOTPPairsMutex.Unlock()
+
+	aOTPEntry, isExist := EmailOTPPairs[Email]
+	if !isExist {
+		return errors.New(fmt.Sprintf("Email %s does not exist", Email))
+	}
+
+	if OTP != aOTPEntry.OTP {
+		return errors.New(fmt.Sprintf("OTP %s does not match", OTP))
+	}
+
+	timeZone := os.Getenv("TIME_ZONE")
+	location, err := time.LoadLocation(timeZone)
+	if err != nil {
+		return err
+	}
+	elapsedTime := time.Now().In(location).Sub(aOTPEntry.CreatedAt)
+	if elapsedTime > 5*time.Minute {
+		delete(EmailOTPPairs, Email)
+		return errors.New(fmt.Sprintf("The OTP has already expired."))
+	}
+
+	delete(EmailOTPPairs, Email)
+	return nil
+}
+
+type VerifyOTPInput struct {
+	/*
+		OTP認証時にリクエストから抽出するJSONデータの構造体
+	*/
+	Email string `json:"email" binding:"required"`
+	OTP   string `json:"otp" binding:"required"`
+}
+
+func VerifyOTPHandler(reqContext *gin.Context) {
+	/*
+		OTPの認証リクエストに対するハンドラー関数。
+	*/
+	var verifyOTPInput VerifyOTPInput
+	err := reqContext.ShouldBindJSON(&verifyOTPInput)
+	if err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.Error(err)
+		return
+	}
+
+	err = verifyOTP(verifyOTPInput.Email, verifyOTPInput.OTP)
+	if err != nil {
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify OTP"})
 		reqContext.Error(err)
 		return
 	}
