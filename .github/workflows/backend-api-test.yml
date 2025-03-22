@@ -23,6 +23,8 @@ jobs:
           echo "TIME_ZONE=${{ secrets.TIME_ZONE }}" > .env
           echo "JWT_TOKEN_LIFE_SPAN=${{ secrets.JWT_TOKEN_LIFE_SPAN }}" >> .env
           echo "JWT_SECRET_KEY=${{ secrets.JWT_SECRET_KEY }}" >> .env
+          echo "ADMIN_EMAIL=${{ secrets.ADMIN_EMAIL }}" >> .env
+          echo "ADMIN_EMAIL_PASSWORD=${{ secrets.ADMIN_EMAIL_PASSWORD }}" >> .env
           echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
           echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
           echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
