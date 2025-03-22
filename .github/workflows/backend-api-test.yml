@@ -68,5 +68,11 @@ jobs:
       - name: Run WebSocket API test
         run: python ./tools/websocket_client/websocket_client.py
 
+      - name: Show logs from backend-go (before test)
+        if: always()
+        run: |
+          echo "===== BACKEND-GO LOGS (Before Test) ====="
+          docker compose logs backend-go
+
       - name: Stop app
         run: docker compose down -v
