@@ -51,6 +51,13 @@ func Register(reqContext *gin.Context) {
 		return
 	}
 
+	isVerified, err := IsEmailVerified(registerInput.Email)
+	if !isVerified && err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Email is not verified"})
+		reqContext.Error(err)
+		return
+	}
+
 	user, err := registerUser(registerInput)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create user"})

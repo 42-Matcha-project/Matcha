@@ -14,8 +14,9 @@ import (
 )
 
 type OTPEntry struct {
-	OTP       string
-	CreatedAt time.Time
+	OTP        string
+	IsVerified bool
+	CreatedAt  time.Time
 }
 
 var (
@@ -36,8 +37,9 @@ func saveOTP(Email string, OTP string) error {
 	EmailOTPPairsMutex.Lock()
 	defer EmailOTPPairsMutex.Unlock()
 	EmailOTPPairs[Email] = &OTPEntry{
-		OTP:       OTP,
-		CreatedAt: time.Now().In(location),
+		OTP:        OTP,
+		IsVerified: false,
+		CreatedAt:  time.Now().In(location),
 	}
 	if os.Getenv("ENVIRONMENT") == "development" {
 		fmt.Println("Saving OTP Pair: ", Email)
@@ -152,7 +154,10 @@ func verifyOTP(Email string, OTP string) error {
 		return errors.New(fmt.Sprintf("The OTP has already expired."))
 	}
 
-	delete(EmailOTPPairs, Email)
+	if aOTPEntry.IsVerified {
+		return errors.New(fmt.Sprintf("OTP %s is already verified.", aOTPEntry.OTP))
+	}
+	aOTPEntry.IsVerified = true
 	return nil
 }
 
@@ -184,4 +189,20 @@ func VerifyOTPHandler(reqContext *gin.Context) {
 	}
 
 	reqContext.Status(http.StatusOK)
+}
+
+func IsEmailVerified(email string) (bool, error) {
+	/*
+		引数のemailがメール認証を完了しているかどうか
+	*/
+	aOTPEntry, isExist := EmailOTPPairs[email]
+	if !isExist {
+		return false, errors.New(fmt.Sprintf("Email %s does not exist", email))
+	}
+
+	if !aOTPEntry.IsVerified {
+		return false, errors.New(fmt.Sprintf("OTP %s is not verified", aOTPEntry.OTP))
+	}
+
+	return true, nil
 }
