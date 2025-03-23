@@ -163,6 +163,23 @@ export default function ThemeSelectionPage() {
       };
       console.log("Request body:", JSON.stringify(requestBody));
 
+      // 選択されたテーマに基づいてルームページに遷移
+      if (selectedTheme === "spring") {
+        router.push(`/room/spring`);
+        return;
+      } else if (selectedTheme === "summer") {
+        router.push(`/room/summer`);
+        return;
+      } else if (selectedTheme === "autumn") {
+        router.push(`/room/autumn`);
+        return;
+      } else if (selectedTheme === "winter") {
+        router.push(`/room/winter`);
+        return;
+      }
+
+      // 以下のAPI部分は必要に応じて有効化
+      /*
       // トークンの確認
       const token = localStorage.getItem("token");
       if (!token) {
@@ -215,6 +232,10 @@ export default function ThemeSelectionPage() {
 
       // 成功したらダッシュボードへリダイレクト（ルームコードをクエリパラメータで渡す）
       router.push(`/host/dashboard?roomCode=${data.roomCode || ""}`);
+      */
+
+      // シーズン以外のテーマの場合はデフォルトルームに遷移
+      router.push(`/room?theme=${selectedTheme}`);
     } catch (error) {
       console.error("テーマの設定に失敗しました", error);
       setIsConfirming(false);
