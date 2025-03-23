@@ -30,7 +30,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
@@ -253,23 +252,18 @@ export default function StudyRoomPage() {
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [timerMinutes, setTimerMinutes] = useState(25);
   const [timerSeconds, setTimerSeconds] = useState(0);
-  const [focusScore, setFocusScore] = useState(85);
-  const [studyTime, setStudyTime] = useState(0);
-  const [breakCount, setBreakCount] = useState(0);
+  const [timerEndTime, setTimerEndTime] = useState<number | null>(null);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
-  const [roomCode, setRoomCode] = useState("STUDY0000"); // 一時的な初期値
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [roomCode, setRoomCode] = useState(""); // バックエンドから取得するため空文字に変更
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
 
   // クライアントサイドでのみ実行される初期化
   useEffect(() => {
     // 正しい現在時刻を設定
     setCurrentTime(new Date());
-
-    // ランダムなルームコードを設定
-    setRoomCode("STUDY" + Math.floor(1000 + Math.random() * 9000));
 
     // メッセージの時間を更新
     setMessages((prevMessages) =>
@@ -305,11 +299,6 @@ export default function StudyRoomPage() {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentTime(new Date());
-
-      // 学習時間を更新（タイマーが動いている場合）
-      if (isTimerRunning) {
-        setStudyTime((prev) => prev + 1);
-      }
     }, 1000);
 
     return () => clearInterval(timer);
@@ -317,44 +306,55 @@ export default function StudyRoomPage() {
 
   // タイマーの更新
   useEffect(() => {
-    if (isTimerRunning) {
-      timerRef.current = setInterval(() => {
-        setTimerSeconds((prev) => {
-          if (prev === 0) {
-            if (timerMinutes === 0) {
-              // タイマー終了
-              setIsTimerRunning(false);
-              clearInterval(timerRef.current as NodeJS.Timeout);
+    let intervalId: NodeJS.Timeout | null = null;
 
-              // 通知を表示
-              setNotificationMessage(
-                "タイマーが終了しました！休憩しましょう。",
-              );
-              setShowNotification(true);
+    if (isTimerRunning && timerEndTime) {
+      // 最初の更新をすぐに実行して表示を同期
+      const updateTimerDisplay = () => {
+        const now = Date.now();
+        const remainingTime = Math.max(0, timerEndTime - now);
 
-              // 休憩カウントを増やす
-              setBreakCount((prev) => prev + 1);
+        if (remainingTime <= 0) {
+          // タイマー終了
+          clearInterval(intervalId!);
+          setIsTimerRunning(false);
+          setTimerEndTime(null);
+          setTimerMinutes(25);
+          setTimerSeconds(0);
 
-              // 25分タイマーをリセット
-              setTimerMinutes(25);
-              return 0;
-            }
-            setTimerMinutes((prev) => prev - 1);
-            return 59;
-          }
-          return prev - 1;
-        });
-      }, 1000);
-    } else if (timerRef.current) {
-      clearInterval(timerRef.current);
+          // 通知を表示
+          setNotificationMessage("タイマーが終了しました！休憩しましょう。");
+          setShowNotification(true);
+        } else {
+          // 残り時間を分と秒に変換
+          const minutes = Math.floor(remainingTime / 60000);
+          const seconds = Math.floor((remainingTime % 60000) / 1000);
+
+          // 表示用の状態を更新
+          setTimerMinutes(minutes);
+          setTimerSeconds(seconds);
+        }
+      };
+
+      // 最初の更新を即時実行
+      updateTimerDisplay();
+
+      // 正確に1秒ごとに更新するためのインターバル設定
+      intervalId = setInterval(updateTimerDisplay, 1000);
+
+      return () => {
+        if (intervalId) {
+          clearInterval(intervalId);
+        }
+      };
     }
 
     return () => {
-      if (timerRef.current) {
-        clearInterval(timerRef.current);
+      if (intervalId) {
+        clearInterval(intervalId);
       }
     };
-  }, [isTimerRunning, timerMinutes]);
+  }, [isTimerRunning, timerEndTime]);
 
   // メッセージが追加されたらスクロールを一番下に
   useEffect(() => {
@@ -416,18 +416,54 @@ export default function StudyRoomPage() {
 
   // タイマー開始/停止
   const toggleTimer = () => {
-    setIsTimerRunning(!isTimerRunning);
-
     if (!isTimerRunning) {
-      // タイマー開始時の通知
+      // タイマー開始時、終了時刻を設定
+      const totalTimeInMs = (timerMinutes * 60 + timerSeconds) * 1000;
+
+      // 秒の変化を均等にするため、現在時刻の秒部分を考慮して設定
+      // 現在のミリ秒をリセットして秒の境界に合わせる
+      const now = new Date();
+      const adjustedNow = now.getTime() - now.getMilliseconds();
+
+      setTimerEndTime(adjustedNow + totalTimeInMs);
+
+      // 通知を表示
       setNotificationMessage("ポモドーロタイマーを開始しました！");
       setShowNotification(true);
+    } else {
+      // タイマー停止時、残り時間を保持（一時停止の効果）
+      if (timerEndTime) {
+        const remainingTime = timerEndTime - Date.now();
+        if (remainingTime > 0) {
+          // 分と秒を更新（現在の残り時間を保存）
+          const minutes = Math.floor(remainingTime / 60000);
+          const seconds = Math.floor((remainingTime % 60000) / 1000);
+          setTimerMinutes(minutes);
+          setTimerSeconds(seconds);
+        }
+        setTimerEndTime(null);
+      }
     }
+    setIsTimerRunning(!isTimerRunning);
+  };
+
+  // 5分休憩ボタンのクリックハンドラー
+  const setBreakTimer = () => {
+    // タイマーが動いている場合は停止
+    if (isTimerRunning) {
+      setIsTimerRunning(false);
+      setTimerEndTime(null);
+    }
+    // 正確に5分に設定
+    setTimerMinutes(5);
+    setTimerSeconds(0);
   };
 
   // タイマーリセット
   const resetTimer = () => {
     setIsTimerRunning(false);
+    setTimerEndTime(null);
+    // 正確に25分に設定
     setTimerMinutes(25);
     setTimerSeconds(0);
   };
@@ -447,12 +483,6 @@ export default function StudyRoomPage() {
       // エラーが発生した場合は空文字列を返す
       return "";
     }
-  };
-
-  // 集中度の変更関数（将来的に使用する可能性あり）
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const updateFocusScore = (newScore: number) => {
-    setFocusScore(newScore);
   };
 
   return (
@@ -648,28 +678,6 @@ export default function StudyRoomPage() {
                           <Timer className="h-5 w-5 mr-2" />
                           ポモドーロタイマー
                         </h2>
-
-                        <div className="flex items-center space-x-2">
-                          <Badge
-                            className={cn(
-                              isDarkMode
-                                ? "bg-slate-800 text-slate-200"
-                                : "bg-slate-100 text-slate-800",
-                            )}
-                          >
-                            {breakCount}回の休憩
-                          </Badge>
-
-                          <Badge
-                            className={cn(
-                              isDarkMode
-                                ? "bg-slate-800 text-slate-200"
-                                : "bg-slate-100 text-slate-800",
-                            )}
-                          >
-                            合計: {formatStudyTime(studyTime)}
-                          </Badge>
-                        </div>
                       </div>
 
                       <div className="flex flex-col items-center justify-center py-4">
@@ -725,47 +733,12 @@ export default function StudyRoomPage() {
                                 ? `border-slate-700 ${currentTheme.colors.textDark}`
                                 : `border-slate-300 ${currentTheme.colors.text}`,
                             )}
-                            onClick={() => {
-                              setTimerMinutes(5);
-                              setTimerSeconds(0);
-                            }}
+                            onClick={setBreakTimer}
                           >
                             <Coffee className="h-5 w-5 mr-2" />
                             休憩 (5分)
                           </Button>
                         </div>
-                      </div>
-
-                      <div className="mt-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <span
-                            className={cn(
-                              "text-sm",
-                              isDarkMode ? "text-slate-400" : "text-slate-600",
-                            )}
-                          >
-                            集中度スコア
-                          </span>
-                          <span
-                            className={cn(
-                              "font-medium",
-                              isDarkMode
-                                ? currentTheme.colors.textDark
-                                : currentTheme.colors.text,
-                            )}
-                          >
-                            {focusScore}%
-                          </span>
-                        </div>
-                        <Progress
-                          value={focusScore}
-                          className={cn(
-                            "h-2",
-                            isDarkMode
-                              ? "bg-slate-800 [&>div]:bg-blue-500"
-                              : "bg-slate-200 [&>div]:bg-blue-500",
-                          )}
-                        />
                       </div>
                     </div>
                   </div>
@@ -1055,7 +1028,7 @@ export default function StudyRoomPage() {
                                       : "text-slate-600"
                                   }
                                 >
-                                  集中度
+                                  学習時間:
                                 </span>
                                 <span
                                   className={
@@ -1064,29 +1037,9 @@ export default function StudyRoomPage() {
                                       : "text-slate-700"
                                   }
                                 >
-                                  {user.focusScore}%
+                                  {formatStudyTime(user.studyTime)}
                                 </span>
                               </div>
-                              <Progress
-                                value={user.focusScore}
-                                className={cn(
-                                  "h-1.5",
-                                  isDarkMode
-                                    ? "bg-slate-800 [&>div]:bg-blue-500"
-                                    : "bg-slate-200 [&>div]:bg-blue-500",
-                                )}
-                              />
-
-                              <p
-                                className={cn(
-                                  "text-xs mt-1",
-                                  isDarkMode
-                                    ? "text-slate-400"
-                                    : "text-slate-600",
-                                )}
-                              >
-                                学習時間: {formatStudyTime(user.studyTime)}
-                              </p>
                             </div>
                           </div>
                         </div>
