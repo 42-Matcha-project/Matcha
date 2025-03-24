@@ -17,5 +17,5 @@ func GetProfileHandler(reqContext *gin.Context) {
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, user.PrepareOutput())
+	reqContext.JSON(http.StatusOK, gin.H{"user": user.PrepareOutput()})
 }
