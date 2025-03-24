@@ -38,3 +38,4 @@ Table t_work_logs {
   start_at timestamp [not null]
   minutes bigint [not null]
 }
+

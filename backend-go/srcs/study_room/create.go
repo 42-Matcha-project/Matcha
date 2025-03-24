@@ -9,8 +9,10 @@ import (
 	"sync"
 )
 
-var StudyRoomsMutex sync.Mutex
-var StudyRooms = make(map[string]*StudyRoom)
+var (
+	StudyRoomsMutex sync.Mutex
+	StudyRooms      = make(map[string]*StudyRoom)
+)
 
 type StudyRoom struct {
 	StudyRoomName string
