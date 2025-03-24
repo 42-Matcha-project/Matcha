@@ -6,6 +6,7 @@ import (
 	"srcs/auth"
 	"srcs/middlewares"
 	"srcs/models"
+	"srcs/profile"
 	"srcs/reports"
 	"srcs/study_room"
 	"srcs/utils"
@@ -61,6 +62,11 @@ func main() {
 	authRoutes.POST("/otp/verify", auth.VerifyOTPHandler)
 	authRoutes.POST("/register", auth.Register)
 	authRoutes.POST("/login", auth.Login)
+
+	profileRoutes := router.Group("/profile")
+	profileRoutes.Use(middlewares.JWTValidationMiddleware())
+	profileRoutes.GET("/get", profile.GetProfileHandler)
+	profileRoutes.PUT("/update", profile.UpdateProfileHandler)
 
 	studyRoomRoutes := router.Group("/study-room")
 	studyRoomRoutes.Use(middlewares.JWTValidationMiddleware())
