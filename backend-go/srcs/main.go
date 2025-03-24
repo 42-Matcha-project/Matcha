@@ -6,6 +6,7 @@ import (
 	"srcs/auth"
 	"srcs/middlewares"
 	"srcs/models"
+	"srcs/reports"
 	"srcs/study_room"
 	"srcs/utils"
 	"srcs/works"
@@ -73,6 +74,10 @@ func main() {
 	worksRoutes.GET("/get", works.GetWorksHandler)
 	worksRoutes.POST("/log", works.LogWorkHandler)
 	worksRoutes.GET("/log", works.GetWorkLogsHandler)
+
+	reportsRoutes := router.Group("/reports")
+	reportsRoutes.Use(middlewares.JWTValidationMiddleware())
+	reportsRoutes.POST("/submit", reports.SubmitReportsHandler)
 
 	router.Run(":8080")
 }

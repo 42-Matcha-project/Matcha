@@ -1,15 +1,14 @@
 {
   "info": {
-    "_postman_id": "60afcf10-d741-42cf-aad9-abb9ddd9b37c",
-    "name": "ユーザー",
-    "description": "設定について扱うグループ",
+    "_postman_id": "ce47b9a2-44c7-4a30-941b-75cce7805ed7",
+    "name": "CI用",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "40190595",
-    "_collection_link": "https://matcha-0044.postman.co/workspace/Matcha%25E3%2583%25AF%25E3%2583%25BC%25E3%2582%25AF%25E3%2582%25B9%25E3%2583%259A%25E3%2583%25BC%25E3%2582%25B9~92830edc-e8ea-4a8f-8413-95d98177a966/collection/40190595-60afcf10-d741-42cf-aad9-abb9ddd9b37c?action=share&source=collection_link&creator=40190595"
+    "_collection_link": "https://matcha-0044.postman.co/workspace/Matcha%25E3%2583%25AF%25E3%2583%25BC%25E3%2582%25AF%25E3%2582%25B9%25E3%2583%259A%25E3%2583%25BC%25E3%2582%25B9~92830edc-e8ea-4a8f-8413-95d98177a966/collection/40190595-ce47b9a2-44c7-4a30-941b-75cce7805ed7?action=share&source=collection_link&creator=40190595"
   },
   "item": [
     {
-      "name": "ユーザー登録",
+      "name": "ユーザー登録 Copy",
       "event": [
         {
           "listen": "test",
@@ -63,7 +62,7 @@
       "response": []
     },
     {
-      "name": "ログイン",
+      "name": "ログイン Copy",
       "event": [
         {
           "listen": "test",
@@ -123,7 +122,7 @@
       "response": []
     },
     {
-      "name": "自習室作成",
+      "name": "自習室作成 Copy",
       "event": [
         {
           "listen": "test",
@@ -180,7 +179,7 @@
       "response": []
     },
     {
-      "name": "自習室削除",
+      "name": "自習室削除 Copy",
       "event": [
         {
           "listen": "test",
@@ -221,7 +220,7 @@
       "response": []
     },
     {
-      "name": "作業追加",
+      "name": "作業追加 Copy",
       "event": [
         {
           "listen": "test",
@@ -276,7 +275,7 @@
       "response": []
     },
     {
-      "name": "作業一覧取得",
+      "name": "作業一覧取得 Copy",
       "event": [
         {
           "listen": "test",
@@ -322,7 +321,7 @@
       "response": []
     },
     {
-      "name": "作業ログ記録",
+      "name": "作業ログ記録 Copy",
       "event": [
         {
           "listen": "test",
@@ -377,7 +376,7 @@
       "response": []
     },
     {
-      "name": "作業ログ取得",
+      "name": "作業ログ取得 Copy",
       "event": [
         {
           "listen": "test",

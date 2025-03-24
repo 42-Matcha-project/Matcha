@@ -104,7 +104,6 @@ func ExtractUserIdFromRequest(reqContext *gin.Context) (uint, error) {
 		if !isTypeAssertionOk {
 			return 0, errors.New("Type assertion for user_id failed")
 		}
-		fmt.Println(userId)
 		return uint(userId), nil
 	}
 	return 0, errors.New("Invalid token")

@@ -2,6 +2,10 @@ package mail_contents
 
 import "fmt"
 
+func CreateOTPSubject() string {
+	return "[Matcha]登録を完了させてください"
+}
+
 func CreateOTPMailHTML(OTP string) string {
 	return fmt.Sprintf(`
 		<h3>--- もう少しで登録は終了します！ ---</h3>
