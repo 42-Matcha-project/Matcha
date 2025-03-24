@@ -8,6 +8,112 @@
   },
   "item": [
     {
+      "name": "OTP生成(開発環境)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが 201 であることを確認",
+              "pm.test(\"ステータスコードが 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "// OTP の存在を確認",
+              "pm.test(\"レスポンスに OTP が含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"OTP\");",
+              "",
+              "    // OTPの値を環境変数に保存",
+              "    pm.environment.set(\"otp\", jsonData.OTP);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"test@test.com\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/auth/otp/generate",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "auth",
+            "otp",
+            "generate"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "OTP認証(開発環境)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "setTimeout(function() {",
+              "    // ステータスコードが 200 であることを確認",
+              "    pm.test(\"ステータスコードが 200\", function () {",
+              "        pm.response.to.have.status(200);",
+              "    });",
+              "}, 10000); // 10000ms = 10秒の遅延",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"email\": \"test@test.com\",\n    \"otp\": \"{{otp}}\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/auth/otp/verify",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "auth",
+            "otp",
+            "verify"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "ユーザー登録 Copy",
       "event": [
         {
