@@ -47,7 +47,7 @@ func JoinStudyRoomHandler(reqContext *gin.Context) {
 	roomCode := reqContext.Param("roomCode")
 	StudyRoomsMutex.Lock()
 	if _, isExist := StudyRooms[roomCode]; !isExist {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "room code not exist"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "room code not exist"})
 		return
 	}
 	room := StudyRooms[roomCode]
@@ -56,7 +56,7 @@ func JoinStudyRoomHandler(reqContext *gin.Context) {
 	// JWTトークンからuserIdを抽出し、userをDBから取り出す。
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
@@ -64,7 +64,7 @@ func JoinStudyRoomHandler(reqContext *gin.Context) {
 	// Websocketへupgradeする。
 	conn, err := upgrader.Upgrade(reqContext.Writer, reqContext.Request, nil)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to upgrade connection"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to upgrade connection"})
 		reqContext.Error(err)
 		return
 	}

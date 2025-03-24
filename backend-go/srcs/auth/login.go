@@ -36,24 +36,24 @@ func Login(reqContext *gin.Context) {
 	var loginInput LoginInput
 
 	if err := reqContext.ShouldBindJSON(&loginInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
 		reqContext.Error(err)
 		return
 	}
 	if err := loginInput.validate(); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid input"})
 		reqContext.Error(err)
 		return
 	}
 
 	jwtTokenString, err := models.FetchUserAndGenerateJWTTokenString(loginInput.Username, loginInput.Email, loginInput.Password)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to generate JWT"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to generate JWT"})
 		reqContext.Error(err)
 		return
 	}
 
 	reqContext.JSON(http.StatusOK, gin.H{
-		"token": jwtTokenString,
+		"Token": jwtTokenString,
 	})
 }

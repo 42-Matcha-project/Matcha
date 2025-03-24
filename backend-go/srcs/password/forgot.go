@@ -78,32 +78,32 @@ func ForgotPasswordHandler(reqContext *gin.Context) {
 	*/
 	OTP, err := utils.GenerateRandomCode(6)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate OTP"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to generate OTP"})
 		reqContext.Error(err)
 		return
 	}
 
 	var forgotPasswordInput ForgotPasswordInput
 	if err = reqContext.ShouldBind(&forgotPasswordInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
 		reqContext.Error(err)
 		return
 	}
 
 	if err = mail.SendMail(forgotPasswordInput.Email, mail_contents.CreatePasswordForgotSubject(), mail_contents.CreatePasswordForgotMailText(OTP), mail_contents.CreatePasswordForgotMailHTML(OTP)); err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to send email"})
 		reqContext.Error(err)
 		return
 	}
 
 	if err = saveOTP(OTP, forgotPasswordInput.Email); err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save OTP"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to save OTP"})
 		reqContext.Error(err)
 		return
 	}
 
 	if err = cleanupExpiredOTPs(); err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cleanup expired OTPs"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to cleanup expired OTPs"})
 		reqContext.Error(err)
 		return
 	}

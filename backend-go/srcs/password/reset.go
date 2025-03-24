@@ -76,19 +76,19 @@ func ResetPasswordHandler(reqContext *gin.Context) {
 	*/
 	var resetPasswordInput ResetPasswordInput
 	if err := reqContext.ShouldBind(&resetPasswordInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
 		reqContext.Error(err)
 		return
 	}
 
 	if err := verifyOTP(resetPasswordInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "OTP does not match"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "OTP does not match"})
 		reqContext.Error(err)
 		return
 	}
 
 	if err := resetPassword(resetPasswordInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to reset password."})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to reset password."})
 		reqContext.Error(err)
 		return
 	}

@@ -54,7 +54,7 @@ func main() {
 
 	router.GET("/health", func(reqContext *gin.Context) {
 		reqContext.JSON(http.StatusOK, gin.H{
-			"status": "OK",
+			"Status": "OK",
 		})
 	})
 

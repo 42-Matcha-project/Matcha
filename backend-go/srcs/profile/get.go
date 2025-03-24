@@ -12,10 +12,10 @@ func GetProfileHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"user": user.PrepareOutput()})
+	reqContext.JSON(http.StatusOK, gin.H{"User": user.PrepareOutput()})
 }

@@ -51,24 +51,24 @@ func UpdateProfileHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "User not authenticated"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not authenticated"})
 		reqContext.Error(err)
 		return
 	}
 
 	var updateProfileInput UpdateProfileInput
 	if err := reqContext.BindJSON(&updateProfileInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
 		reqContext.Error(err)
 		return
 	}
 
 	err = UpdateProfile(user, updateProfileInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to update profile"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to update profile"})
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"user": user.PrepareOutput()})
+	reqContext.JSON(http.StatusOK, gin.H{"User": user.PrepareOutput()})
 }

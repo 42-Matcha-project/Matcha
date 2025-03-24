@@ -83,8 +83,8 @@ type SubmitReportInput struct {
 	/*
 		運営への報告リクエスト時に抽出するJSONデータの構造体
 	*/
-	Type string `json:"type" binding:"required"`
-	Text string `json:"text" binding:"required"`
+	Type string `json:"Type" binding:"required"`
+	Text string `json:"Text" binding:"required"`
 }
 
 func SubmitReportsHandler(reqContext *gin.Context) {
@@ -93,28 +93,28 @@ func SubmitReportsHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
 
 	var submitReportInput SubmitReportInput
 	if err := reqContext.ShouldBindJSON(&submitReportInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
 		reqContext.Error(err)
 		return
 	}
 
 	err = sendReportEmailToAdmin(*user, submitReportInput)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email to admin"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to send email to admin"})
 		reqContext.Error(err)
 		return
 	}
 
 	err = sendReportEmailToUser(*user, submitReportInput)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to send email to user"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to send email to user"})
 		reqContext.Error(err)
 		return
 	}

@@ -108,7 +108,7 @@ func GetUserInfo(reqContext *gin.Context) {
 	*/
 	userId, err := token.ExtractUserIdFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusUnauthorized, gin.H{"error": "Failed to get user id from token"})
+		reqContext.JSON(http.StatusUnauthorized, gin.H{"Error": "Failed to get user id from token"})
 		reqContext.Error(err)
 		return
 	}
@@ -116,12 +116,12 @@ func GetUserInfo(reqContext *gin.Context) {
 	user := &TUser{}
 	err = DB.First(&user, userId).Error
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
 
 	reqContext.JSON(http.StatusOK, gin.H{
-		"user": user.PrepareOutput(),
+		"User": user.PrepareOutput(),
 	})
 }

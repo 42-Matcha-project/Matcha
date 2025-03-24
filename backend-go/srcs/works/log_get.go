@@ -26,17 +26,17 @@ func GetWorkLogsHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
 
 	workLogs, err := getWorkLogs(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to get work logs"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to get work logs"})
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"workLogs": workLogs})
+	reqContext.JSON(http.StatusOK, gin.H{"WorkLogs": workLogs})
 }
