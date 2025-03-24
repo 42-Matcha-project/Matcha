@@ -6,6 +6,7 @@ import (
 	"srcs/auth"
 	"srcs/middlewares"
 	"srcs/models"
+	"srcs/password"
 	"srcs/profile"
 	"srcs/reports"
 	"srcs/study_room"
@@ -67,6 +68,10 @@ func main() {
 	profileRoutes.Use(middlewares.JWTValidationMiddleware())
 	profileRoutes.GET("/get", profile.GetProfileHandler)
 	profileRoutes.PUT("/update", profile.UpdateProfileHandler)
+
+	passwordRoutes := router.Group("password")
+	passwordRoutes.POST("/forgot", password.ForgotPasswordHandler)
+	passwordRoutes.PUT("/reset", password.ResetPasswordHandler)
 
 	studyRoomRoutes := router.Group("/study-room")
 	studyRoomRoutes.Use(middlewares.JWTValidationMiddleware())
