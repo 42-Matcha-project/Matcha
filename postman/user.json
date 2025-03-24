@@ -228,6 +228,107 @@
       "response": []
     },
     {
+      "name": "プロフィール更新 Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにuserフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('user');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"DisplayName\": \"UPDATEMAN\",\n    \"IconImageURL\": \"update_url\",\n    \"Introduction\": \"こんにちは\",\n    \"TownName\": \"マサラタウン\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/profile/update",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "profile",
+            "update"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "プロフィール取得 Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにuserフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('user');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/profile/get",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "profile",
+            "get"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "自習室作成 Copy",
       "event": [
         {
@@ -522,6 +623,108 @@
           "path": [
             "works",
             "log"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "パスワード忘れ(開発環境)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが 201 であることを確認",
+              "pm.test(\"ステータスコードが 201\", function () {",
+              "    pm.response.to.have.status(201);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "// OTP の存在を確認",
+              "pm.test(\"レスポンスに OTP が含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"OTP\");",
+              "",
+              "    // OTPの値を環境変数に保存",
+              "    pm.environment.set(\"passwordOTP\", jsonData.OTP);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"Email\": \"test@test.com\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/password/forgot",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "password",
+            "forgot"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "パスワードリセット(開発環境)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが 200 であることを確認",
+              "pm.test(\"ステータスコードが 200\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"Email\": \"test@test.com\",\n    \"OTP\": \"{{passwordOTP}}\",\n    \"NewPassword\": \"NewPassword\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/password/reset",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "password",
+            "reset"
           ]
         }
       },
