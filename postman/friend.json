@@ -280,6 +280,102 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "フレンド取得 Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにFriendsフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('Friends');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/friends/get",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "friends",
+            "get"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "フレンド削除 Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"FriendIDToDelete\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/friends/delete",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "friends",
+            "delete"
+          ]
+        }
+      },
+      "response": []
     }
   ]
 }
