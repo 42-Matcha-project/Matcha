@@ -195,6 +195,10 @@ func IsEmailVerified(email string) (bool, error) {
 	/*
 		引数のemailがメール認証を完了しているかどうか
 	*/
+	if os.Getenv("ENVIRONMENT") == "development" {
+		return true, nil
+	}
+
 	aOTPEntry, isExist := EmailOTPPairs[email]
 	if !isExist {
 		return false, errors.New(fmt.Sprintf("Email %s does not exist", email))
