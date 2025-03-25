@@ -82,6 +82,13 @@ func (user *TUser) PrepareOutput() *TUser {
 	return user
 }
 
+func PrepareOutput(users []*TUser) []*TUser {
+	for _, user := range users {
+		user.PrepareOutput()
+	}
+	return users
+}
+
 func FetchUserAndGenerateJWTTokenString(username string, email string, password string) (string, error) {
 	/*
 		JWTトークンを生成する関数。

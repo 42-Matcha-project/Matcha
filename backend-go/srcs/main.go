@@ -94,6 +94,8 @@ func main() {
 	friendsRoutes := router.Group("/friends")
 	friendsRoutes.Use(middlewares.JWTValidationMiddleware())
 	friendsRoutes.POST("/request/send", friends.SendFriendRequestHandler)
+	friendsRoutes.DELETE("/delete", friends.DeleteFriendshipHandler)
+	friendsRoutes.GET("/get", friends.GetFriendsHandler)
 
 	router.Run(":8080")
 }
