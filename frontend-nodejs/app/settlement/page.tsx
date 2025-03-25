@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import {
   Clock,
   Home,
@@ -30,7 +31,8 @@ const TILE_SIZE = 80;
 const TILE_HEIGHT = TILE_SIZE / 2;
 
 export default function SettlementPage() {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  const router = useRouter();
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [settlementState] = useState<SettlementState>({
     level: 1,
@@ -39,9 +41,18 @@ export default function SettlementPage() {
     username: "開拓者",
   });
   const [isMobile, setIsMobile] = useState(false);
+  const [isMounted, setIsMounted] = useState(false);
+
+  // コンポーネントがマウントされたらフラグをセット
+  useEffect(() => {
+    setIsMounted(true);
+    setCurrentTime(new Date());
+  }, []);
 
   // モバイル検出
   useEffect(() => {
+    if (typeof window === "undefined") return;
+
     const checkIsMobile = () => {
       setIsMobile(window.innerWidth < 768);
     };
@@ -58,12 +69,29 @@ export default function SettlementPage() {
 
   // 時計の更新
   useEffect(() => {
+    if (!isMounted) return;
+
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [isMounted]);
+
+  // 時間表示のためのレンダリング用関数
+  const renderTime = (date: Date | null): string => {
+    if (!date || !isMounted) return "";
+
+    try {
+      return date.toLocaleTimeString("ja-JP", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false, // 24時間形式を強制
+      });
+    } catch {
+      return "";
+    }
+  };
 
   // タイルの表示位置を計算 (アイソメトリックビュー)
   const getTilePosition = (x: number, y: number) => {
@@ -92,11 +120,8 @@ export default function SettlementPage() {
         <div className="flex items-center space-x-4">
           <div className="hidden md:flex items-center">
             <Clock className="h-4 w-4 mr-1" />
-            <span className="text-sm">
-              {currentTime.toLocaleTimeString([], {
-                hour: "2-digit",
-                minute: "2-digit",
-              })}
+            <span className="text-sm" suppressHydrationWarning>
+              {renderTime(currentTime)}
             </span>
           </div>
 
@@ -112,29 +137,30 @@ export default function SettlementPage() {
             </span>
           </div>
 
-          {isMobile ? (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="text-amber-50 hover:bg-amber-700"
-              onClick={() => setShowMobileMenu(!showMobileMenu)}
-            >
-              {showMobileMenu ? (
-                <X className="h-5 w-5" />
-              ) : (
-                <Menu className="h-5 w-5" />
-              )}
-            </Button>
-          ) : (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-amber-50 hover:bg-amber-700"
-            >
-              <User className="h-4 w-4 mr-2" />
-              {settlementState.username}
-            </Button>
-          )}
+          {isMounted &&
+            (isMobile ? (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="text-amber-50 hover:bg-amber-700"
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+              >
+                {showMobileMenu ? (
+                  <X className="h-5 w-5" />
+                ) : (
+                  <Menu className="h-5 w-5" />
+                )}
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-amber-50 hover:bg-amber-700"
+              >
+                <User className="h-4 w-4 mr-2" />
+                {settlementState.username}
+              </Button>
+            ))}
         </div>
       </header>
 
@@ -144,11 +170,8 @@ export default function SettlementPage() {
           <div className="space-y-3">
             <div className="flex items-center">
               <Clock className="h-4 w-4 mr-2" />
-              <span className="text-sm">
-                {currentTime.toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+              <span className="text-sm" suppressHydrationWarning>
+                {renderTime(currentTime)}
               </span>
             </div>
             <div className="flex items-center">
@@ -177,6 +200,75 @@ export default function SettlementPage() {
           </div>
         </div>
       )}
+
+      {/* 中央のルームボタン */}
+      <div className="absolute top-32 left-0 right-0 z-30 flex justify-center space-x-8">
+        <div
+          className="w-56 h-16 bg-gradient-to-b from-amber-50 to-amber-100 backdrop-blur-sm border border-amber-200 rounded-lg shadow-md flex items-center justify-center cursor-pointer hover:shadow-lg hover:scale-105 transition-all duration-300 relative overflow-hidden group"
+          onClick={() => router.push("/host/building-selection")}
+          style={{
+            boxShadow:
+              "0 4px 6px rgba(162, 107, 37, 0.1), 0 1px 3px rgba(162, 107, 37, 0.08)",
+          }}
+        >
+          {/* ツールチップ */}
+          <div className="absolute -top-9 opacity-0 group-hover:opacity-100 bg-amber-900 text-white text-xs py-1 px-2 rounded-md transition-all duration-300 pointer-events-none whitespace-nowrap">
+            部屋を作ってホストになる
+          </div>
+          {/* 矢印 */}
+          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 opacity-0 group-hover:opacity-100 transition-all duration-300 border-l-4 border-r-4 border-t-4 border-transparent border-t-amber-900 pointer-events-none"></div>
+
+          {/* 装飾的な角の要素 */}
+          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-amber-400 group-hover:border-amber-600 transition-colors duration-300"></div>
+          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-amber-400 group-hover:border-amber-600 transition-colors duration-300"></div>
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-amber-400 group-hover:border-amber-600 transition-colors duration-300"></div>
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-amber-400 group-hover:border-amber-600 transition-colors duration-300"></div>
+
+          {/* ホバー時の背景エフェクト */}
+          <div className="absolute inset-0 bg-amber-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+          {/* テキスト */}
+          <span className="text-amber-800 text-xl font-medium relative z-10 group-hover:text-amber-900 transition-colors duration-300">
+            ルームを作成
+          </span>
+
+          {/* 微妙な装飾ライン */}
+          <div className="absolute bottom-2 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent group-hover:via-amber-600/70 transition-colors duration-300"></div>
+        </div>
+
+        <div
+          className="w-56 h-16 bg-gradient-to-b from-amber-50 to-amber-100 backdrop-blur-sm border border-amber-200 rounded-lg shadow-md flex items-center justify-center cursor-pointer hover:shadow-lg hover:scale-105 transition-all duration-300 relative overflow-hidden group"
+          onClick={() => router.push("/join")}
+          style={{
+            boxShadow:
+              "0 4px 6px rgba(162, 107, 37, 0.1), 0 1px 3px rgba(162, 107, 37, 0.08)",
+          }}
+        >
+          {/* ツールチップ */}
+          <div className="absolute -top-9 opacity-0 group-hover:opacity-100 bg-amber-900 text-white text-xs py-1 px-2 rounded-md transition-all duration-300 pointer-events-none whitespace-nowrap">
+            ルームコードを入力して参加
+          </div>
+          {/* 矢印 */}
+          <div className="absolute -top-2 left-1/2 transform -translate-x-1/2 w-0 h-0 opacity-0 group-hover:opacity-100 transition-all duration-300 border-l-4 border-r-4 border-t-4 border-transparent border-t-amber-900 pointer-events-none"></div>
+
+          {/* 装飾的な角の要素 */}
+          <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-amber-400 group-hover:border-amber-600 transition-colors duration-300"></div>
+          <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-amber-400 group-hover:border-amber-600 transition-colors duration-300"></div>
+          <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-amber-400 group-hover:border-amber-600 transition-colors duration-300"></div>
+          <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-amber-400 group-hover:border-amber-600 transition-colors duration-300"></div>
+
+          {/* ホバー時の背景エフェクト */}
+          <div className="absolute inset-0 bg-amber-200/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+
+          {/* テキスト */}
+          <span className="text-amber-800 text-xl font-medium relative z-10 group-hover:text-amber-900 transition-colors duration-300">
+            ルームに参加
+          </span>
+
+          {/* 微妙な装飾ライン */}
+          <div className="absolute bottom-2 left-8 right-8 h-px bg-gradient-to-r from-transparent via-amber-400/50 to-transparent group-hover:via-amber-600/70 transition-colors duration-300"></div>
+        </div>
+      </div>
 
       {/* ステータス表示 */}
       <div className="absolute top-16 left-4 bg-amber-100/90 p-3 rounded-lg shadow-md z-40 border border-amber-200">
