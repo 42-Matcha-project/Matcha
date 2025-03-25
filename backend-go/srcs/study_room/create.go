@@ -9,8 +9,10 @@ import (
 	"sync"
 )
 
-var StudyRoomsMutex sync.Mutex
-var StudyRooms = make(map[string]*StudyRoom)
+var (
+	StudyRoomsMutex sync.Mutex
+	StudyRooms      = make(map[string]*StudyRoom)
+)
 
 type StudyRoom struct {
 	StudyRoomName string
@@ -80,21 +82,21 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
 
 	var createStudyRoomInput CreateStudyRoomInput
 	if err := reqContext.ShouldBindJSON(&createStudyRoomInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
 		reqContext.Error(err)
 		return
 	}
 
 	roomCode, err := generateRoomCode()
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"status": "Failed to generate room code"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Status": "Failed to generate room code"})
 		reqContext.Error(err)
 		return
 	}
@@ -102,5 +104,5 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 	StudyRoomsMutex.Lock()
 	StudyRooms[roomCode] = createStudyRoom(createStudyRoomInput, *user)
 	StudyRoomsMutex.Unlock()
-	reqContext.JSON(http.StatusOK, gin.H{"roomCode": roomCode})
+	reqContext.JSON(http.StatusOK, gin.H{"RoomCode": roomCode})
 }

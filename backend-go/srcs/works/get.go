@@ -22,17 +22,17 @@ func GetWorksHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
 
 	works, err := getWorks(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"works": works})
+	reqContext.JSON(http.StatusOK, gin.H{"Works": works})
 }

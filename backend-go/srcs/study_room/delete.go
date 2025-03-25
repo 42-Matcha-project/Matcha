@@ -29,7 +29,7 @@ func DeleteStudyRoomHandler(reqContext *gin.Context) {
 	*/
 	userId, err := token.ExtractUserIdFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusUnauthorized, gin.H{"status": "Failed to extract user id"})
+		reqContext.JSON(http.StatusUnauthorized, gin.H{"Error": "Failed to extract user id"})
 		reqContext.Error(err)
 		return
 	}
@@ -37,5 +37,5 @@ func DeleteStudyRoomHandler(reqContext *gin.Context) {
 	StudyRoomsMutex.Lock()
 	deleteStudyRoomByHostId(int(userId))
 	StudyRoomsMutex.Unlock()
-	reqContext.JSON(http.StatusOK, gin.H{"status": "Delete Success"})
+	reqContext.Status(http.StatusOK)
 }

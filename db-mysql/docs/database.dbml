@@ -12,8 +12,10 @@ Table t_users {
   password varchar(60)
   display_name varchar(20)
   icon_image_url varchar(255)
+  introduction varchar(200)
+  town_name varchar(30)
+  coin_count integer
   created_at timestamp
-  updated_at timestamp
 }
 
 
@@ -38,3 +40,4 @@ Table t_work_logs {
   start_at timestamp [not null]
   minutes bigint [not null]
 }
+

@@ -4,7 +4,11 @@ import (
 	"net/http"
 	"os"
 	"srcs/auth"
+	"srcs/middlewares"
 	"srcs/models"
+	"srcs/password"
+	"srcs/profile"
+	"srcs/reports"
 	"srcs/study_room"
 	"srcs/utils"
 	"srcs/works"
@@ -50,24 +54,41 @@ func main() {
 
 	router.GET("/health", func(reqContext *gin.Context) {
 		reqContext.JSON(http.StatusOK, gin.H{
-			"status": "OK",
+			"Status": "OK",
 		})
 	})
 
 	authRoutes := router.Group("/auth")
+	authRoutes.POST("/otp/generate", auth.GenerateOTPHandler)
+	authRoutes.POST("/otp/verify", auth.VerifyOTPHandler)
 	authRoutes.POST("/register", auth.Register)
 	authRoutes.POST("/login", auth.Login)
 
+	profileRoutes := router.Group("/profile")
+	profileRoutes.Use(middlewares.JWTValidationMiddleware())
+	profileRoutes.GET("/get", profile.GetProfileHandler)
+	profileRoutes.PUT("/update", profile.UpdateProfileHandler)
+
+	passwordRoutes := router.Group("password")
+	passwordRoutes.POST("/forgot", password.ForgotPasswordHandler)
+	passwordRoutes.PUT("/reset", password.ResetPasswordHandler)
+
 	studyRoomRoutes := router.Group("/study-room")
+	studyRoomRoutes.Use(middlewares.JWTValidationMiddleware())
 	studyRoomRoutes.POST("/create", study_room.CreateStudyRoomHandler)
 	studyRoomRoutes.DELETE("/delete", study_room.DeleteStudyRoomHandler)
 	studyRoomRoutes.GET("/join/:roomCode", study_room.JoinStudyRoomHandler)
 
 	worksRoutes := router.Group("/works")
+	studyRoomRoutes.Use(middlewares.JWTValidationMiddleware())
 	worksRoutes.POST("/add", works.AddWorkHandler)
 	worksRoutes.GET("/get", works.GetWorksHandler)
 	worksRoutes.POST("/log", works.LogWorkHandler)
 	worksRoutes.GET("/log", works.GetWorkLogsHandler)
+
+	reportsRoutes := router.Group("/reports")
+	reportsRoutes.Use(middlewares.JWTValidationMiddleware())
+	reportsRoutes.POST("/submit", reports.SubmitReportsHandler)
 
 	router.Run(":8080")
 }

@@ -45,7 +45,7 @@ func LogWorkHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
@@ -53,17 +53,17 @@ func LogWorkHandler(reqContext *gin.Context) {
 	var logWorkInput LogWorkInput
 	err = reqContext.ShouldBind(&logWorkInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind request"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to bind request"})
 		reqContext.Error(err)
 		return
 	}
 
 	workLog, err := logWork(logWorkInput, *user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to get work log"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to get work log"})
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"workLog": workLog})
+	reqContext.JSON(http.StatusOK, gin.H{"WorkLog": workLog})
 }
