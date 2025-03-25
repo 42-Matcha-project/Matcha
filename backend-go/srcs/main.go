@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"os"
 	"srcs/auth"
+	"srcs/friends"
 	"srcs/middlewares"
 	"srcs/models"
 	"srcs/password"
@@ -89,6 +90,10 @@ func main() {
 	reportsRoutes := router.Group("/reports")
 	reportsRoutes.Use(middlewares.JWTValidationMiddleware())
 	reportsRoutes.POST("/submit", reports.SubmitReportsHandler)
+
+	friendsRoutes := router.Group("/friends")
+	friendsRoutes.Use(middlewares.JWTValidationMiddleware())
+	friendsRoutes.POST("/request/send", friends.SendFriendRequestHandler)
 
 	router.Run(":8080")
 }
