@@ -32,7 +32,7 @@ func AddWorkHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
 		reqContext.Error(err)
 		return
 	}
@@ -40,17 +40,17 @@ func AddWorkHandler(reqContext *gin.Context) {
 	var addWorkInput AddWorkInput
 	err = reqContext.ShouldBindJSON(&addWorkInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to bind JSON"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to bind JSON"})
 		reqContext.Error(err)
 		return
 	}
 
 	work, err := addWork(addWorkInput, *user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to add work"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to add work"})
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"work": work})
+	reqContext.JSON(http.StatusOK, gin.H{"Work": work})
 }

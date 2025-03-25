@@ -77,7 +77,7 @@ type GenerateOTPInput struct {
 	/*
 		OTP生成時にリクエストから抽出するJSONデータの構造体
 	*/
-	Email string `json:"email" binding:"required"`
+	Email string `json:"Email" binding:"required"`
 }
 
 func GenerateOTPHandler(reqContext *gin.Context) {
@@ -88,35 +88,35 @@ func GenerateOTPHandler(reqContext *gin.Context) {
 	var generateOTPInput GenerateOTPInput
 	err := reqContext.ShouldBindJSON(&generateOTPInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
 		reqContext.Error(err)
 		return
 	}
 
 	OTP, err := utils.GenerateRandomCode(6)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate OTP"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to generate OTP"})
 		reqContext.Error(err)
 		return
 	}
 
 	err = mail.SendMail(generateOTPInput.Email, mail_contents.CreateOTPSubject(), mail_contents.CreateOTPMailText(OTP), mail_contents.CreateOTPMailHTML(OTP))
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to generate OTP"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to generate OTP"})
 		reqContext.Error(err)
 		return
 	}
 
 	err = saveOTP(generateOTPInput.Email, OTP)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save OTP"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to save OTP"})
 		reqContext.Error(err)
 		return
 	}
 
 	err = cleanupExpiredOTPs()
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to cleanup expired OTPs"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to cleanup expired OTPs"})
 		reqContext.Error(err)
 		return
 	}
@@ -165,8 +165,8 @@ type VerifyOTPInput struct {
 	/*
 		OTP認証時にリクエストから抽出するJSONデータの構造体
 	*/
-	Email string `json:"email" binding:"required"`
-	OTP   string `json:"otp" binding:"required"`
+	Email string `json:"Email" binding:"required"`
+	OTP   string `json:"OTP" binding:"required"`
 }
 
 func VerifyOTPHandler(reqContext *gin.Context) {
@@ -176,14 +176,14 @@ func VerifyOTPHandler(reqContext *gin.Context) {
 	var verifyOTPInput VerifyOTPInput
 	err := reqContext.ShouldBindJSON(&verifyOTPInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
 		reqContext.Error(err)
 		return
 	}
 
 	err = verifyOTP(verifyOTPInput.Email, verifyOTPInput.OTP)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to verify OTP"})
+		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to verify OTP"})
 		reqContext.Error(err)
 		return
 	}

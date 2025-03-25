@@ -46,26 +46,26 @@ func Register(reqContext *gin.Context) {
 	var registerInput RegisterInput
 
 	if err := reqContext.ShouldBindJSON(&registerInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
 		reqContext.Error(err)
 		return
 	}
 
 	isVerified, err := IsEmailVerified(registerInput.Email)
 	if !isVerified && err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Email is not verified"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Email is not verified"})
 		reqContext.Error(err)
 		return
 	}
 
 	user, err := registerUser(registerInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"error": "Failed to create user"})
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to create user"})
 		reqContext.Error(err)
 		return
 	}
 
 	reqContext.JSON(http.StatusOK, gin.H{
-		"user": user.PrepareOutput(),
+		"User": user.PrepareOutput(),
 	})
 }

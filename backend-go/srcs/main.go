@@ -6,6 +6,8 @@ import (
 	"srcs/auth"
 	"srcs/middlewares"
 	"srcs/models"
+	"srcs/password"
+	"srcs/profile"
 	"srcs/reports"
 	"srcs/study_room"
 	"srcs/utils"
@@ -52,7 +54,7 @@ func main() {
 
 	router.GET("/health", func(reqContext *gin.Context) {
 		reqContext.JSON(http.StatusOK, gin.H{
-			"status": "OK",
+			"Status": "OK",
 		})
 	})
 
@@ -61,6 +63,15 @@ func main() {
 	authRoutes.POST("/otp/verify", auth.VerifyOTPHandler)
 	authRoutes.POST("/register", auth.Register)
 	authRoutes.POST("/login", auth.Login)
+
+	profileRoutes := router.Group("/profile")
+	profileRoutes.Use(middlewares.JWTValidationMiddleware())
+	profileRoutes.GET("/get", profile.GetProfileHandler)
+	profileRoutes.PUT("/update", profile.UpdateProfileHandler)
+
+	passwordRoutes := router.Group("password")
+	passwordRoutes.POST("/forgot", password.ForgotPasswordHandler)
+	passwordRoutes.PUT("/reset", password.ResetPasswordHandler)
 
 	studyRoomRoutes := router.Group("/study-room")
 	studyRoomRoutes.Use(middlewares.JWTValidationMiddleware())
