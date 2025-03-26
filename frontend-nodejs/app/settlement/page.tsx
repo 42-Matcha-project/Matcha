@@ -4,7 +4,17 @@ import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Home, BookOpen, User, Calendar, Lock } from "lucide-react";
+import {
+  Clock,
+  Home,
+  BookOpen,
+  User,
+  Calendar,
+  Lock,
+  ShoppingBag,
+  Gift,
+  Coins,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 
 // 建物の型定義
@@ -14,6 +24,7 @@ interface Building {
   level: number;
   isUnlocked: boolean;
   requiredLevel: number;
+  price: number;
   position: {
     x: number;
     y: number;
@@ -30,18 +41,22 @@ export default function SettlementPage() {
   const [showClouds, setShowClouds] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
-  const [levelUpToast, setLevelUpToast] = useState<{
-    show: boolean;
-    message: string;
-    buildingName: string;
-    requiredLevel: number;
+  const [showPurchaseDialog, setShowPurchaseDialog] = useState<Building | null>(
+    null,
+  );
+  const [purchaseSuccess, setPurchaseSuccess] = useState<{
+    buildingId: string;
+    name: string;
   } | null>(null);
+  const [showStoreTooltip, setShowStoreTooltip] = useState(false);
+  const [showGiftTooltip, setShowGiftTooltip] = useState(false);
 
   const [userStats] = useState({
     level: 1,
     dayStreak: 3,
     totalStudyHours: 12.5,
     username: "開拓者",
+    coins: 250, // ユーザーが所持するコイン
   });
 
   // 建物データ
@@ -52,6 +67,7 @@ export default function SettlementPage() {
       level: 1,
       isUnlocked: true,
       requiredLevel: 1,
+      price: 0,
       position: { x: 50, y: 50 },
       image: "/placeholder.svg?height=120&width=120",
     },
@@ -61,6 +77,7 @@ export default function SettlementPage() {
       level: 3,
       isUnlocked: false,
       requiredLevel: 3,
+      price: 100,
       position: { x: 25, y: 25 },
       image: "/placeholder.svg?height=120&width=120",
     },
@@ -70,6 +87,7 @@ export default function SettlementPage() {
       level: 5,
       isUnlocked: false,
       requiredLevel: 5,
+      price: 250,
       position: { x: 75, y: 25 },
       image: "/placeholder.svg?height=120&width=120",
     },
@@ -79,6 +97,7 @@ export default function SettlementPage() {
       level: 10,
       isUnlocked: false,
       requiredLevel: 10,
+      price: 500,
       position: { x: 25, y: 75 },
       image: "/placeholder.svg?height=120&width=120",
     },
@@ -88,6 +107,7 @@ export default function SettlementPage() {
       level: 15,
       isUnlocked: false,
       requiredLevel: 15,
+      price: 750,
       position: { x: 75, y: 75 },
       image: "/placeholder.svg?height=120&width=120",
     },
@@ -97,6 +117,7 @@ export default function SettlementPage() {
       level: 7,
       isUnlocked: false,
       requiredLevel: 7,
+      price: 300,
       position: { x: 50, y: 85 },
       image: "/placeholder.svg?height=120&width=120",
     },
@@ -160,7 +181,7 @@ export default function SettlementPage() {
     sequence();
   }, [isMounted]);
 
-  // 建物を選択
+  // 建物を選択または購入
   const handleBuildingClick = (buildingId: string) => {
     const building = buildings.find((b) => b.id === buildingId);
     if (!building) return;
@@ -168,29 +189,35 @@ export default function SettlementPage() {
     if (building.isUnlocked) {
       setSelectedBuilding(buildingId);
     } else {
-      // レベルが足りない場合はトースト通知を表示
-      const remainingLevels = building.requiredLevel - userStats.level;
-      let message = "";
+      // 未購入の建物の場合は購入ダイアログを表示
+      setShowPurchaseDialog(building);
+    }
+  };
 
-      if (remainingLevels === 1) {
-        message = `あと1レベルで解放できます！もう少しですね！`;
-      } else if (remainingLevels <= 3) {
-        message = `あと${remainingLevels}レベルで解放できます！頑張りましょう！`;
-      } else {
-        message = `目標に向かって一歩ずつ進みましょう！`;
-      }
+  // 建物を購入する
+  const purchaseBuilding = (building: Building) => {
+    // 十分なコインがあるか確認
+    if (userStats.coins >= building.price) {
+      // 実際のシステムでは、ここでAPIリクエストを送信してユーザーデータを更新する
 
-      setLevelUpToast({
-        show: true,
-        message,
-        buildingName: building.name,
-        requiredLevel: building.requiredLevel,
-      });
+      // 疑似的な購入成功の処理
+      setPurchaseSuccess({ buildingId: building.id, name: building.name });
+      setShowPurchaseDialog(null);
 
-      // 3秒後に自動的に消える
+      // 3秒後に成功メッセージを消す
       setTimeout(() => {
-        setLevelUpToast(null);
-      }, 4000);
+        setPurchaseSuccess(null);
+      }, 3000);
+
+      // 実際のシステムではここでデータを更新
+      // この例では表示だけのデモ
+      alert(
+        `${building.name}の購入に成功しました！（実際の購入処理は実装予定です）`,
+      );
+    } else {
+      // コインが足りない場合
+      alert("コインが足りません！勉強を続けてコインを集めましょう。");
+      setShowPurchaseDialog(null);
     }
   };
 
@@ -202,6 +229,22 @@ export default function SettlementPage() {
   // ルーム参加ページへ移動
   const goToJoinRoom = () => {
     router.push("/join");
+  };
+
+  // ストアページへ移動
+  const goToStore = () => {
+    // 将来的にはストアページへのルーティングを実装
+    alert(
+      "ストアは開発中です！今後さまざまな建物やアイテムを購入できるようになります。",
+    );
+  };
+
+  // プレゼントページへ移動
+  const goToGifts = () => {
+    // 将来的にはプレゼントページへのルーティングを実装
+    alert(
+      "プレゼントボックスは開発中です！今後様々な報酬を受け取れるようになります。",
+    );
   };
 
   return (
@@ -237,6 +280,14 @@ export default function SettlementPage() {
         </div>
 
         <div className="flex items-center space-x-4">
+          {/* コイン表示 */}
+          <div className="flex items-center bg-amber-700/80 px-2 py-1 rounded-full">
+            <Coins className="h-4 w-4 mr-1 text-yellow-300" />
+            <span className="text-sm font-bold text-yellow-50">
+              {userStats.coins}
+            </span>
+          </div>
+
           <div className="flex items-center">
             <Clock className="h-4 w-4 mr-1" />
             <span className="text-sm">
@@ -262,6 +313,72 @@ export default function SettlementPage() {
           <div className="flex items-center bg-amber-700 px-2 py-1 rounded">
             <User className="h-4 w-4 mr-1" />
             <span className="text-sm">{userStats.username}</span>
+          </div>
+
+          {/* ストアボタン */}
+          <div className="relative">
+            <motion.button
+              className="relative bg-gradient-to-br from-amber-500 to-amber-600 p-2 rounded-full shadow-md flex items-center justify-center group"
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.9 }}
+              onMouseEnter={() => setShowStoreTooltip(true)}
+              onMouseLeave={() => setShowStoreTooltip(false)}
+              onClick={goToStore}
+            >
+              <ShoppingBag className="h-5 w-5 text-white" />
+              {/* 光沢エフェクト */}
+              <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            </motion.button>
+
+            <AnimatePresence>
+              {showStoreTooltip && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 5, scale: 0.9 }}
+                  className="absolute right-0 top-full mt-2 bg-amber-100 text-amber-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm"
+                >
+                  ストアで建物を購入
+                  <div className="absolute right-3 -top-1 w-2 h-2 bg-amber-100 transform rotate-45"></div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {/* プレゼントボタン */}
+          <div className="relative">
+            <motion.button
+              className="relative bg-gradient-to-br from-red-400 to-red-500 p-2 rounded-full shadow-md flex items-center justify-center group"
+              whileHover={{
+                scale: 1.1,
+                rotate: [0, -5, 5, -5, 0],
+                transition: { rotate: { repeat: 0, duration: 0.5 } },
+              }}
+              whileTap={{ scale: 0.9 }}
+              onMouseEnter={() => setShowGiftTooltip(true)}
+              onMouseLeave={() => setShowGiftTooltip(false)}
+              onClick={goToGifts}
+            >
+              <Gift className="h-5 w-5 text-white" />
+              {/* 光沢エフェクト */}
+              <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              {/* キラキラエフェクト */}
+              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-yellow-300 animate-ping"></span>
+            </motion.button>
+
+            <AnimatePresence>
+              {showGiftTooltip && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 5, scale: 0.9 }}
+                  className="absolute right-0 top-full mt-2 bg-red-100 text-red-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm"
+                >
+                  プレゼントを受け取る
+                  <div className="absolute right-3 -top-1 w-2 h-2 bg-red-100 transform rotate-45"></div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </header>
@@ -303,9 +420,9 @@ export default function SettlementPage() {
                   scale: 1.1,
                   transition: {
                     type: "spring",
-                    stiffness: 500, // 反応速度をより速く
-                    damping: 8, // 振動をより少なく
-                    duration: 0.2, // より短い時間で
+                    stiffness: 500,
+                    damping: 8,
+                    duration: 0.2,
                   },
                 }}
                 transition={{
@@ -324,7 +441,7 @@ export default function SettlementPage() {
               >
                 <div
                   className={cn(
-                    "relative flex flex-col items-center transition-all duration-200", // 少し短いトランジション
+                    "relative flex flex-col items-center transition-all duration-200",
                     "hover:drop-shadow-[0_15px_15px_rgba(217,119,6,0.25)]",
                   )}
                 >
@@ -334,7 +451,7 @@ export default function SettlementPage() {
                       "absolute -inset-2 rounded-xl transition-all duration-300 -z-10",
                       building.isUnlocked
                         ? "group-hover:bg-amber-400/10"
-                        : "group-hover:bg-gray-400/10",
+                        : "group-hover:bg-amber-400/5",
                     )}
                   ></div>
 
@@ -349,7 +466,7 @@ export default function SettlementPage() {
                         isLoaded && isMounted ? "filter-none" : "blur-sm",
                         building.isUnlocked
                           ? "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.4)]"
-                          : "hover:drop-shadow-[0_8px_24px_rgba(120,120,120,0.4)]",
+                          : "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.2)]",
                       )}
                     />
 
@@ -384,21 +501,37 @@ export default function SettlementPage() {
                       ></motion.div>
                     )}
 
-                    {/* ロックアイコン */}
+                    {/* 購入インジケーター（未購入の建物） */}
                     {!building.isUnlocked && (
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="bg-black/50 rounded-full p-2">
-                          <Lock className="h-6 w-6 text-white" />
+                        <div className="absolute top-0 right-0 bg-amber-600 text-white text-xs px-2 py-1 rounded-full shadow-md flex items-center">
+                          <Coins className="h-3 w-3 mr-1 text-yellow-300" />
+                          <span>{building.price}</span>
                         </div>
+
                         <motion.div
-                          className="absolute -bottom-6 bg-amber-800 text-white text-xs px-2 py-1 rounded-full"
+                          className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full"
+                          whileHover={{
+                            backgroundColor: "rgba(0, 0, 0, 0.2)",
+                          }}
+                        >
+                          <motion.div
+                            className="bg-amber-500 text-white p-2 rounded-full shadow-md flex items-center justify-center"
+                            whileHover={{ scale: 1.1 }}
+                          >
+                            <ShoppingBag className="h-8 w-8" />
+                          </motion.div>
+                        </motion.div>
+
+                        <motion.div
+                          className="absolute -bottom-6 bg-amber-700 text-white text-xs px-2 py-1 rounded-full"
                           whileHover={{
                             y: -2,
                             scale: 1.05,
-                            backgroundColor: "rgba(180, 83, 9, 1)", // amber-800より少し明るく
+                            backgroundColor: "rgba(180, 83, 9, 1)",
                           }}
                         >
-                          Lv.{building.requiredLevel}で解放
+                          クリックして購入
                         </motion.div>
                       </div>
                     )}
@@ -625,51 +758,129 @@ export default function SettlementPage() {
           )}
         </AnimatePresence>
 
-        {/* レベルアップ通知トースト */}
+        {/* 購入ダイアログ */}
         <AnimatePresence>
-          {levelUpToast && levelUpToast.show && (
+          {showPurchaseDialog && (
             <motion.div
-              initial={{ opacity: 0, y: 50, scale: 0.8 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={{ opacity: 0, y: -20, scale: 0.8 }}
-              transition={{ type: "spring", damping: 15 }}
-              className="fixed bottom-8 left-1/2 transform -translate-x-1/2 px-6 py-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl shadow-lg z-50 border-2 border-amber-200"
-              style={{ maxWidth: "90vw", width: "auto" }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+              onClick={() => setShowPurchaseDialog(null)}
             >
-              <div className="flex items-start space-x-4">
-                <div className="bg-gradient-to-br from-amber-500 to-amber-600 p-3 rounded-full flex items-center justify-center text-white">
-                  <Lock className="h-6 w-6" />
-                </div>
-
-                <div>
-                  <h3 className="text-amber-900 font-bold text-lg mb-1">
-                    {levelUpToast.buildingName}はまだ解放されていません
-                  </h3>
-                  <p className="text-amber-800">
-                    レベル{levelUpToast.requiredLevel}で解放されます。
-                    {levelUpToast.message}
-                  </p>
-                  <div className="mt-3 bg-amber-700/10 rounded-full h-2 w-full">
-                    <div
-                      className="bg-gradient-to-r from-amber-500 to-amber-600 h-2 rounded-full"
-                      style={{
-                        width: `${Math.min(100, (userStats.level / levelUpToast.requiredLevel) * 100)}%`,
-                      }}
-                    ></div>
-                  </div>
-                  <div className="mt-1 flex justify-between text-xs text-amber-700">
-                    <span>現在 Lv.{userStats.level}</span>
-                    <span>目標 Lv.{levelUpToast.requiredLevel}</span>
-                  </div>
-                </div>
-              </div>
-
-              <button
-                onClick={() => setLevelUpToast(null)}
-                className="absolute top-2 right-2 text-amber-500 hover:text-amber-700 transition-colors"
+              <motion.div
+                initial={{ scale: 0.8, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 20 }}
+                className="bg-gradient-to-b from-amber-50 to-amber-100 p-6 rounded-2xl shadow-xl max-w-md mx-4 relative"
+                onClick={(e) => e.stopPropagation()}
               >
-                ✕
-              </button>
+                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-amber-500 p-3 rounded-full shadow-lg">
+                  <ShoppingBag className="h-8 w-8 text-white" />
+                </div>
+
+                <h3 className="text-2xl font-bold text-amber-900 mt-6 mb-4 text-center">
+                  {showPurchaseDialog.name}を購入しますか？
+                </h3>
+
+                <div className="bg-white/60 p-4 rounded-xl mb-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-amber-800">価格</span>
+                    <div className="flex items-center text-amber-900 font-bold">
+                      <Coins className="h-4 w-4 mr-1 text-yellow-500" />
+                      <span>{showPurchaseDialog.price} コイン</span>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center">
+                    <span className="text-amber-800">所持コイン</span>
+                    <div className="flex items-center text-amber-900 font-bold">
+                      <Coins className="h-4 w-4 mr-1 text-yellow-500" />
+                      <span>{userStats.coins} コイン</span>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 pt-3 border-t border-amber-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-amber-800">購入後残高</span>
+                      <div
+                        className="flex items-center font-bold"
+                        style={{
+                          color:
+                            userStats.coins >= showPurchaseDialog.price
+                              ? "#65a30d"
+                              : "#dc2626",
+                        }}
+                      >
+                        <Coins
+                          className="h-4 w-4 mr-1"
+                          style={{
+                            color:
+                              userStats.coins >= showPurchaseDialog.price
+                                ? "#65a30d"
+                                : "#dc2626",
+                          }}
+                        />
+                        <span>
+                          {userStats.coins - showPurchaseDialog.price} コイン
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex space-x-3">
+                  <button
+                    className="flex-1 py-3 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-colors"
+                    onClick={() => setShowPurchaseDialog(null)}
+                  >
+                    キャンセル
+                  </button>
+
+                  <button
+                    className={cn(
+                      "flex-1 py-3 rounded-lg font-medium transition-colors flex justify-center items-center",
+                      userStats.coins >= showPurchaseDialog.price
+                        ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+                        : "bg-gray-300 text-gray-500 cursor-not-allowed",
+                    )}
+                    onClick={() =>
+                      userStats.coins >= showPurchaseDialog.price &&
+                      purchaseBuilding(showPurchaseDialog)
+                    }
+                    disabled={userStats.coins < showPurchaseDialog.price}
+                  >
+                    購入する
+                    <ShoppingBag className="h-5 w-5 ml-2" />
+                  </button>
+                </div>
+
+                {userStats.coins < showPurchaseDialog.price && (
+                  <div className="mt-3 text-center text-sm text-red-500">
+                    コインが足りません。勉強を続けてコインを集めましょう！
+                  </div>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 購入成功通知 */}
+        <AnimatePresence>
+          {purchaseSuccess && (
+            <motion.div
+              initial={{ opacity: 0, y: 50 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -50 }}
+              transition={{ type: "spring", damping: 15 }}
+              className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-50 to-green-100 px-5 py-3 rounded-lg shadow-lg z-50 border-2 border-green-200 flex items-center"
+            >
+              <div className="bg-green-500 p-2 rounded-full mr-3">
+                <ShoppingBag className="h-5 w-5 text-white" />
+              </div>
+              <div className="text-green-800 font-medium">
+                {purchaseSuccess.name}を購入しました！
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
