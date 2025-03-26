@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
+	admin "srcs/admin/buildings"
 	"srcs/auth"
 	"srcs/friends"
 	"srcs/middlewares"
@@ -60,8 +61,9 @@ func main() {
 	})
 
 	authRoutes := router.Group("/auth")
-	authRoutes.POST("/otp/generate", auth.GenerateOTPHandler)
-	authRoutes.POST("/otp/verify", auth.VerifyOTPHandler)
+	otpRoutes := authRoutes.Group("/otp")
+	otpRoutes.POST("/generate", auth.GenerateOTPHandler)
+	otpRoutes.POST("/verify", auth.VerifyOTPHandler)
 	authRoutes.POST("/register", auth.Register)
 	authRoutes.POST("/login", auth.Login)
 
@@ -96,6 +98,13 @@ func main() {
 	friendsRoutes.POST("/request/send", friends.SendFriendRequestHandler)
 	friendsRoutes.DELETE("/delete", friends.DeleteFriendshipHandler)
 	friendsRoutes.GET("/get", friends.GetFriendsHandler)
+
+	buildingsRoutes := router.Group("/buildings")
+	buildingsRoutes.Use(middlewares.JWTValidationMiddleware())
+	//buildingsRoutes.POST("/build", buildings.BuildBuildingsHandler)
+
+	adminGroup := router.Group("/admin")
+	adminGroup.POST("/buildings/set-in-store", admin.SetBuildingsInStoreHandler)
 
 	router.Run(":8080")
 }
