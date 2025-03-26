@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 	"os"
-	admin "srcs/admin/buildings"
+	"srcs/admin"
 	"srcs/auth"
 	"srcs/friends"
 	"srcs/middlewares"
@@ -59,6 +59,8 @@ func main() {
 			"Status": "OK",
 		})
 	})
+
+	admin.CreateAdminUser()
 
 	authRoutes := router.Group("/auth")
 	otpRoutes := authRoutes.Group("/otp")
