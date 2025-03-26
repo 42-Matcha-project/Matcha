@@ -30,6 +30,12 @@ export default function SettlementPage() {
   const [showClouds, setShowClouds] = useState(true);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [levelUpToast, setLevelUpToast] = useState<{
+    show: boolean;
+    message: string;
+    buildingName: string;
+    requiredLevel: number;
+  } | null>(null);
 
   const [userStats] = useState({
     level: 1,
@@ -157,8 +163,34 @@ export default function SettlementPage() {
   // 建物を選択
   const handleBuildingClick = (buildingId: string) => {
     const building = buildings.find((b) => b.id === buildingId);
-    if (building && building.isUnlocked) {
+    if (!building) return;
+
+    if (building.isUnlocked) {
       setSelectedBuilding(buildingId);
+    } else {
+      // レベルが足りない場合はトースト通知を表示
+      const remainingLevels = building.requiredLevel - userStats.level;
+      let message = "";
+
+      if (remainingLevels === 1) {
+        message = `あと1レベルで解放できます！もう少しですね！`;
+      } else if (remainingLevels <= 3) {
+        message = `あと${remainingLevels}レベルで解放できます！頑張りましょう！`;
+      } else {
+        message = `目標に向かって一歩ずつ進みましょう！`;
+      }
+
+      setLevelUpToast({
+        show: true,
+        message,
+        buildingName: building.name,
+        requiredLevel: building.requiredLevel,
+      });
+
+      // 3秒後に自動的に消える
+      setTimeout(() => {
+        setLevelUpToast(null);
+      }, 4000);
     }
   };
 
@@ -262,7 +294,7 @@ export default function SettlementPage() {
                   y: isSelected ? -20 : isLoaded && isMounted ? 0 : 30,
                 }}
                 className={cn(
-                  "absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-500",
+                  "absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300",
                   building.isUnlocked ? "" : "grayscale opacity-70",
                   isLoaded && isMounted ? "" : "blur-md",
                 )}
@@ -271,8 +303,9 @@ export default function SettlementPage() {
                   scale: 1.1,
                   transition: {
                     type: "spring",
-                    stiffness: 300,
-                    damping: 10,
+                    stiffness: 500, // 反応速度をより速く
+                    damping: 8, // 振動をより少なく
+                    duration: 0.2, // より短い時間で
                   },
                 }}
                 transition={{
@@ -291,7 +324,7 @@ export default function SettlementPage() {
               >
                 <div
                   className={cn(
-                    "relative flex flex-col items-center transition-all duration-300",
+                    "relative flex flex-col items-center transition-all duration-200", // 少し短いトランジション
                     "hover:drop-shadow-[0_15px_15px_rgba(217,119,6,0.25)]",
                   )}
                 >
@@ -588,6 +621,55 @@ export default function SettlementPage() {
                   <div className="absolute inset-0 opacity-0 group-active:opacity-100 bg-black/10 transition-opacity duration-150"></div>
                 </button>
               </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* レベルアップ通知トースト */}
+        <AnimatePresence>
+          {levelUpToast && levelUpToast.show && (
+            <motion.div
+              initial={{ opacity: 0, y: 50, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.8 }}
+              transition={{ type: "spring", damping: 15 }}
+              className="fixed bottom-8 left-1/2 transform -translate-x-1/2 px-6 py-4 bg-gradient-to-r from-amber-50 to-amber-100 rounded-xl shadow-lg z-50 border-2 border-amber-200"
+              style={{ maxWidth: "90vw", width: "auto" }}
+            >
+              <div className="flex items-start space-x-4">
+                <div className="bg-gradient-to-br from-amber-500 to-amber-600 p-3 rounded-full flex items-center justify-center text-white">
+                  <Lock className="h-6 w-6" />
+                </div>
+
+                <div>
+                  <h3 className="text-amber-900 font-bold text-lg mb-1">
+                    {levelUpToast.buildingName}はまだ解放されていません
+                  </h3>
+                  <p className="text-amber-800">
+                    レベル{levelUpToast.requiredLevel}で解放されます。
+                    {levelUpToast.message}
+                  </p>
+                  <div className="mt-3 bg-amber-700/10 rounded-full h-2 w-full">
+                    <div
+                      className="bg-gradient-to-r from-amber-500 to-amber-600 h-2 rounded-full"
+                      style={{
+                        width: `${Math.min(100, (userStats.level / levelUpToast.requiredLevel) * 100)}%`,
+                      }}
+                    ></div>
+                  </div>
+                  <div className="mt-1 flex justify-between text-xs text-amber-700">
+                    <span>現在 Lv.{userStats.level}</span>
+                    <span>目標 Lv.{levelUpToast.requiredLevel}</span>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setLevelUpToast(null)}
+                className="absolute top-2 right-2 text-amber-500 hover:text-amber-700 transition-colors"
+              >
+                ✕
+              </button>
             </motion.div>
           )}
         </AnimatePresence>
