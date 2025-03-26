@@ -30,6 +30,9 @@ type TUser struct {
 	WorkLogs []TWorkLog `gorm:"foreignKey:UserID;references:ID" json:"-"`
 
 	Buildings []TBuilding `gorm:"many2many:t_user_buildings" json:"-"`
+
+	FriendshipsSent     []TFriendship `gorm:"foreignKey:RequesterID;references:ID" json:"-"`
+	FriendshipsReceived []TFriendship `gorm:"foreignKey:ReceiverID;references:ID" json:"-"`
 }
 
 func (*TUser) TableName() string {
@@ -79,6 +82,13 @@ func (user *TUser) PrepareOutput() *TUser {
 	*/
 	user.Password = ""
 	return user
+}
+
+func PrepareOutput(users []*TUser) []*TUser {
+	for _, user := range users {
+		user.PrepareOutput()
+	}
+	return users
 }
 
 func FetchUserAndGenerateJWTTokenString(username string, email string, password string) (string, error) {

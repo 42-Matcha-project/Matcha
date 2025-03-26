@@ -55,6 +55,7 @@ func ConnectDataBase() {
 	DB.AutoMigrate(&TWorkLog{})
 	DB.AutoMigrate(&TBuilding{})
 	DB.AutoMigrate(&TUserBuilding{})
+	DB.AutoMigrate(&TFriendship{})
 
 	if os.Getenv("ENVIRONMENT") == "production" {
 		mysqlDB, err := DB.DB()

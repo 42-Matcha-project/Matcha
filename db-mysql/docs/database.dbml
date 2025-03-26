@@ -45,6 +45,18 @@ Table t_buildings {
 
 
 /*
+  フレンド
+  (ユーザー同士が多対多)
+*/
+Table t_friendships {
+  id integer [primary key]
+  requester_id integer [not null, ref: > t_users.id]
+  receiver_id integer [not null, ref: > t_users.id]
+  is_pending bool
+}
+
+
+/*
   作業内容
 */
 Table t_works {
