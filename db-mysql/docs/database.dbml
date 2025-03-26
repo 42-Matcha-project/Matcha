@@ -20,6 +20,31 @@ Table t_users {
 
 
 /*
+  建物
+  (ユーザーに対して多対多)
+*/
+// ユーザーと建物の中間テーブル
+Table t_users_buildings {
+  id integer [primary key]
+  user_id integer [not null, ref: > t_users.id]
+  building_id integer [not null, ref: > t_buildings.id]
+  place_index integer
+}
+
+Table t_buildings {
+  id integer [primary key]
+  exterior_image_url varchar(255)
+  interior_image_url varchar(255)
+  default_name varchar(30)
+  custom_name varchar(30)
+  required_coin_count integer
+  is_in_store bool
+  sale_start_time timestamp
+  sale_end_time timestamp
+}
+
+
+/*
   作業内容
 */
 Table t_works {
