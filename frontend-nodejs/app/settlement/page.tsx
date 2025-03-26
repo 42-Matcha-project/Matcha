@@ -10,7 +10,6 @@ import {
   BookOpen,
   User,
   Calendar,
-  Lock,
   ShoppingBag,
   Gift,
   Coins,

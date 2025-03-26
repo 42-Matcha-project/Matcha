@@ -8,7 +8,7 @@ import ImagePreview from "@/app/components/ImagePreview";
 import Button from "@/app/components/Button";
 import FormField from "@/app/components/FormField";
 import TagSelector from "@/app/components/TagSelector";
-import useFileUploader from "@/app/hooks/useFileUploader";
+import useFileUploader from "@/hooks/useFileUploader";
 
 export default function ProfileDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);

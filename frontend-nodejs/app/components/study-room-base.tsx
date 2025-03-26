@@ -9,7 +9,6 @@ import {
   PauseCircle,
   PlayCircle,
   Trophy,
-  Calendar,
   Bell,
   X,
 } from "lucide-react";
@@ -92,9 +91,11 @@ export default function StudyRoomBase({
   const [isTimerRunning, setIsTimerRunning] = useState(true);
   const [timerMinutes, setTimerMinutes] = useState(52);
   const [timerSeconds, setTimerSeconds] = useState(17);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [breakCount, setBreakCount] = useState(2);
   const [showNotification, setShowNotification] = useState(false);
   const [notificationMessage, setNotificationMessage] = useState("");
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [userStudySeconds, setUserStudySeconds] = useState(0);
   const [localParticipants, setLocalParticipants] =
     useState<Participant[]>(participants);
@@ -111,7 +112,7 @@ export default function StudyRoomBase({
     const initialUserSeconds = participants[0]?.studyTime * 60 || 0;
     setUserStudySeconds(initialUserSeconds);
     setLocalParticipants(participants);
-  }, []);
+  }, [participants]);
 
   // 時計の更新
   useEffect(() => {
@@ -180,6 +181,7 @@ export default function StudyRoomBase({
 
               // 休憩カウントを増やす
               setBreakCount((prev) => prev + 1);
+              // breakCountはユーザーの休憩回数を追跡するために使用 (現在UIには表示されていませんが、将来の分析に使用)
 
               // 25分タイマーをリセット
               setTimerMinutes(25);
@@ -769,6 +771,8 @@ export default function StudyRoomBase({
                 </div>
               ))}
             </div>
+
+            {/* ユーザーの累積学習時間（秒数）: {userStudySeconds}秒 - 将来的に分析機能で使用予定 */}
           </main>
         </div>
       </div>
