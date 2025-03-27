@@ -186,9 +186,16 @@ export default function SettlementPage() {
     if (!building) return;
 
     if (building.isUnlocked) {
-      setSelectedBuilding(buildingId);
+      // 既に選択されている建物をクリックした場合は選択解除
+      if (selectedBuilding === buildingId) {
+        setSelectedBuilding(null);
+      } else {
+        // 他の建物が選択されていても、新しい建物を選択したら即座に切り替える
+        setSelectedBuilding(buildingId);
+      }
     } else {
-      // 未購入の建物の場合は購入ダイアログを表示
+      // 未購入の建物の場合は選択状態をクリアして購入ダイアログを表示
+      setSelectedBuilding(null);
       setShowPurchaseDialog(building);
     }
   };
@@ -247,7 +254,10 @@ export default function SettlementPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-hidden relative">
+    <div
+      className="min-h-screen overflow-hidden relative"
+      onClick={() => setSelectedBuilding(null)}
+    >
       {/* 背景パターン */}
       <div
         className="absolute inset-0 z-0"
@@ -388,7 +398,10 @@ export default function SettlementPage() {
         ref={containerRef}
       >
         {/* 建物配置エリア */}
-        <div className="relative w-full min-h-[900px] py-24 px-6 z-10">
+        <div
+          className="relative w-full min-h-[900px] py-24 px-6 z-10"
+          onClick={(e) => e.stopPropagation()}
+        >
           {buildings.map((building) => {
             const isSelected = selectedBuilding === building.id;
             const scale = isSelected ? 1.2 : 1;
@@ -411,8 +424,11 @@ export default function SettlementPage() {
                 }}
                 className={cn(
                   "absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300",
-                  building.isUnlocked ? "" : "grayscale opacity-70",
+                  building.isUnlocked
+                    ? ""
+                    : "grayscale opacity-70 hover:opacity-90 hover:grayscale-[50%]",
                   isLoaded && isMounted ? "" : "blur-md",
+                  isSelected && "drop-shadow-[0_0_8px_rgba(217,119,6,0.5)]",
                 )}
                 whileHover={{
                   y: -10,
@@ -423,6 +439,10 @@ export default function SettlementPage() {
                     damping: 8,
                     duration: 0.2,
                   },
+                }}
+                whileTap={{
+                  scale: isSelected ? 1.2 : 0.95,
+                  y: isSelected ? -20 : 0,
                 }}
                 transition={{
                   delay: positionBasedDelay,
@@ -436,7 +456,10 @@ export default function SettlementPage() {
                   top: `${building.position.y}%`,
                   zIndex: building.id === "house" ? 25 : isSelected ? 30 : 20,
                 }}
-                onClick={() => handleBuildingClick(building.id)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleBuildingClick(building.id);
+                }}
               >
                 <div
                   className={cn(
@@ -480,6 +503,7 @@ export default function SettlementPage() {
                       <motion.div
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
+                        exit={{ opacity: 0, scale: 0.8 }}
                         className="absolute -top-4 -right-4 bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md"
                       >
                         ✓
@@ -502,7 +526,8 @@ export default function SettlementPage() {
                             },
                           },
                         }}
-                        className="absolute -inset-4 rounded-full border-2 border-amber-500/60 z-0"
+                        exit={{ opacity: 0, scale: 1.2 }}
+                        className="absolute -inset-4 rounded-full border-2 border-amber-500/60 z-0 shadow-[0_0_15px_rgba(217,119,6,0.3)]"
                       ></motion.div>
                     )}
 
@@ -774,7 +799,10 @@ export default function SettlementPage() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-              onClick={() => setShowPurchaseDialog(null)}
+              onClick={() => {
+                setShowPurchaseDialog(null);
+                setSelectedBuilding(null);
+              }}
             >
               <motion.div
                 initial={{ scale: 0.8, y: 20 }}
@@ -840,7 +868,10 @@ export default function SettlementPage() {
                 <div className="flex space-x-3">
                   <button
                     className="flex-1 py-3 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-colors"
-                    onClick={() => setShowPurchaseDialog(null)}
+                    onClick={() => {
+                      setShowPurchaseDialog(null);
+                      setSelectedBuilding(null);
+                    }}
                   >
                     キャンセル
                   </button>
