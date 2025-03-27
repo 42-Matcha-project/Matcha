@@ -5,6 +5,7 @@ import (
 	"os"
 	"srcs/admin"
 	"srcs/auth"
+	"srcs/buildings"
 	"srcs/friends"
 	"srcs/middlewares"
 	"srcs/models"
@@ -61,6 +62,7 @@ func main() {
 	})
 
 	admin.CreateAdminUser()
+	buildings.SetDefaultBuildingInStore()
 
 	authRoutes := router.Group("/auth")
 	otpRoutes := authRoutes.Group("/otp")
@@ -103,7 +105,8 @@ func main() {
 
 	buildingsRoutes := router.Group("/buildings")
 	buildingsRoutes.Use(middlewares.JWTValidationMiddleware())
-	//buildingsRoutes.POST("/build", buildings.BuildBuildingsHandler)
+	buildingsRoutes.GET("/get-own", buildings.GetOwnBuildingsHandler)
+	buildingsRoutes.POST("/build", buildings.BuildBuildingsHandler)
 
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middlewares.AdminJWTValidationMiddleware())

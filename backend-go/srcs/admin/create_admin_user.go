@@ -3,7 +3,6 @@ package admin
 import (
 	"log"
 	"os"
-	"srcs/buildings"
 	"srcs/models"
 )
 
@@ -26,5 +25,4 @@ func CreateAdminUser() {
 	if err != nil {
 		log.Fatal("Error creating admin user: ", err)
 	}
-	buildings.SetDefaultBuildingInStore()
 }

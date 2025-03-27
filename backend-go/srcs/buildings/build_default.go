@@ -11,6 +11,7 @@ func BuildDefaultBuilding(user models.TUser) error {
 	/*
 		デフォルトの建物を建てる関数
 	*/
+
 	return nil
 }
 
@@ -26,6 +27,11 @@ func SetDefaultBuildingInStore() {
 	/*
 		デフォルトの建物をストアにセットする関数
 	*/
+	var err error
+	if err = models.DB.Where("id = ?", 1).First(&models.TBuilding{}).Error; err == nil {
+		return
+	}
+
 	defaultBuidingFile, err := os.Open("./json_data/buildings/default.json")
 	if err != nil {
 		log.Fatal("Error opening file:", err)
