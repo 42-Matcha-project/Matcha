@@ -11,6 +11,15 @@ func BuildDefaultBuilding(user models.TUser) error {
 	/*
 		デフォルトの建物を建てる関数
 	*/
+	userBuilding := &models.TUserBuilding{
+		UserID:     user.ID,
+		BuildingID: 1,
+		PlaceIndex: 1,
+	}
+
+	if err := models.DB.Create(userBuilding).Error; err != nil {
+		return err
+	}
 
 	return nil
 }

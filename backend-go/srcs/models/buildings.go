@@ -6,8 +6,8 @@ import (
 
 type TUserBuilding struct {
 	ID         int `gorm:"primaryKey;autoIncrement;column:id"`
-	UserID     int `gorm:"type:int;not null;column:user_id"`
-	BuildingID int `gorm:"type:int;not null;column:building_id"`
+	UserID     int `gorm:"type:int;not null;column:t_user_id"`
+	BuildingID int `gorm:"type:int;not null;column:t_building_id"`
 	PlaceIndex int `gorm:"type:int;not null;column:place_index"`
 
 	User     TUser     `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE"`
