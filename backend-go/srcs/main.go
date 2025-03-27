@@ -106,6 +106,7 @@ func main() {
 	//buildingsRoutes.POST("/build", buildings.BuildBuildingsHandler)
 
 	adminGroup := router.Group("/admin")
+	adminGroup.Use(middlewares.AdminJWTValidationMiddleware())
 	adminGroup.POST("/buildings/set-in-store", admin.SetBuildingsInStoreHandler)
 
 	router.Run(":8080")
