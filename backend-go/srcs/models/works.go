@@ -4,7 +4,7 @@ type TWork struct {
 	/*
 		worksテーブルの構造体
 	*/
-	ID           int        `gorm:"primaryKey;autoIncrement;colum:id"`
+	ID           int        `gorm:"primaryKey;autoIncrement;column:id"`
 	UserID       int        `gorm:"type:int;not null;column:user_id" json:"-"`
 	WorkName     string     `gorm:"type:varchar(60);not null;column:work_name"`
 	IconImageURL string     `gorm:"type:varchar(255);column:icon_image_url"`
