@@ -68,7 +68,7 @@ export default function SettlementPage() {
       requiredLevel: 1,
       price: 0,
       position: { x: 50, y: 50 },
-      image: "/placeholder.svg?height=120&width=120",
+      image: "/images/house.png?height=300&width=300",
     },
     {
       id: "library",
@@ -108,7 +108,7 @@ export default function SettlementPage() {
       requiredLevel: 15,
       price: 750,
       position: { x: 75, y: 75 },
-      image: "/placeholder.svg?height=120&width=120",
+      image: "/images/research_institute.png?height=120&width=120",
     },
     {
       id: "cafe",
@@ -118,7 +118,7 @@ export default function SettlementPage() {
       requiredLevel: 7,
       price: 300,
       position: { x: 50, y: 85 },
-      image: "/placeholder.svg?height=120&width=120",
+      image: "/images/cafe.png?height=120&width=120",
     },
   ];
 
@@ -384,11 +384,11 @@ export default function SettlementPage() {
 
       {/* メインコンテンツ */}
       <main
-        className="relative w-full h-[calc(100vh-60px)] overflow-hidden"
+        className="relative w-full min-h-[calc(100vh-60px)] overflow-y-auto pb-20"
         ref={containerRef}
       >
         {/* 建物配置エリア */}
-        <div className="absolute inset-0 z-10">
+        <div className="relative w-full min-h-[900px] py-24 px-6 z-10">
           {buildings.map((building) => {
             const isSelected = selectedBuilding === building.id;
             const scale = isSelected ? 1.2 : 1;
@@ -434,7 +434,7 @@ export default function SettlementPage() {
                 style={{
                   left: `${building.position.x}%`,
                   top: `${building.position.y}%`,
-                  zIndex: isSelected ? 30 : 20,
+                  zIndex: building.id === "house" ? 25 : isSelected ? 30 : 20,
                 }}
                 onClick={() => handleBuildingClick(building.id)}
               >
@@ -442,6 +442,7 @@ export default function SettlementPage() {
                   className={cn(
                     "relative flex flex-col items-center transition-all duration-200",
                     "hover:drop-shadow-[0_15px_15px_rgba(217,119,6,0.25)]",
+                    building.id === "house" && "scale-110",
                   )}
                 >
                   {/* ホバー時のグロー効果 */}
@@ -455,7 +456,12 @@ export default function SettlementPage() {
                   ></div>
 
                   {/* 建物画像 */}
-                  <div className="relative w-24 h-24 mb-2">
+                  <div
+                    className={cn(
+                      "relative mb-2",
+                      building.id === "house" ? "w-48 h-48" : "w-24 h-24",
+                    )}
+                  >
                     <Image
                       src={building.image || "/placeholder.svg"}
                       alt={building.name}
@@ -523,14 +529,16 @@ export default function SettlementPage() {
                         </motion.div>
 
                         <motion.div
-                          className="absolute -bottom-6 bg-amber-700 text-white text-xs px-2 py-1 rounded-full"
+                          className="absolute -bottom-12 bg-amber-700 text-white text-xs px-3 py-1.5 rounded-full shadow-md border border-amber-600/30"
                           whileHover={{
                             y: -2,
                             scale: 1.05,
                             backgroundColor: "rgba(180, 83, 9, 1)",
                           }}
                         >
-                          クリックして購入
+                          <span className="whitespace-nowrap">
+                            クリックして購入
+                          </span>
                         </motion.div>
                       </div>
                     )}
@@ -545,6 +553,7 @@ export default function SettlementPage() {
                         : building.isUnlocked
                           ? "bg-white/90 text-amber-800 hover:bg-white hover:shadow-lg"
                           : "bg-white/70 text-amber-800/80 hover:bg-white/80",
+                      !building.isUnlocked && "mt-8",
                     )}
                   >
                     <span className="text-sm">{building.name}</span>
