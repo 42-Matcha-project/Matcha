@@ -55,8 +55,23 @@ jobs:
       - name: Install Newman
         run: npm install -g newman
 
-      - name: Test API
-        run: newman run ./postman/user.json --reporters cli,junit --reporter-junit-export results.xml
+      - name: Test Auth API
+        run: newman run ./postman/auth.json --reporters cli,junit --reporter-junit-export results.xml
+
+      - name: Test Study Room API
+        run: newman run ./postman/study_room.json --reporters cli,junit --reporter-junit-export results.xml
+
+      - name: Test Work API
+        run: newman run ./postman/work.json --reporters cli,junit --reporter-junit-export results.xml
+
+      - name: Test Profile API
+        run: newman run ./postman/profile.json --reporters cli,junit --reporter-junit-export results.xml
+
+      - name: Test Friend API
+        run: newman run ./postman/friend.json --reporters cli,junit --reporter-junit-export results.xml
+
+      - name: Test Password API
+        run: newman run ./postman/password.json --reporters cli,junit --reporter-junit-export results.xml
 
       - name: Set up Python
         uses: actions/setup-python@v5
