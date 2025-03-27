@@ -29,6 +29,7 @@ interface Building {
     y: number;
   };
   image: string;
+  description?: string; // 建物の説明
 }
 
 export default function SettlementPage() {
@@ -43,6 +44,8 @@ export default function SettlementPage() {
   const [showPurchaseDialog, setShowPurchaseDialog] = useState<Building | null>(
     null,
   );
+  const [showBuildingDetails, setShowBuildingDetails] =
+    useState<Building | null>(null);
   const [purchaseSuccess, setPurchaseSuccess] = useState<{
     buildingId: string;
     name: string;
@@ -69,6 +72,8 @@ export default function SettlementPage() {
       price: 0,
       position: { x: 50, y: 50 },
       image: "/images/house.png?height=300&width=300",
+      description:
+        "あなたの拠点となるマイハウスです。ここから様々な自習活動を始めることができます。レベルアップすると設備が充実していきます。",
     },
     {
       id: "library",
@@ -79,6 +84,8 @@ export default function SettlementPage() {
       price: 100,
       position: { x: 25, y: 25 },
       image: "/placeholder.svg?height=120&width=120",
+      description:
+        "静かな環境で集中して勉強できる図書館です。読書や資料調査に最適な場所で、知識を深めることができます。",
     },
     {
       id: "school",
@@ -89,6 +96,8 @@ export default function SettlementPage() {
       price: 250,
       position: { x: 75, y: 25 },
       image: "/placeholder.svg?height=120&width=120",
+      description:
+        "基礎学習に最適な小学校です。グループでの学習や基本的なスキルの習得に役立ちます。楽しく学べる環境が整っています。",
     },
     {
       id: "university",
@@ -99,6 +108,8 @@ export default function SettlementPage() {
       price: 500,
       position: { x: 25, y: 75 },
       image: "/placeholder.svg?height=120&width=120",
+      description:
+        "高度な学習ができる大学です。専門的な知識やスキルを身につけるための施設が充実しています。研究活動も行えます。",
     },
     {
       id: "lab",
@@ -109,6 +120,8 @@ export default function SettlementPage() {
       price: 750,
       position: { x: 75, y: 75 },
       image: "/images/research_institute.png?height=120&width=120",
+      description:
+        "最先端の研究ができる研究所です。高度な設備と静かな環境で、最も集中して学習に取り組むことができます。",
     },
     {
       id: "cafe",
@@ -119,6 +132,8 @@ export default function SettlementPage() {
       price: 300,
       position: { x: 50, y: 85 },
       image: "/images/cafe.png?height=120&width=120",
+      description:
+        "リラックスした雰囲気で学習できるカフェです。軽食を楽しみながら、気軽に勉強や読書ができます。交流の場としても活用できます。",
     },
   ];
 
@@ -189,13 +204,16 @@ export default function SettlementPage() {
       // 既に選択されている建物をクリックした場合は選択解除
       if (selectedBuilding === buildingId) {
         setSelectedBuilding(null);
+        setShowBuildingDetails(null);
       } else {
         // 他の建物が選択されていても、新しい建物を選択したら即座に切り替える
         setSelectedBuilding(buildingId);
+        setShowBuildingDetails(building);
       }
     } else {
       // 未購入の建物の場合は選択状態をクリアして購入ダイアログを表示
       setSelectedBuilding(null);
+      setShowBuildingDetails(null);
       setShowPurchaseDialog(building);
     }
   };
@@ -256,7 +274,10 @@ export default function SettlementPage() {
   return (
     <div
       className="min-h-screen overflow-hidden relative"
-      onClick={() => setSelectedBuilding(null)}
+      onClick={() => {
+        setSelectedBuilding(null);
+        setShowBuildingDetails(null);
+      }}
     >
       {/* 背景パターン */}
       <div
@@ -920,6 +941,124 @@ export default function SettlementPage() {
               <div className="text-green-800 font-medium">
                 {purchaseSuccess.name}を購入しました！
               </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 建物詳細ポップアップ */}
+        <AnimatePresence>
+          {showBuildingDetails && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40"
+              onClick={() => {
+                setShowBuildingDetails(null);
+                setSelectedBuilding(null);
+              }}
+            >
+              <motion.div
+                initial={{ scale: 0.8, y: 20, opacity: 0 }}
+                animate={{ scale: 1, y: 0, opacity: 1 }}
+                exit={{ scale: 0.8, y: 20, opacity: 0 }}
+                transition={{ type: "spring", damping: 20 }}
+                className="relative max-w-2xl mx-4 z-50"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* 建物画像 - ポップアップの外にはみ出すように配置 */}
+                <div className="absolute -top-16 -left-16 z-10">
+                  <div className="relative w-48 h-48 overflow-hidden">
+                    <Image
+                      src={showBuildingDetails.image || "/placeholder.svg"}
+                      alt={showBuildingDetails.name}
+                      fill
+                      className="object-contain"
+                    />
+                  </div>
+                </div>
+
+                <div className="relative bg-gradient-to-b from-amber-50 to-amber-100 rounded-2xl shadow-xl overflow-hidden pl-24">
+                  {/* 装飾的な上部バー */}
+                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400"></div>
+
+                  {/* 右上の閉じるボタン */}
+                  <div className="absolute top-3 right-3">
+                    <button
+                      onClick={() => {
+                        setShowBuildingDetails(null);
+                        setSelectedBuilding(null);
+                      }}
+                      className="text-amber-500 hover:text-amber-700 transition-colors"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+
+                  <div className="pt-6 pb-6 pr-6 pl-4">
+                    <div className="pt-4">
+                      {/* 建物名とレベル */}
+                      <div className="mb-4">
+                        <h3 className="text-2xl font-bold text-amber-900 mb-2">
+                          {showBuildingDetails.name}
+                        </h3>
+
+                        <div className="flex items-center space-x-2">
+                          <div className="bg-amber-600 text-white text-xs font-bold px-2 py-1 rounded">
+                            Lv.{showBuildingDetails.level}
+                          </div>
+                          {showBuildingDetails.id === "house" && (
+                            <div className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">
+                              マイ拠点
+                            </div>
+                          )}
+                        </div>
+                      </div>
+
+                      {/* キラキラエフェクト - 装飾要素 */}
+                      <div className="absolute top-12 right-12 w-3 h-3 rounded-full bg-white/80 blur-[1px]"></div>
+                      <div className="absolute bottom-12 right-20 w-2 h-2 rounded-full bg-white/70 blur-[1px]"></div>
+
+                      {/* 建物説明 */}
+                      <div className="bg-white/40 p-4 rounded-lg backdrop-blur-sm mb-6 shadow-inner">
+                        <p className="text-amber-800 text-base leading-relaxed">
+                          {showBuildingDetails.description ||
+                            "説明はまだ準備中です。"}
+                        </p>
+                      </div>
+
+                      {/* 操作ボタン */}
+                      <div className="flex justify-end space-x-3">
+                        <button
+                          onClick={() => {
+                            setShowBuildingDetails(null);
+                            setSelectedBuilding(null);
+                            // 実際には自習室作成などの処理へ
+                            goToCreateRoom();
+                          }}
+                          className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300 flex items-center"
+                        >
+                          <BookOpen className="h-5 w-5 mr-2" />
+                          自習室を作成
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
             </motion.div>
           )}
         </AnimatePresence>
