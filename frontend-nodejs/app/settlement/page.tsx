@@ -52,6 +52,8 @@ export default function SettlementPage() {
   } | null>(null);
   const [showStoreTooltip, setShowStoreTooltip] = useState(false);
   const [showGiftTooltip, setShowGiftTooltip] = useState(false);
+  const [showBuildingSelectionModal, setShowBuildingSelectionModal] =
+    useState(false);
 
   const [userStats] = useState({
     level: 1,
@@ -246,8 +248,12 @@ export default function SettlementPage() {
   };
 
   // ルーム作成ページへ移動
-  const goToCreateRoom = () => {
-    router.push("/host/building-selection");
+  const goToCreateRoom = (buildingId?: string) => {
+    if (buildingId) {
+      router.push(`/host/building-selection?buildingId=${buildingId}`);
+    } else {
+      router.push("/host/building-selection");
+    }
   };
 
   // ルーム参加ページへ移動
@@ -269,6 +275,12 @@ export default function SettlementPage() {
     alert(
       "プレゼントボックスは開発中です！今後様々な報酬を受け取れるようになります。",
     );
+  };
+
+  // 建物を選択してルームを作成する
+  const handleBuildingSelection = (buildingId: string) => {
+    setShowBuildingSelectionModal(false);
+    goToCreateRoom(buildingId);
   };
 
   return (
@@ -734,7 +746,7 @@ export default function SettlementPage() {
                 ></div>
 
                 <button
-                  onClick={goToCreateRoom}
+                  onClick={() => setShowBuildingSelectionModal(true)}
                   className="relative w-48 h-12 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-lg flex items-center justify-center z-10 border-2 border-amber-500 group-hover:border-amber-400 transition-all duration-300"
                   style={{
                     boxShadow:
@@ -1047,7 +1059,7 @@ export default function SettlementPage() {
                             setShowBuildingDetails(null);
                             setSelectedBuilding(null);
                             // 実際には自習室作成などの処理へ
-                            goToCreateRoom();
+                            handleBuildingSelection(showBuildingDetails.id);
                           }}
                           className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300 flex items-center"
                         >
@@ -1057,6 +1069,87 @@ export default function SettlementPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* 建物選択モーダル */}
+        <AnimatePresence>
+          {showBuildingSelectionModal && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
+              onClick={() => setShowBuildingSelectionModal(false)}
+            >
+              <motion.div
+                initial={{ scale: 0.8, y: 20 }}
+                animate={{ scale: 1, y: 0 }}
+                exit={{ scale: 0.8, y: 20 }}
+                className="bg-gradient-to-b from-amber-50 to-amber-100 p-6 rounded-2xl shadow-xl max-w-3xl mx-4 relative"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-amber-500 p-3 rounded-full shadow-lg">
+                  <BookOpen className="h-8 w-8 text-white" />
+                </div>
+
+                <h3 className="text-2xl font-bold text-amber-900 mt-6 mb-6 text-center">
+                  どの建物で自習室を作成しますか？
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+                  {buildings
+                    .filter((building) => building.isUnlocked)
+                    .map((building) => (
+                      <motion.div
+                        key={building.id}
+                        whileHover={{ scale: 1.03, y: -5 }}
+                        whileTap={{ scale: 0.98 }}
+                        className="bg-white/70 rounded-lg p-4 flex flex-col items-center cursor-pointer hover:bg-white hover:shadow-md transition-all duration-200"
+                        onClick={() => handleBuildingSelection(building.id)}
+                      >
+                        <div className="relative w-24 h-24 mb-3">
+                          <Image
+                            src={building.image || "/placeholder.svg"}
+                            alt={building.name}
+                            fill
+                            className="object-contain"
+                          />
+                        </div>
+                        <h4 className="font-bold text-amber-800">
+                          {building.name}
+                        </h4>
+                        <div className="mt-1 bg-amber-600 text-white text-xs font-bold px-2 py-1 rounded">
+                          Lv.{building.level}
+                        </div>
+                        <p className="mt-2 text-sm text-amber-700 text-center line-clamp-2">
+                          {building.description?.substring(0, 50)}
+                          {building.description &&
+                          building.description.length > 50
+                            ? "..."
+                            : ""}
+                        </p>
+                      </motion.div>
+                    ))}
+                </div>
+
+                {buildings.filter((building) => building.isUnlocked).length ===
+                  0 && (
+                  <div className="bg-amber-100 p-4 rounded-lg text-center text-amber-800">
+                    自習室を作成できる建物がありません。まずはマイハウスを解放しましょう。
+                  </div>
+                )}
+
+                <div className="flex justify-end mt-4">
+                  <button
+                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+                    onClick={() => setShowBuildingSelectionModal(false)}
+                  >
+                    キャンセル
+                  </button>
                 </div>
               </motion.div>
             </motion.div>
