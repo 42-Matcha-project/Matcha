@@ -38,7 +38,9 @@ export default function SettlementPage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [showButtons, setShowButtons] = useState(false);
-  const [showClouds, setShowClouds] = useState(true);
+  const [showClouds, setShowClouds] = useState(false);
+  const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
+  const [contentVisible, setContentVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState<Building | null>(
@@ -132,8 +134,8 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 7,
       price: 300,
-      position: { x: 50, y: 85 },
-      image: "/images/cafe.png?height=120&width=120",
+      position: { x: 50, y: 80 },
+      image: "/images/cafe.png?height=100&width=100",
       description:
         "リラックスした雰囲気で学習できるカフェです。軽食を楽しみながら、気軽に勉強や読書ができます。交流の場としても活用できます。",
     },
@@ -157,7 +159,35 @@ export default function SettlementPage() {
 
   // クライアントサイドでのみマウント状態を設定
   useEffect(() => {
+    // マウント直後は何も表示しない
     setIsMounted(true);
+
+    // ロード状態を確認するために少し遅延を入れる
+    setTimeout(() => {
+      // LocalStorageをチェックして初回訪問かどうか確認
+      const hasSeenAnimation =
+        localStorage.getItem("hasSeenCloudAnimation") === "true";
+
+      if (!hasSeenAnimation) {
+        // 初回訪問時は演出を表示
+        setShouldShowAnimation(true);
+        setShowClouds(true);
+
+        // 少し遅延を入れてからコンテンツを表示
+        setTimeout(() => {
+          setContentVisible(true);
+        }, 300);
+      } else {
+        // 2回目以降は演出をスキップして直接コンテンツを表示
+        setIsLoaded(true);
+        setShowButtons(true);
+
+        // 少し遅延を入れてからコンテンツを表示
+        setTimeout(() => {
+          setContentVisible(true);
+        }, 300);
+      }
+    }, 200);
   }, []);
 
   // 時計の更新
@@ -173,7 +203,7 @@ export default function SettlementPage() {
 
   // ページロード時のアニメーション
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !shouldShowAnimation) return;
 
     // ページロード時のアニメーションシーケンス
     const sequence = async () => {
@@ -192,13 +222,19 @@ export default function SettlementPage() {
       // ボタンを表示
       await new Promise((resolve) => setTimeout(resolve, 800));
       setShowButtons(true);
+
+      // アニメーションを見たことをローカルストレージに記録
+      localStorage.setItem("hasSeenCloudAnimation", "true");
     };
 
     sequence();
-  }, [isMounted]);
+  }, [isMounted, shouldShowAnimation]);
 
   // 建物を選択または購入
-  const handleBuildingClick = (buildingId: string) => {
+  const handleBuildingClick = (buildingId: string, e: React.MouseEvent) => {
+    // イベントの伝播を停止して、親要素のクリックイベントが発火しないようにする
+    e.stopPropagation();
+
     const building = buildings.find((b) => b.id === buildingId);
     if (!building) return;
 
@@ -248,12 +284,8 @@ export default function SettlementPage() {
   };
 
   // ルーム作成ページへ移動
-  const goToCreateRoom = (buildingId?: string) => {
-    if (buildingId) {
-      router.push(`/host/building-selection?buildingId=${buildingId}`);
-    } else {
-      router.push("/host/building-selection");
-    }
+  const goToCreateRoom = () => {
+    router.push("/host/building-selection");
   };
 
   // ルーム参加ページへ移動
@@ -280,882 +312,797 @@ export default function SettlementPage() {
   // 建物を選択してルームを作成する
   const handleBuildingSelection = (buildingId: string) => {
     setShowBuildingSelectionModal(false);
-    goToCreateRoom(buildingId);
+    router.push(`/host/building-selection?buildingId=${buildingId}`);
   };
 
   return (
     <div
-      className="min-h-screen overflow-hidden relative"
-      onClick={() => {
-        setSelectedBuilding(null);
-        setShowBuildingDetails(null);
+      className="min-h-screen relative"
+      onClick={(e) => {
+        // クリックされた要素が建物でない場合のみ選択状態をリセット
+        if ((e.target as HTMLElement).closest(".building-item") === null) {
+          setSelectedBuilding(null);
+          setShowBuildingDetails(null);
+        }
       }}
+      style={{ scrollBehavior: "smooth" }}
     >
       {/* 背景パターン */}
       <div
-        className="absolute inset-0 z-0"
+        className="fixed inset-0 z-0"
         style={{
           backgroundColor: "#FEF3C7",
         }}
       />
 
-      {/* ページ全体の霧エフェクト - 徐々に消える */}
-      <AnimatePresence>
-        {isLoaded && isMounted && (
-          <motion.div
-            className="absolute inset-0 bg-white/50 z-20 pointer-events-none"
-            initial={{ opacity: 1 }}
-            animate={{ opacity: 0 }}
-            transition={{ duration: 3, delay: 2 }}
-          />
-        )}
-      </AnimatePresence>
+      {/* 初期ロード時のブロッキングオーバーレイ */}
+      {!contentVisible && (
+        <div className="fixed inset-0 bg-amber-50 z-[9999]"></div>
+      )}
 
-      {/* ヘッダー */}
-      <header className="bg-amber-800 text-amber-50 p-3 flex items-center justify-between shadow-md z-50 relative">
-        <div className="flex items-center">
-          <Home className="h-6 w-6 mr-2" />
-          <h1 className="text-lg font-bold">マイ開拓地</h1>
-          <span className="ml-2 bg-amber-700 px-2 py-0.5 rounded text-xs">
-            Lv.{userStats.level}
-          </span>
-        </div>
-
-        <div className="flex items-center space-x-4">
-          {/* コイン表示 */}
-          <div className="flex items-center bg-amber-700/80 px-2 py-1 rounded-full">
-            <Coins className="h-4 w-4 mr-1 text-yellow-300" />
-            <span className="text-sm font-bold text-yellow-50">
-              {userStats.coins}
-            </span>
-          </div>
-
-          <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-1" />
-            <span className="text-sm">
-              {isMounted
-                ? currentTime.toLocaleTimeString([], {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                : "00:00"}
-            </span>
-          </div>
-
-          <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-1" />
-            <span className="text-sm">{userStats.dayStreak}日連続</span>
-          </div>
-
-          <div className="flex items-center">
-            <BookOpen className="h-4 w-4 mr-1" />
-            <span className="text-sm">{userStats.totalStudyHours}時間</span>
-          </div>
-
-          <div className="flex items-center bg-amber-700 px-2 py-1 rounded">
-            <User className="h-4 w-4 mr-1" />
-            <span className="text-sm">{userStats.username}</span>
-          </div>
-
-          {/* ストアボタン */}
-          <div className="relative">
-            <motion.button
-              className="relative bg-gradient-to-br from-amber-500 to-amber-600 p-2 rounded-full shadow-md flex items-center justify-center group"
-              whileHover={{ scale: 1.1 }}
-              whileTap={{ scale: 0.9 }}
-              onMouseEnter={() => setShowStoreTooltip(true)}
-              onMouseLeave={() => setShowStoreTooltip(false)}
-              onClick={goToStore}
-            >
-              <ShoppingBag className="h-5 w-5 text-white" />
-              {/* 光沢エフェクト */}
-              <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            </motion.button>
-
-            <AnimatePresence>
-              {showStoreTooltip && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                  className="absolute right-0 top-full mt-2 bg-amber-100 text-amber-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm"
-                >
-                  ストアで建物を購入
-                  <div className="absolute right-3 -top-1 w-2 h-2 bg-amber-100 transform rotate-45"></div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          {/* プレゼントボタン */}
-          <div className="relative">
-            <motion.button
-              className="relative bg-gradient-to-br from-red-400 to-red-500 p-2 rounded-full shadow-md flex items-center justify-center group"
-              whileHover={{
-                scale: 1.1,
-                rotate: [0, -5, 5, -5, 0],
-                transition: { rotate: { repeat: 0, duration: 0.5 } },
-              }}
-              whileTap={{ scale: 0.9 }}
-              onMouseEnter={() => setShowGiftTooltip(true)}
-              onMouseLeave={() => setShowGiftTooltip(false)}
-              onClick={goToGifts}
-            >
-              <Gift className="h-5 w-5 text-white" />
-              {/* 光沢エフェクト */}
-              <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-              {/* キラキラエフェクト */}
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-yellow-300 animate-ping"></span>
-            </motion.button>
-
-            <AnimatePresence>
-              {showGiftTooltip && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                  className="absolute right-0 top-full mt-2 bg-red-100 text-red-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm"
-                >
-                  プレゼントを受け取る
-                  <div className="absolute right-3 -top-1 w-2 h-2 bg-red-100 transform rotate-45"></div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-        </div>
-      </header>
-
-      {/* メインコンテンツ */}
-      <main
-        className="relative w-full min-h-[calc(100vh-60px)] overflow-y-auto pb-20"
-        ref={containerRef}
+      {/* コンテンツラッパー - 初期ロード時に非表示 */}
+      <div
+        className={`${contentVisible ? "opacity-100" : "opacity-0"} transition-opacity duration-500`}
       >
-        {/* 建物配置エリア */}
-        <div
-          className="relative w-full min-h-[900px] py-24 px-6 z-10"
-          onClick={(e) => e.stopPropagation()}
+        {/* ページ全体の霧エフェクト - 徐々に消える */}
+        <AnimatePresence>
+          {isLoaded && isMounted && shouldShowAnimation && (
+            <motion.div
+              className="fixed inset-0 bg-white/50 z-20 pointer-events-none"
+              initial={{ opacity: 1 }}
+              animate={{ opacity: 0 }}
+              transition={{ duration: 3, delay: 2 }}
+            />
+          )}
+        </AnimatePresence>
+
+        {/* ヘッダー */}
+        <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between z-50 sticky top-0 left-0 right-0 font-sans">
+          <div className="flex items-center">
+            <Home className="h-7 w-7 mr-2" />
+            <h1 className="text-1xl font-bold tracking-wide">マイ開拓地</h1>
+            <span className="ml-3 bg-amber-700 px-3 py-1 rounded text-base font-semibold">
+              Lv.{userStats.level}
+            </span>
+          </div>
+
+          <div className="flex items-center space-x-6">
+            {/* コイン表示 */}
+            <div className="flex items-center bg-amber-700/80 px-4 py-2 rounded-full">
+              <Coins className="h-6 w-6 mr-2 text-yellow-300" />
+              <span className="text-lg font-bold text-yellow-50">
+                {userStats.coins}
+              </span>
+            </div>
+
+            <div className="flex items-center">
+              <Clock className="h-6 w-6 mr-2" />
+              <span className="text-lg font-medium">
+                {isMounted
+                  ? currentTime.toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })
+                  : "00:00"}
+              </span>
+            </div>
+
+            <div className="flex items-center">
+              <Calendar className="h-6 w-6 mr-2" />
+              <span className="text-lg font-medium">
+                {userStats.dayStreak}日連続
+              </span>
+            </div>
+
+            <div className="flex items-center">
+              <BookOpen className="h-6 w-6 mr-2" />
+              <span className="text-lg font-medium">
+                {userStats.totalStudyHours}時間
+              </span>
+            </div>
+
+            <div className="flex items-center bg-amber-700 px-4 py-2 rounded">
+              <User className="h-6 w-6 mr-2" />
+              <span className="text-lg font-semibold">
+                {userStats.username}
+              </span>
+            </div>
+
+            {/* ストアボタン */}
+            <div className="relative">
+              <motion.button
+                className="relative bg-gradient-to-br from-amber-500 to-amber-600 p-2 rounded-full shadow-md flex items-center justify-center group"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+                onMouseEnter={() => setShowStoreTooltip(true)}
+                onMouseLeave={() => setShowStoreTooltip(false)}
+                onClick={goToStore}
+              >
+                <ShoppingBag className="h-5 w-5 text-white" />
+                {/* 光沢エフェクト */}
+                <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+              </motion.button>
+
+              <AnimatePresence>
+                {showStoreTooltip && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 5, scale: 0.9 }}
+                    className="absolute right-0 top-full mt-2 bg-amber-100 text-amber-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm"
+                  >
+                    ストアで建物を購入
+                    <div className="absolute right-3 -top-1 w-2 h-2 bg-amber-100 transform rotate-45"></div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+
+            {/* プレゼントボタン */}
+            <div className="relative">
+              <motion.button
+                className="relative bg-gradient-to-br from-red-400 to-red-500 p-2 rounded-full shadow-md flex items-center justify-center group"
+                whileHover={{
+                  scale: 1.1,
+                  rotate: [0, -5, 5, -5, 0],
+                  transition: { rotate: { repeat: 0, duration: 0.5 } },
+                }}
+                whileTap={{ scale: 0.9 }}
+                onMouseEnter={() => setShowGiftTooltip(true)}
+                onMouseLeave={() => setShowGiftTooltip(false)}
+                onClick={goToGifts}
+              >
+                <Gift className="h-5 w-5 text-white" />
+                {/* 光沢エフェクト */}
+                <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+                {/* キラキラエフェクト */}
+                <span className="absolute -top-1 -right-0 w-2.5 h-2.5 rounded-full bg-yellow-300 animate-ping"></span>
+              </motion.button>
+
+              <AnimatePresence>
+                {showGiftTooltip && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 5, scale: 0.9 }}
+                    className="absolute right-0 top-full mt-2 bg-red-100 text-red-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm"
+                  >
+                    プレゼントを受け取る
+                    <div className="absolute right-3 -top-1 w-2 h-2 bg-red-100 transform rotate-45"></div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          </div>
+        </header>
+
+        {/* メインコンテンツ */}
+        <main
+          className="relative w-full min-h-[calc(100vh-60px)] overflow-y-auto pb-40 pt-16 scroll-smooth"
+          ref={containerRef}
+          style={{ willChange: "scroll-position" }}
         >
-          {buildings.map((building) => {
-            const isSelected = selectedBuilding === building.id;
-            const scale = isSelected ? 1.2 : 1;
-            // 位置に基づく確定的な遅延を計算（Math.randomを使わない）
-            const positionBasedDelay = isSelected
-              ? 0.1
-              : isLoaded
-                ? 1.5 + (building.position.x + building.position.y) / 400
+          {/* 建物配置エリア */}
+          <div className="relative h-[90vh] w-full z-10 mx-auto my-8 rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner">
+            {buildings.map((building) => {
+              const isSelected = selectedBuilding === building.id;
+              const scale = isSelected ? 1.2 : 1;
+
+              // 初回演出時のみ遅延を適用、それ以外は即表示
+              const positionBasedDelay = shouldShowAnimation
+                ? isSelected
+                  ? 0.1
+                  : isLoaded
+                    ? 1.5 + (building.position.x + building.position.y) / 400
+                    : 0
                 : 0;
 
-            return (
-              <motion.div
-                key={building.id}
-                initial={{ opacity: 0, scale: 0.2, y: 30 }}
-                animate={{
-                  opacity: isLoaded && isMounted ? 1 : 0,
-                  scale: isLoaded && isMounted ? scale : 0.2,
-                  x: isSelected ? 0 : 0,
-                  y: isSelected ? -20 : isLoaded && isMounted ? 0 : 30,
-                }}
-                className={cn(
-                  "absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300",
-                  building.isUnlocked
-                    ? ""
-                    : "grayscale opacity-70 hover:opacity-90 hover:grayscale-[50%]",
-                  isLoaded && isMounted ? "" : "blur-md",
-                  isSelected && "drop-shadow-[0_0_8px_rgba(217,119,6,0.5)]",
-                )}
-                whileHover={{
-                  y: -10,
-                  scale: 1.1,
-                  transition: {
-                    type: "spring",
-                    stiffness: 500,
-                    damping: 8,
-                    duration: 0.2,
-                  },
-                }}
-                whileTap={{
-                  scale: isSelected ? 1.2 : 0.95,
-                  y: isSelected ? -20 : 0,
-                }}
-                transition={{
-                  delay: positionBasedDelay,
-                  duration: isSelected ? 0.4 : 1.2,
-                  type: "spring",
-                  stiffness: isSelected ? 200 : 50,
-                  damping: isSelected ? 15 : 12,
-                }}
-                style={{
-                  left: `${building.position.x}%`,
-                  top: `${building.position.y}%`,
-                  zIndex: building.id === "house" ? 25 : isSelected ? 30 : 20,
-                }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleBuildingClick(building.id);
-                }}
-              >
-                <div
+              // 初期状態も演出の有無に基づいて変更
+              const initialProps = shouldShowAnimation
+                ? { opacity: 0, scale: 0.2, y: 30 }
+                : { opacity: 1, scale: scale, y: isSelected ? -20 : 0 };
+
+              return (
+                <motion.div
+                  key={building.id}
+                  initial={initialProps}
+                  animate={{
+                    opacity: isLoaded && isMounted ? 1 : 0,
+                    scale: isLoaded && isMounted ? scale : 0.2,
+                    x: isSelected ? 0 : 0,
+                    y: isSelected ? -20 : isLoaded && isMounted ? 0 : 30,
+                  }}
                   className={cn(
-                    "relative flex flex-col items-center transition-all duration-200",
-                    "hover:drop-shadow-[0_15px_15px_rgba(217,119,6,0.25)]",
-                    building.id === "house" && "scale-110",
+                    "absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300 building-item",
+                    building.isUnlocked ? "" : "grayscale opacity-70",
+                    // 初回演出時のみblur効果を適用、それ以外の場合は適用しない
+                    shouldShowAnimation && !(isLoaded && isMounted)
+                      ? "blur-md"
+                      : "",
                   )}
+                  whileHover={{
+                    y: -10,
+                    scale: 1.1,
+                    transition: {
+                      type: "spring",
+                      stiffness: 500,
+                      damping: 8,
+                      duration: 0.2,
+                    },
+                  }}
+                  transition={{
+                    delay: positionBasedDelay,
+                    duration: isSelected
+                      ? 0.4
+                      : shouldShowAnimation
+                        ? 1.2
+                        : 0.3,
+                    type: "spring",
+                    stiffness: isSelected ? 200 : 50,
+                    damping: isSelected ? 15 : 12,
+                  }}
+                  style={{
+                    left: `${building.position.x}%`,
+                    top: `${building.position.y}%`,
+                    zIndex: isSelected ? 30 : 20,
+                  }}
+                  onClick={(e) => handleBuildingClick(building.id, e)}
                 >
-                  {/* ホバー時のグロー効果 */}
                   <div
                     className={cn(
-                      "absolute -inset-2 rounded-xl transition-all duration-300 -z-10",
-                      building.isUnlocked
-                        ? "group-hover:bg-amber-400/10"
-                        : "group-hover:bg-amber-400/5",
+                      "relative flex flex-col items-center transition-all duration-200",
+                      "hover:drop-shadow-[0_15px_15px_rgba(217,119,6,0.25)]",
+                      building.id === "house" && "scale-110",
                     )}
+                  >
+                    {/* ホバー時のグロー効果 */}
+                    <div
+                      className={cn(
+                        "absolute -inset-2 rounded-xl transition-all duration-300 -z-10",
+                        building.isUnlocked
+                          ? "group-hover:bg-amber-400/10"
+                          : "group-hover:bg-amber-400/5",
+                      )}
+                    ></div>
+
+                    {/* 建物画像 */}
+                    <div className="relative w-24 h-24 mb-2">
+                      <Image
+                        src={building.image || "/placeholder.svg"}
+                        alt={building.name}
+                        fill
+                        className={cn(
+                          "object-contain drop-shadow-lg transition-all duration-1000",
+                          isLoaded && isMounted ? "filter-none" : "blur-sm",
+                          building.isUnlocked
+                            ? "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.4)]"
+                            : "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.2)]",
+                        )}
+                      />
+
+                      {/* 選択インジケーター */}
+                      {isSelected && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          className="absolute -top-4 -right-4 bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md"
+                        >
+                          ✓
+                        </motion.div>
+                      )}
+
+                      {/* 選択中インジケーター (リング) */}
+                      {isSelected && (
+                        <motion.div
+                          initial={{ opacity: 0, scale: 1.2 }}
+                          animate={{
+                            opacity: 1,
+                            scale: [1, 1.05, 1],
+                            transition: {
+                              scale: {
+                                repeat: Infinity,
+                                duration: 2,
+                                ease: "easeInOut",
+                                repeatType: "mirror",
+                              },
+                            },
+                          }}
+                          className="absolute -inset-4 rounded-full border-2 border-amber-500/60 z-0"
+                        ></motion.div>
+                      )}
+
+                      {/* 購入インジケーター（未購入の建物） */}
+                      {!building.isUnlocked && (
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <div className="absolute top-0 right-0 bg-amber-600 text-white text-xs px-2 py-1 rounded-full shadow-md flex items-center">
+                            <Coins className="h-3 w-3 mr-1 text-yellow-300" />
+                            <span>{building.price}</span>
+                          </div>
+
+                          <motion.div
+                            className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full"
+                            whileHover={{
+                              backgroundColor: "rgba(0, 0, 0, 0.2)",
+                            }}
+                          >
+                            <motion.div
+                              className="bg-amber-500 text-white p-2 rounded-full shadow-md flex items-center justify-center"
+                              whileHover={{ scale: 1.1 }}
+                            >
+                              <ShoppingBag className="h-8 w-8" />
+                            </motion.div>
+                          </motion.div>
+
+                          <motion.div
+                            className="absolute -bottom-6 bg-amber-700 text-white text-xs px-2 py-1 rounded-full"
+                            whileHover={{
+                              y: -2,
+                              scale: 1.05,
+                              backgroundColor: "rgba(180, 83, 9, 1)",
+                            }}
+                          >
+                            クリックして購入
+                          </motion.div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* 建物名 */}
+                    <div
+                      className={cn(
+                        "px-3 py-1 rounded-full text-center shadow-md transition-all duration-300",
+                        isSelected
+                          ? "bg-amber-600 text-white font-bold"
+                          : building.isUnlocked
+                            ? "bg-white/90 text-amber-800 hover:bg-white hover:shadow-lg"
+                            : "bg-white/70 text-amber-800/80 hover:bg-white/80",
+                      )}
+                    >
+                      <span className="text-sm">{building.name}</span>
+                      {building.level > 1 && (
+                        <span className="ml-1 text-xs">
+                          Lv.{building.level}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </div>
+
+          {/* 雲のアニメーション */}
+          <AnimatePresence>
+            {showClouds && isMounted && (
+              <div className="fixed inset-0 z-40 pointer-events-none">
+                {clouds.map((cloud) => (
+                  <motion.div
+                    key={cloud.id}
+                    initial={{ opacity: 1 }}
+                    animate={{
+                      opacity: 1,
+                      y: [0, 10, 0],
+                      scale: [1, 1.02, 1],
+                      transition: {
+                        y: {
+                          repeat: Infinity,
+                          duration: 5 + (cloud.id % 5),
+                          ease: "easeInOut",
+                          repeatType: "mirror",
+                        },
+                        scale: {
+                          repeat: Infinity,
+                          duration: 4 + (cloud.id % 3),
+                          ease: "easeInOut",
+                          repeatType: "mirror",
+                        },
+                      },
+                    }}
+                    exit={{
+                      opacity: 0,
+                      scale: cloud.scale || 1.5,
+                      transition: {
+                        delay: cloud.delay,
+                        duration: 2,
+                        ease: "easeOut",
+                      },
+                    }}
+                    className="absolute"
+                    style={{
+                      left: `${cloud.x}%`,
+                      top: `${cloud.y}%`,
+                      width: cloud.size,
+                      height: cloud.size / 1.8,
+                    }}
+                  >
+                    <div
+                      className="w-full h-full bg-gradient-radial from-white via-white to-white/60 rounded-full blur-lg"
+                      style={{
+                        boxShadow:
+                          "0 0 40px 30px rgba(255, 255, 255, 0.8), 0 0 100px 60px rgba(255, 255, 255, 0.5)",
+                      }}
+                    />
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
+
+          {/* 左上のタイトル */}
+          <motion.div
+            className="fixed top-24 left-8 z-50 text-left"
+            initial={
+              shouldShowAnimation
+                ? { opacity: 0, x: -50 }
+                : { opacity: 1, x: 0 }
+            }
+            animate={{
+              opacity: isLoaded && isMounted ? 1 : 0,
+              x: isLoaded && isMounted ? 0 : -50,
+            }}
+            transition={{
+              delay: shouldShowAnimation ? 1 : 0,
+              duration: shouldShowAnimation ? 0.8 : 0.2,
+            }}
+          >
+            <div className="relative p-4 rounded-lg overflow-hidden backdrop-blur-sm border-2 border-amber-500/30 shadow-xl">
+              {/* 背景グラデーション */}
+              <div className="absolute inset-0 bg-gradient-to-br from-amber-100/90 via-amber-50/80 to-white/70 z-0"></div>
+
+              {/* キラキラ効果 */}
+              <div className="absolute top-1 left-2 w-3 h-3 rounded-full bg-white/80 blur-[1px]"></div>
+              <div className="absolute top-3 right-6 w-2 h-2 rounded-full bg-white/80 blur-[1px]"></div>
+              <div className="absolute bottom-3 left-4 w-2 h-2 rounded-full bg-white/80 blur-[1px]"></div>
+
+              <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] relative z-10 tracking-wide">
+                マイ開拓地へようこそ
+              </h2>
+              <p className="mt-3 text-lg font-medium text-amber-800 relative z-10 leading-snug drop-shadow-sm">
+                建物を選んで
+                <span className="font-bold underline decoration-amber-500/60 decoration-2 underline-offset-2">
+                  自習室を作成
+                </span>
+                したり、
+                <span className="font-bold underline decoration-amber-500/60 decoration-2 underline-offset-2">
+                  参加
+                </span>
+                したりできます
+              </p>
+            </div>
+          </motion.div>
+
+          {/* ボタンエリア - 横並び右配置 */}
+          <AnimatePresence>
+            {showButtons && isMounted && (
+              <motion.div
+                className="fixed top-24 right-5 transform -translate-x-1/2 z-50 flex flex-row space-x-6"
+                initial={
+                  shouldShowAnimation
+                    ? { opacity: 0, y: 50 }
+                    : { opacity: 1, y: 0 }
+                }
+                animate={{ opacity: 1, y: 0 }}
+                transition={{
+                  duration: shouldShowAnimation ? 0.5 : 0.2,
+                  type: "spring",
+                }}
+              >
+                <motion.div
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95, y: 2 }}
+                  className="relative overflow-hidden group"
+                  style={{ perspective: "1000px" }}
+                >
+                  {/* 底面の影 - 最下層 */}
+                  <div className="absolute -bottom-3 left-1 right-1 h-6 bg-amber-950/20 blur-md rounded-full z-0"></div>
+
+                  {/* 背面パネル - 押し込み効果用 */}
+                  <div
+                    className="absolute -bottom-2 -right-1 left-1 top-2 rounded-lg bg-amber-800"
+                    style={{
+                      transform: "translateZ(-10px)",
+                      boxShadow: "inset 0 -2px 6px 1px rgba(0,0,0,0.2)",
+                    }}
                   ></div>
 
-                  {/* 建物画像 */}
-                  <div
-                    className={cn(
-                      "relative mb-2",
-                      building.id === "house" ? "w-48 h-48" : "w-24 h-24",
-                    )}
-                  >
-                    <Image
-                      src={building.image || "/placeholder.svg"}
-                      alt={building.name}
-                      fill
-                      className={cn(
-                        "object-contain drop-shadow-lg transition-all duration-1000",
-                        isLoaded && isMounted ? "filter-none" : "blur-sm",
-                        building.isUnlocked
-                          ? "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.4)]"
-                          : "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.2)]",
-                      )}
-                    />
-
-                    {/* 選択インジケーター */}
-                    {isSelected && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 0.8 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        exit={{ opacity: 0, scale: 0.8 }}
-                        className="absolute -top-4 -right-4 bg-amber-500 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md"
-                      >
-                        ✓
-                      </motion.div>
-                    )}
-
-                    {/* 選択中インジケーター (リング) */}
-                    {isSelected && (
-                      <motion.div
-                        initial={{ opacity: 0, scale: 1.2 }}
-                        animate={{
-                          opacity: 1,
-                          scale: [1, 1.05, 1],
-                          transition: {
-                            scale: {
-                              repeat: Infinity,
-                              duration: 2,
-                              ease: "easeInOut",
-                              repeatType: "mirror",
-                            },
-                          },
-                        }}
-                        exit={{ opacity: 0, scale: 1.2 }}
-                        className="absolute -inset-4 rounded-full border-2 border-amber-500/60 z-0 shadow-[0_0_15px_rgba(217,119,6,0.3)]"
-                      ></motion.div>
-                    )}
-
-                    {/* 購入インジケーター（未購入の建物） */}
-                    {!building.isUnlocked && (
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <div className="absolute top-0 right-0 bg-amber-600 text-white text-xs px-2 py-1 rounded-full shadow-md flex items-center">
-                          <Coins className="h-3 w-3 mr-1 text-yellow-300" />
-                          <span>{building.price}</span>
-                        </div>
-
-                        <motion.div
-                          className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-full"
-                          whileHover={{
-                            backgroundColor: "rgba(0, 0, 0, 0.2)",
-                          }}
-                        >
-                          <motion.div
-                            className="bg-amber-500 text-white p-2 rounded-full shadow-md flex items-center justify-center"
-                            whileHover={{ scale: 1.1 }}
-                          >
-                            <ShoppingBag className="h-8 w-8" />
-                          </motion.div>
-                        </motion.div>
-
-                        <motion.div
-                          className="absolute -bottom-12 bg-amber-700 text-white text-xs px-3 py-1.5 rounded-full shadow-md border border-amber-600/30"
-                          whileHover={{
-                            y: -2,
-                            scale: 1.05,
-                            backgroundColor: "rgba(180, 83, 9, 1)",
-                          }}
-                        >
-                          <span className="whitespace-nowrap">
-                            クリックして購入
-                          </span>
-                        </motion.div>
-                      </div>
-                    )}
-                  </div>
-
-                  {/* 建物名 */}
-                  <div
-                    className={cn(
-                      "px-3 py-1 rounded-full text-center shadow-md transition-all duration-300",
-                      isSelected
-                        ? "bg-amber-600 text-white font-bold"
-                        : building.isUnlocked
-                          ? "bg-white/90 text-amber-800 hover:bg-white hover:shadow-lg"
-                          : "bg-white/70 text-amber-800/80 hover:bg-white/80",
-                      !building.isUnlocked && "mt-8",
-                    )}
-                  >
-                    <span className="text-sm">{building.name}</span>
-                    {building.level > 1 && (
-                      <span className="ml-1 text-xs">Lv.{building.level}</span>
-                    )}
-                  </div>
-                </div>
-              </motion.div>
-            );
-          })}
-        </div>
-
-        {/* 雲のアニメーション */}
-        <AnimatePresence>
-          {showClouds && isMounted && (
-            <div className="absolute inset-0 z-40 pointer-events-none">
-              {clouds.map((cloud) => (
-                <motion.div
-                  key={cloud.id}
-                  initial={{ opacity: 1 }}
-                  animate={{
-                    opacity: 1,
-                    y: [0, 10, 0],
-                    scale: [1, 1.02, 1],
-                    transition: {
-                      y: {
-                        repeat: Infinity,
-                        duration: 5 + (cloud.id % 5),
-                        ease: "easeInOut",
-                        repeatType: "mirror",
-                      },
-                      scale: {
-                        repeat: Infinity,
-                        duration: 4 + (cloud.id % 3),
-                        ease: "easeInOut",
-                        repeatType: "mirror",
-                      },
-                    },
-                  }}
-                  exit={{
-                    opacity: 0,
-                    scale: cloud.scale || 1.5,
-                    transition: {
-                      delay: cloud.delay,
-                      duration: 2,
-                      ease: "easeOut",
-                    },
-                  }}
-                  className="absolute"
-                  style={{
-                    left: `${cloud.x}%`,
-                    top: `${cloud.y}%`,
-                    width: cloud.size,
-                    height: cloud.size / 1.8,
-                  }}
-                >
-                  <div
-                    className="w-full h-full bg-gradient-radial from-white via-white to-white/60 rounded-full blur-lg"
+                  <button
+                    onClick={() => goToCreateRoom()}
+                    className="relative w-48 h-12 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-lg flex items-center justify-center z-10 border-2 border-amber-500 group-hover:border-amber-400 transition-all duration-300"
                     style={{
                       boxShadow:
-                        "0 0 40px 30px rgba(255, 255, 255, 0.8), 0 0 100px 60px rgba(255, 255, 255, 0.5)",
+                        "0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1), 0 -2px 0 0 rgba(255, 255, 255, 0.3) inset, 0 2px 0 0 rgba(0, 0, 0, 0.2) inset",
+                      transform: "translateZ(0px)",
+                      transformStyle: "preserve-3d",
                     }}
-                  />
+                  >
+                    {/* 左上ハイライト - 光の反射効果 */}
+                    <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-gradient-to-br from-white/40 to-transparent rounded-tl-lg"></div>
+
+                    {/* 右下シャドウ - 奥行き感 */}
+                    <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-black/20 to-transparent rounded-br-lg"></div>
+
+                    {/* エッジハイライト - 立体的な縁取り */}
+                    <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 rounded-lg"></div>
+
+                    {/* ボタンテキスト */}
+                    <span className="text-xl font-bold relative z-10 drop-shadow-sm group-hover:text-white transition-colors duration-300">
+                      ルームを作成
+                    </span>
+
+                    {/* 押し込み時の影効果 */}
+                    <div className="absolute inset-0 opacity-0 group-active:opacity-100 bg-black/10 transition-opacity duration-150"></div>
+                  </button>
                 </motion.div>
-              ))}
-            </div>
-          )}
-        </AnimatePresence>
 
-        {/* 左上のタイトル */}
-        <motion.div
-          className="absolute top-8 left-8 z-20 text-left"
-          initial={{ opacity: 0, x: -50 }}
-          animate={{
-            opacity: isLoaded && isMounted ? 1 : 0,
-            x: isLoaded && isMounted ? 0 : -50,
-          }}
-          transition={{ delay: 1, duration: 0.8 }}
-        >
-          <div className="relative p-4 rounded-lg overflow-hidden backdrop-blur-sm border-2 border-amber-500/30 shadow-xl">
-            {/* 背景グラデーション */}
-            <div className="absolute inset-0 bg-gradient-to-br from-amber-100/90 via-amber-50/80 to-white/70 z-0"></div>
+                <motion.div
+                  whileHover={{ scale: 1.05, y: -5 }}
+                  whileTap={{ scale: 0.95, y: 2 }}
+                  className="relative overflow-hidden group"
+                  style={{ perspective: "1000px" }}
+                >
+                  {/* 底面の影 - 最下層 */}
+                  <div className="absolute -bottom-3 left-1 right-1 h-6 bg-amber-950/20 blur-md rounded-full z-0"></div>
 
-            {/* キラキラ効果 */}
-            <div className="absolute top-1 left-2 w-3 h-3 rounded-full bg-white/80 blur-[1px]"></div>
-            <div className="absolute top-3 right-6 w-2 h-2 rounded-full bg-white/80 blur-[1px]"></div>
-            <div className="absolute bottom-3 left-4 w-2 h-2 rounded-full bg-white/80 blur-[1px]"></div>
+                  {/* 背面パネル - 押し込み効果用 */}
+                  <div
+                    className="absolute -bottom-2 -right-1 left-1 top-2 rounded-lg bg-amber-900"
+                    style={{
+                      transform: "translateZ(-10px)",
+                      boxShadow: "inset 0 -2px 6px 1px rgba(0,0,0,0.2)",
+                    }}
+                  ></div>
 
-            <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] relative z-10 tracking-wide">
-              マイ開拓地へようこそ
-            </h2>
-            <p className="mt-3 text-lg font-medium text-amber-800 relative z-10 leading-snug drop-shadow-sm">
-              建物を選んで
-              <span className="font-bold underline decoration-amber-500/60 decoration-2 underline-offset-2">
-                自習室を作成
-              </span>
-              したり、
-              <span className="font-bold underline decoration-amber-500/60 decoration-2 underline-offset-2">
-                参加
-              </span>
-              したりできます
-            </p>
-          </div>
-        </motion.div>
+                  <button
+                    onClick={goToJoinRoom}
+                    className="relative w-48 h-12 bg-gradient-to-br from-amber-600 to-amber-700 text-white rounded-lg flex items-center justify-center z-10 border-2 border-amber-600 group-hover:border-amber-500 transition-all duration-300"
+                    style={{
+                      boxShadow:
+                        "0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1), 0 -2px 0 0 rgba(255, 255, 255, 0.3) inset, 0 2px 0 0 rgba(0, 0, 0, 0.2) inset",
+                      transform: "translateZ(0px)",
+                      transformStyle: "preserve-3d",
+                    }}
+                  >
+                    {/* 左上ハイライト - 光の反射効果 */}
+                    <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-gradient-to-br from-white/40 to-transparent rounded-tl-lg"></div>
 
-        {/* ボタンエリア - 横並び右配置 */}
-        <AnimatePresence>
-          {showButtons && isMounted && (
-            <motion.div
-              className="absolute top-8 right-5 transform -translate-x-1/2 z-30 flex flex-row space-x-6"
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, type: "spring" }}
-            >
+                    {/* 右下シャドウ - 奥行き感 */}
+                    <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-black/20 to-transparent rounded-br-lg"></div>
+
+                    {/* エッジハイライト - 立体的な縁取り */}
+                    <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 rounded-lg"></div>
+
+                    {/* ボタンテキスト */}
+                    <span className="text-xl font-bold relative z-10 drop-shadow-sm group-hover:text-white transition-colors duration-300">
+                      ルームに参加
+                    </span>
+
+                    {/* 押し込み時の影効果 */}
+                    <div className="absolute inset-0 opacity-0 group-active:opacity-100 bg-black/10 transition-opacity duration-150"></div>
+                  </button>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* 購入ダイアログ */}
+          <AnimatePresence>
+            {showPurchaseDialog && (
               <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                whileTap={{ scale: 0.95, y: 2 }}
-                className="relative overflow-hidden group"
-                style={{ perspective: "1000px" }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPurchaseDialog(null);
+                }}
               >
-                {/* 底面の影 - 最下層 */}
-                <div className="absolute -bottom-3 left-1 right-1 h-6 bg-amber-950/20 blur-md rounded-full z-0"></div>
-
-                {/* 背面パネル - 押し込み効果用 */}
-                <div
-                  className="absolute -bottom-2 -right-1 left-1 top-2 rounded-lg bg-amber-800"
-                  style={{
-                    transform: "translateZ(-10px)",
-                    boxShadow: "inset 0 -2px 6px 1px rgba(0,0,0,0.2)",
-                  }}
-                ></div>
-
-                <button
-                  onClick={() => setShowBuildingSelectionModal(true)}
-                  className="relative w-48 h-12 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-lg flex items-center justify-center z-10 border-2 border-amber-500 group-hover:border-amber-400 transition-all duration-300"
-                  style={{
-                    boxShadow:
-                      "0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1), 0 -2px 0 0 rgba(255, 255, 255, 0.3) inset, 0 2px 0 0 rgba(0, 0, 0, 0.2) inset",
-                    transform: "translateZ(0px)",
-                    transformStyle: "preserve-3d",
+                <motion.div
+                  initial={{ scale: 0.8, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.8, y: 20 }}
+                  className="bg-gradient-to-b from-amber-50 to-amber-100 p-6 rounded-2xl shadow-xl max-w-md mx-4 relative"
+                  onClick={(e) => {
+                    e.stopPropagation();
                   }}
                 >
-                  {/* 左上ハイライト - 光の反射効果 */}
-                  <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-gradient-to-br from-white/40 to-transparent rounded-tl-lg"></div>
-
-                  {/* 右下シャドウ - 奥行き感 */}
-                  <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-black/20 to-transparent rounded-br-lg"></div>
-
-                  {/* エッジハイライト - 立体的な縁取り */}
-                  <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 rounded-lg"></div>
-
-                  {/* ボタンテキスト */}
-                  <span className="text-xl font-bold relative z-10 drop-shadow-sm group-hover:text-white transition-colors duration-300">
-                    ルームを作成
-                  </span>
-
-                  {/* 押し込み時の影効果 */}
-                  <div className="absolute inset-0 opacity-0 group-active:opacity-100 bg-black/10 transition-opacity duration-150"></div>
-                </button>
-              </motion.div>
-
-              <motion.div
-                whileHover={{ scale: 1.05, y: -5 }}
-                whileTap={{ scale: 0.95, y: 2 }}
-                className="relative overflow-hidden group"
-                style={{ perspective: "1000px" }}
-              >
-                {/* 底面の影 - 最下層 */}
-                <div className="absolute -bottom-3 left-1 right-1 h-6 bg-amber-950/20 blur-md rounded-full z-0"></div>
-
-                {/* 背面パネル - 押し込み効果用 */}
-                <div
-                  className="absolute -bottom-2 -right-1 left-1 top-2 rounded-lg bg-amber-900"
-                  style={{
-                    transform: "translateZ(-10px)",
-                    boxShadow: "inset 0 -2px 6px 1px rgba(0,0,0,0.2)",
-                  }}
-                ></div>
-
-                <button
-                  onClick={goToJoinRoom}
-                  className="relative w-48 h-12 bg-gradient-to-br from-amber-600 to-amber-700 text-white rounded-lg flex items-center justify-center z-10 border-2 border-amber-600 group-hover:border-amber-500 transition-all duration-300"
-                  style={{
-                    boxShadow:
-                      "0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -2px rgba(0, 0, 0, 0.1), 0 -2px 0 0 rgba(255, 255, 255, 0.3) inset, 0 2px 0 0 rgba(0, 0, 0, 0.2) inset",
-                    transform: "translateZ(0px)",
-                    transformStyle: "preserve-3d",
-                  }}
-                >
-                  {/* 左上ハイライト - 光の反射効果 */}
-                  <div className="absolute top-0 left-0 w-1/3 h-1/3 bg-gradient-to-br from-white/40 to-transparent rounded-tl-lg"></div>
-
-                  {/* 右下シャドウ - 奥行き感 */}
-                  <div className="absolute bottom-0 right-0 w-1/2 h-1/2 bg-gradient-to-tl from-black/20 to-transparent rounded-br-lg"></div>
-
-                  {/* エッジハイライト - 立体的な縁取り */}
-                  <div className="absolute inset-0 border-t-2 border-l-2 border-white/10 rounded-lg"></div>
-
-                  {/* ボタンテキスト */}
-                  <span className="text-xl font-bold relative z-10 drop-shadow-sm group-hover:text-white transition-colors duration-300">
-                    ルームに参加
-                  </span>
-
-                  {/* 押し込み時の影効果 */}
-                  <div className="absolute inset-0 opacity-0 group-active:opacity-100 bg-black/10 transition-opacity duration-150"></div>
-                </button>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* 購入ダイアログ */}
-        <AnimatePresence>
-          {showPurchaseDialog && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-              onClick={() => {
-                setShowPurchaseDialog(null);
-                setSelectedBuilding(null);
-              }}
-            >
-              <motion.div
-                initial={{ scale: 0.8, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, y: 20 }}
-                className="bg-gradient-to-b from-amber-50 to-amber-100 p-6 rounded-2xl shadow-xl max-w-md mx-4 relative"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-amber-500 p-3 rounded-full shadow-lg">
-                  <ShoppingBag className="h-8 w-8 text-white" />
-                </div>
-
-                <h3 className="text-2xl font-bold text-amber-900 mt-6 mb-4 text-center">
-                  {showPurchaseDialog.name}を購入しますか？
-                </h3>
-
-                <div className="bg-white/60 p-4 rounded-xl mb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="text-amber-800">価格</span>
-                    <div className="flex items-center text-amber-900 font-bold">
-                      <Coins className="h-4 w-4 mr-1 text-yellow-500" />
-                      <span>{showPurchaseDialog.price} コイン</span>
-                    </div>
+                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-amber-500 p-3 rounded-full shadow-lg">
+                    <ShoppingBag className="h-8 w-8 text-white" />
                   </div>
 
-                  <div className="flex justify-between items-center">
-                    <span className="text-amber-800">所持コイン</span>
-                    <div className="flex items-center text-amber-900 font-bold">
-                      <Coins className="h-4 w-4 mr-1 text-yellow-500" />
-                      <span>{userStats.coins} コイン</span>
-                    </div>
-                  </div>
+                  <h3 className="text-2xl font-bold text-amber-900 mt-6 mb-4 text-center">
+                    {showPurchaseDialog.name}を購入しますか？
+                  </h3>
 
-                  <div className="mt-3 pt-3 border-t border-amber-200">
+                  <div className="bg-white/60 p-4 rounded-xl mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-amber-800">価格</span>
+                      <div className="flex items-center text-amber-900 font-bold">
+                        <Coins className="h-4 w-4 mr-1 text-yellow-500" />
+                        <span>{showPurchaseDialog.price} コイン</span>
+                      </div>
+                    </div>
+
                     <div className="flex justify-between items-center">
-                      <span className="text-amber-800">購入後残高</span>
-                      <div
-                        className="flex items-center font-bold"
-                        style={{
-                          color:
-                            userStats.coins >= showPurchaseDialog.price
-                              ? "#65a30d"
-                              : "#dc2626",
-                        }}
-                      >
-                        <Coins
-                          className="h-4 w-4 mr-1"
+                      <span className="text-amber-800">所持コイン</span>
+                      <div className="flex items-center text-amber-900 font-bold">
+                        <Coins className="h-4 w-4 mr-1 text-yellow-500" />
+                        <span>{userStats.coins} コイン</span>
+                      </div>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-amber-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-amber-800">購入後残高</span>
+                        <div
+                          className="flex items-center font-bold"
                           style={{
                             color:
                               userStats.coins >= showPurchaseDialog.price
                                 ? "#65a30d"
                                 : "#dc2626",
                           }}
-                        />
-                        <span>
-                          {userStats.coins - showPurchaseDialog.price} コイン
-                        </span>
+                        >
+                          <Coins
+                            className="h-4 w-4 mr-1"
+                            style={{
+                              color:
+                                userStats.coins >= showPurchaseDialog.price
+                                  ? "#65a30d"
+                                  : "#dc2626",
+                            }}
+                          />
+                          <span>
+                            {userStats.coins - showPurchaseDialog.price} コイン
+                          </span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
 
-                <div className="flex space-x-3">
-                  <button
-                    className="flex-1 py-3 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-colors"
-                    onClick={() => {
-                      setShowPurchaseDialog(null);
-                      setSelectedBuilding(null);
-                    }}
-                  >
-                    キャンセル
-                  </button>
-
-                  <button
-                    className={cn(
-                      "flex-1 py-3 rounded-lg font-medium transition-colors flex justify-center items-center",
-                      userStats.coins >= showPurchaseDialog.price
-                        ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
-                        : "bg-gray-300 text-gray-500 cursor-not-allowed",
-                    )}
-                    onClick={() =>
-                      userStats.coins >= showPurchaseDialog.price &&
-                      purchaseBuilding(showPurchaseDialog)
-                    }
-                    disabled={userStats.coins < showPurchaseDialog.price}
-                  >
-                    購入する
-                    <ShoppingBag className="h-5 w-5 ml-2" />
-                  </button>
-                </div>
-
-                {userStats.coins < showPurchaseDialog.price && (
-                  <div className="mt-3 text-center text-sm text-red-500">
-                    コインが足りません。勉強を続けてコインを集めましょう！
-                  </div>
-                )}
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* 購入成功通知 */}
-        <AnimatePresence>
-          {purchaseSuccess && (
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -50 }}
-              transition={{ type: "spring", damping: 15 }}
-              className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-50 to-green-100 px-5 py-3 rounded-lg shadow-lg z-50 border-2 border-green-200 flex items-center"
-            >
-              <div className="bg-green-500 p-2 rounded-full mr-3">
-                <ShoppingBag className="h-5 w-5 text-white" />
-              </div>
-              <div className="text-green-800 font-medium">
-                {purchaseSuccess.name}を購入しました！
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* 建物詳細ポップアップ */}
-        <AnimatePresence>
-          {showBuildingDetails && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-40"
-              onClick={() => {
-                setShowBuildingDetails(null);
-                setSelectedBuilding(null);
-              }}
-            >
-              <motion.div
-                initial={{ scale: 0.8, y: 20, opacity: 0 }}
-                animate={{ scale: 1, y: 0, opacity: 1 }}
-                exit={{ scale: 0.8, y: 20, opacity: 0 }}
-                transition={{ type: "spring", damping: 20 }}
-                className="relative max-w-2xl mx-4 z-50"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* 建物画像 - ポップアップの外にはみ出すように配置 */}
-                <div className="absolute -top-16 -left-16 z-10">
-                  <div className="relative w-48 h-48 overflow-hidden">
-                    <Image
-                      src={showBuildingDetails.image || "/placeholder.svg"}
-                      alt={showBuildingDetails.name}
-                      fill
-                      className="object-contain"
-                    />
-                  </div>
-                </div>
-
-                <div className="relative bg-gradient-to-b from-amber-50 to-amber-100 rounded-2xl shadow-xl overflow-hidden pl-24">
-                  {/* 装飾的な上部バー */}
-                  <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-amber-400 via-amber-500 to-amber-400"></div>
-
-                  {/* 右上の閉じるボタン */}
-                  <div className="absolute top-3 right-3">
+                  <div className="flex space-x-3">
                     <button
+                      className="flex-1 py-3 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-colors"
+                      onClick={() => setShowPurchaseDialog(null)}
+                    >
+                      キャンセル
+                    </button>
+
+                    <button
+                      className={cn(
+                        "flex-1 py-3 rounded-lg font-medium transition-colors flex justify-center items-center",
+                        userStats.coins >= showPurchaseDialog.price
+                          ? "bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+                          : "bg-gray-300 text-gray-500 cursor-not-allowed",
+                      )}
+                      onClick={() =>
+                        userStats.coins >= showPurchaseDialog.price &&
+                        purchaseBuilding(showPurchaseDialog)
+                      }
+                      disabled={userStats.coins < showPurchaseDialog.price}
+                    >
+                      購入する
+                      <ShoppingBag className="h-5 w-5 ml-2" />
+                    </button>
+                  </div>
+
+                  {userStats.coins < showPurchaseDialog.price && (
+                    <div className="mt-3 text-center text-sm text-red-500">
+                      コインが足りません。勉強を続けてコインを集めましょう！
+                    </div>
+                  )}
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* 購入成功通知 */}
+          <AnimatePresence>
+            {purchaseSuccess && (
+              <motion.div
+                initial={{ opacity: 0, y: 50 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -50 }}
+                transition={{ type: "spring", damping: 15 }}
+                className="fixed bottom-8 left-1/2 transform -translate-x-1/2 bg-gradient-to-r from-green-50 to-green-100 px-5 py-3 rounded-lg shadow-lg z-50 border-2 border-green-200 flex items-center"
+              >
+                <div className="bg-green-500 p-2 rounded-full mr-3">
+                  <ShoppingBag className="h-5 w-5 text-white" />
+                </div>
+                <div className="text-green-800 font-medium">
+                  {purchaseSuccess.name}を購入しました！
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* 建物詳細ポップアップ */}
+          <AnimatePresence>
+            {showBuildingDetails && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowBuildingDetails(null);
+                  setSelectedBuilding(null);
+                }}
+              >
+                <motion.div
+                  initial={{ scale: 0.8, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.8, y: 20 }}
+                  className="bg-gradient-to-b from-amber-50 to-amber-100 p-6 rounded-2xl shadow-xl max-w-md mx-4 relative"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-amber-500 p-3 rounded-full shadow-lg">
+                    <Home className="h-8 w-8 text-white" />
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-amber-900 mt-6 mb-2 text-center">
+                    {showBuildingDetails.name}
+                  </h3>
+
+                  <div className="flex justify-center mb-4">
+                    <div className="relative w-32 h-32">
+                      <Image
+                        src={showBuildingDetails.image || "/placeholder.svg"}
+                        alt={showBuildingDetails.name}
+                        fill
+                        className="object-contain drop-shadow-lg"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-white/60 p-4 rounded-xl mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-amber-800">レベル</span>
+                      <span className="font-bold text-amber-900">
+                        Lv.{showBuildingDetails.level}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-amber-200">
+                      <p className="text-amber-800 text-sm leading-relaxed">
+                        {showBuildingDetails.description ||
+                          "詳細情報がありません。"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      className="flex-1 py-3 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-colors"
                       onClick={() => {
                         setShowBuildingDetails(null);
                         setSelectedBuilding(null);
                       }}
-                      className="text-amber-500 hover:text-amber-700 transition-colors"
                     >
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="h-6 w-6"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
+                      閉じる
+                    </button>
+
+                    <button
+                      className="flex-1 py-3 rounded-lg font-medium transition-colors flex justify-center items-center bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+                      onClick={() => {
+                        setShowBuildingDetails(null);
+                        setSelectedBuilding(null);
+                        goToCreateRoom();
+                      }}
+                    >
+                      自習ルーム作成
+                      <Home className="h-5 w-5 ml-2" />
                     </button>
                   </div>
-
-                  <div className="pt-6 pb-6 pr-6 pl-4">
-                    <div className="pt-4">
-                      {/* 建物名とレベル */}
-                      <div className="mb-4">
-                        <h3 className="text-2xl font-bold text-amber-900 mb-2">
-                          {showBuildingDetails.name}
-                        </h3>
-
-                        <div className="flex items-center space-x-2">
-                          <div className="bg-amber-600 text-white text-xs font-bold px-2 py-1 rounded">
-                            Lv.{showBuildingDetails.level}
-                          </div>
-                          {showBuildingDetails.id === "house" && (
-                            <div className="bg-blue-500 text-white text-xs font-bold px-2 py-1 rounded">
-                              マイ拠点
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* キラキラエフェクト - 装飾要素 */}
-                      <div className="absolute top-12 right-12 w-3 h-3 rounded-full bg-white/80 blur-[1px]"></div>
-                      <div className="absolute bottom-12 right-20 w-2 h-2 rounded-full bg-white/70 blur-[1px]"></div>
-
-                      {/* 建物説明 */}
-                      <div className="bg-white/40 p-4 rounded-lg backdrop-blur-sm mb-6 shadow-inner">
-                        <p className="text-amber-800 text-base leading-relaxed">
-                          {showBuildingDetails.description ||
-                            "説明はまだ準備中です。"}
-                        </p>
-                      </div>
-
-                      {/* 操作ボタン */}
-                      <div className="flex justify-end space-x-3">
-                        <button
-                          onClick={() => {
-                            setShowBuildingDetails(null);
-                            setSelectedBuilding(null);
-                            // 実際には自習室作成などの処理へ
-                            handleBuildingSelection(showBuildingDetails.id);
-                          }}
-                          className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-600 hover:to-amber-700 text-white font-medium px-5 py-2 rounded-lg shadow-md transition-all duration-300 flex items-center"
-                        >
-                          <BookOpen className="h-5 w-5 mr-2" />
-                          自習室を作成
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                </motion.div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        {/* 建物選択モーダル */}
-        <AnimatePresence>
-          {showBuildingSelectionModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50"
-              onClick={() => setShowBuildingSelectionModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.8, y: 20 }}
-                animate={{ scale: 1, y: 0 }}
-                exit={{ scale: 0.8, y: 20 }}
-                className="bg-gradient-to-b from-amber-50 to-amber-100 p-6 rounded-2xl shadow-xl max-w-3xl mx-4 relative"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-amber-500 p-3 rounded-full shadow-lg">
-                  <BookOpen className="h-8 w-8 text-white" />
-                </div>
-
-                <h3 className="text-2xl font-bold text-amber-900 mt-6 mb-6 text-center">
-                  どの建物で自習室を作成しますか？
-                </h3>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-                  {buildings
-                    .filter((building) => building.isUnlocked)
-                    .map((building) => (
-                      <motion.div
-                        key={building.id}
-                        whileHover={{ scale: 1.03, y: -5 }}
-                        whileTap={{ scale: 0.98 }}
-                        className="bg-white/70 rounded-lg p-4 flex flex-col items-center cursor-pointer hover:bg-white hover:shadow-md transition-all duration-200"
-                        onClick={() => handleBuildingSelection(building.id)}
-                      >
-                        <div className="relative w-24 h-24 mb-3">
-                          <Image
-                            src={building.image || "/placeholder.svg"}
-                            alt={building.name}
-                            fill
-                            className="object-contain"
-                          />
-                        </div>
-                        <h4 className="font-bold text-amber-800">
-                          {building.name}
-                        </h4>
-                        <div className="mt-1 bg-amber-600 text-white text-xs font-bold px-2 py-1 rounded">
-                          Lv.{building.level}
-                        </div>
-                        <p className="mt-2 text-sm text-amber-700 text-center line-clamp-2">
-                          {building.description?.substring(0, 50)}
-                          {building.description &&
-                          building.description.length > 50
-                            ? "..."
-                            : ""}
-                        </p>
-                      </motion.div>
-                    ))}
-                </div>
-
-                {buildings.filter((building) => building.isUnlocked).length ===
-                  0 && (
-                  <div className="bg-amber-100 p-4 rounded-lg text-center text-amber-800">
-                    自習室を作成できる建物がありません。まずはマイハウスを解放しましょう。
-                  </div>
-                )}
-
-                <div className="flex justify-end mt-4">
-                  <button
-                    className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
-                    onClick={() => setShowBuildingSelectionModal(false)}
-                  >
-                    キャンセル
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </main>
+            )}
+          </AnimatePresence>
+        </main>
+      </div>
     </div>
   );
 }
