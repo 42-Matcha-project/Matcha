@@ -287,27 +287,27 @@ export default function SettlementPage() {
       </AnimatePresence>
 
       {/* ヘッダー */}
-      <header className="bg-amber-800 text-amber-50 p-3 flex items-center justify-between shadow-md z-50 relative">
+      <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between shadow-md z-50 relative font-sans">
         <div className="flex items-center">
-          <Home className="h-6 w-6 mr-2" />
-          <h1 className="text-lg font-bold">マイ開拓地</h1>
-          <span className="ml-2 bg-amber-700 px-2 py-0.5 rounded text-xs">
+          <Home className="h-7 w-7 mr-2" />
+          <h1 className="text-1xl font-bold tracking-wide">マイ開拓地</h1>
+          <span className="ml-3 bg-amber-700 px-3 py-1 rounded text-base font-semibold">
             Lv.{userStats.level}
           </span>
         </div>
 
-        <div className="flex items-center space-x-4">
+        <div className="flex items-center space-x-6">
           {/* コイン表示 */}
-          <div className="flex items-center bg-amber-700/80 px-2 py-1 rounded-full">
-            <Coins className="h-4 w-4 mr-1 text-yellow-300" />
-            <span className="text-sm font-bold text-yellow-50">
+          <div className="flex items-center bg-amber-700/80 px-4 py-2 rounded-full">
+            <Coins className="h-6 w-6 mr-2 text-yellow-300" />
+            <span className="text-lg font-bold text-yellow-50">
               {userStats.coins}
             </span>
           </div>
 
           <div className="flex items-center">
-            <Clock className="h-4 w-4 mr-1" />
-            <span className="text-sm">
+            <Clock className="h-6 w-6 mr-2" />
+            <span className="text-lg font-medium">
               {isMounted
                 ? currentTime.toLocaleTimeString([], {
                     hour: "2-digit",
@@ -318,18 +318,22 @@ export default function SettlementPage() {
           </div>
 
           <div className="flex items-center">
-            <Calendar className="h-4 w-4 mr-1" />
-            <span className="text-sm">{userStats.dayStreak}日連続</span>
+            <Calendar className="h-6 w-6 mr-2" />
+            <span className="text-lg font-medium">
+              {userStats.dayStreak}日連続
+            </span>
           </div>
 
           <div className="flex items-center">
-            <BookOpen className="h-4 w-4 mr-1" />
-            <span className="text-sm">{userStats.totalStudyHours}時間</span>
+            <BookOpen className="h-6 w-6 mr-2" />
+            <span className="text-lg font-medium">
+              {userStats.totalStudyHours}時間
+            </span>
           </div>
 
-          <div className="flex items-center bg-amber-700 px-2 py-1 rounded">
-            <User className="h-4 w-4 mr-1" />
-            <span className="text-sm">{userStats.username}</span>
+          <div className="flex items-center bg-amber-700 px-4 py-2 rounded">
+            <User className="h-6 w-6 mr-2" />
+            <span className="text-lg font-semibold">{userStats.username}</span>
           </div>
 
           {/* ストアボタン */}
