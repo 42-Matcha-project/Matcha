@@ -38,6 +38,7 @@ export default function SettlementPage() {
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [showButtons, setShowButtons] = useState(false);
   const [showClouds, setShowClouds] = useState(true);
+  const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState<Building | null>(
@@ -141,6 +142,20 @@ export default function SettlementPage() {
   // クライアントサイドでのみマウント状態を設定
   useEffect(() => {
     setIsMounted(true);
+
+    // LocalStorageをチェックして初回訪問かどうか確認
+    const hasSeenAnimation =
+      localStorage.getItem("hasSeenCloudAnimation") === "true";
+    if (!hasSeenAnimation) {
+      // 初回訪問時は演出を表示
+      setShouldShowAnimation(true);
+    } else {
+      // 2回目以降は演出をスキップして直接コンテンツを表示
+      // スムーズな表示のため、すべての状態を一度に設定
+      setIsLoaded(true);
+      setShowClouds(false);
+      setShowButtons(true);
+    }
   }, []);
 
   // 時計の更新
@@ -156,7 +171,7 @@ export default function SettlementPage() {
 
   // ページロード時のアニメーション
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !shouldShowAnimation) return;
 
     // ページロード時のアニメーションシーケンス
     const sequence = async () => {
@@ -175,10 +190,13 @@ export default function SettlementPage() {
       // ボタンを表示
       await new Promise((resolve) => setTimeout(resolve, 800));
       setShowButtons(true);
+
+      // アニメーションを見たことをローカルストレージに記録
+      localStorage.setItem("hasSeenCloudAnimation", "true");
     };
 
     sequence();
-  }, [isMounted]);
+  }, [isMounted, shouldShowAnimation]);
 
   // 建物を選択または購入
   const handleBuildingClick = (buildingId: string) => {
@@ -258,7 +276,7 @@ export default function SettlementPage() {
 
       {/* ページ全体の霧エフェクト - 徐々に消える */}
       <AnimatePresence>
-        {isLoaded && isMounted && (
+        {isLoaded && isMounted && shouldShowAnimation && (
           <motion.div
             className="absolute inset-0 bg-white/50 z-20 pointer-events-none"
             initial={{ opacity: 1 }}
@@ -392,17 +410,25 @@ export default function SettlementPage() {
           {buildings.map((building) => {
             const isSelected = selectedBuilding === building.id;
             const scale = isSelected ? 1.2 : 1;
-            // 位置に基づく確定的な遅延を計算（Math.randomを使わない）
-            const positionBasedDelay = isSelected
-              ? 0.1
-              : isLoaded
-                ? 1.5 + (building.position.x + building.position.y) / 400
-                : 0;
+
+            // 初回演出時のみ遅延を適用、それ以外は即表示
+            const positionBasedDelay = shouldShowAnimation
+              ? isSelected
+                ? 0.1
+                : isLoaded
+                  ? 1.5 + (building.position.x + building.position.y) / 400
+                  : 0
+              : 0;
+
+            // 初期状態も演出の有無に基づいて変更
+            const initialProps = shouldShowAnimation
+              ? { opacity: 0, scale: 0.2, y: 30 }
+              : { opacity: 1, scale: scale, y: isSelected ? -20 : 0 };
 
             return (
               <motion.div
                 key={building.id}
-                initial={{ opacity: 0, scale: 0.2, y: 30 }}
+                initial={initialProps}
                 animate={{
                   opacity: isLoaded && isMounted ? 1 : 0,
                   scale: isLoaded && isMounted ? scale : 0.2,
@@ -412,7 +438,10 @@ export default function SettlementPage() {
                 className={cn(
                   "absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300",
                   building.isUnlocked ? "" : "grayscale opacity-70",
-                  isLoaded && isMounted ? "" : "blur-md",
+                  // 初回演出時のみblur効果を適用、それ以外の場合は適用しない
+                  shouldShowAnimation && !(isLoaded && isMounted)
+                    ? "blur-md"
+                    : "",
                 )}
                 whileHover={{
                   y: -10,
@@ -426,7 +455,7 @@ export default function SettlementPage() {
                 }}
                 transition={{
                   delay: positionBasedDelay,
-                  duration: isSelected ? 0.4 : 1.2,
+                  duration: isSelected ? 0.4 : shouldShowAnimation ? 1.2 : 0.3,
                   type: "spring",
                   stiffness: isSelected ? 200 : 50,
                   damping: isSelected ? 15 : 12,
@@ -462,7 +491,10 @@ export default function SettlementPage() {
                       fill
                       className={cn(
                         "object-contain drop-shadow-lg transition-all duration-1000",
-                        isLoaded && isMounted ? "filter-none" : "blur-sm",
+                        // 初回演出時のみblur効果を適用、それ以外の場合は適用しない
+                        shouldShowAnimation && !(isLoaded && isMounted)
+                          ? "blur-sm"
+                          : "filter-none",
                         building.isUnlocked
                           ? "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.4)]"
                           : "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.2)]",
@@ -618,12 +650,17 @@ export default function SettlementPage() {
         {/* 左上のタイトル */}
         <motion.div
           className="absolute top-8 left-8 z-20 text-left"
-          initial={{ opacity: 0, x: -50 }}
+          initial={
+            shouldShowAnimation ? { opacity: 0, x: -50 } : { opacity: 1, x: 0 }
+          }
           animate={{
             opacity: isLoaded && isMounted ? 1 : 0,
             x: isLoaded && isMounted ? 0 : -50,
           }}
-          transition={{ delay: 1, duration: 0.8 }}
+          transition={{
+            delay: shouldShowAnimation ? 1 : 0,
+            duration: shouldShowAnimation ? 0.8 : 0.2,
+          }}
         >
           <div className="relative p-4 rounded-lg overflow-hidden backdrop-blur-sm border-2 border-amber-500/30 shadow-xl">
             {/* 背景グラデーション */}
@@ -656,9 +693,16 @@ export default function SettlementPage() {
           {showButtons && isMounted && (
             <motion.div
               className="absolute top-8 right-5 transform -translate-x-1/2 z-30 flex flex-row space-x-6"
-              initial={{ opacity: 0, y: 50 }}
+              initial={
+                shouldShowAnimation
+                  ? { opacity: 0, y: 50 }
+                  : { opacity: 1, y: 0 }
+              }
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, type: "spring" }}
+              transition={{
+                duration: shouldShowAnimation ? 0.5 : 0.2,
+                type: "spring",
+              }}
             >
               <motion.div
                 whileHover={{ scale: 1.05, y: -5 }}
