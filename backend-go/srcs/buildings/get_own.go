@@ -7,7 +7,7 @@ import (
 	"srcs/utils"
 )
 
-func getOwnBuildings(user models.TUser) ([]models.TBuilding, error) {
+func GetOwnBuildings(user models.TUser) ([]models.TBuilding, error) {
 	/*
 		DBからユーザーが所持している建物一覧を取得する関数
 	*/
@@ -27,7 +27,7 @@ func GetOwnBuildingsHandler(reqContext *gin.Context) {
 		return
 	}
 
-	buildings, err := getOwnBuildings(*user)
+	buildings, err := GetOwnBuildings(*user)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in getting own buildings"})
 		reqContext.Error(err)
