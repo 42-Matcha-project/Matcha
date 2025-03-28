@@ -202,7 +202,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"ReceiverID\": 2\n}",
+          "raw": "{\n    \"ReceiverID\": 3\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -258,7 +258,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"ReceiverID\": 1\n}",
+          "raw": "{\n    \"ReceiverID\": 2\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -355,7 +355,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"FriendIDToDelete\": 2\n}",
+          "raw": "{\n    \"FriendIDToDelete\": 3\n}",
           "options": {
             "raw": {
               "language": "json"

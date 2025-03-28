@@ -34,5 +34,5 @@ func GetOwnBuildingsHandler(reqContext *gin.Context) {
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"Buildings": buildings})
+	reqContext.JSON(http.StatusOK, gin.H{"OwnBuildings": buildings})
 }
