@@ -106,6 +106,7 @@ func main() {
 	buildingsRoutes := router.Group("/buildings")
 	buildingsRoutes.Use(middlewares.JWTValidationMiddleware())
 	buildingsRoutes.GET("/get-own", buildings.GetOwnBuildingsHandler)
+	buildingsRoutes.GET("/get-town", buildings.GetTownBuildingsHandler)
 	buildingsRoutes.POST("/build", buildings.BuildBuildingsHandler)
 
 	adminGroup := router.Group("/admin")

@@ -5,12 +5,12 @@ import (
 )
 
 type TUserBuilding struct {
-	ID         int `gorm:"primaryKey;autoIncrement;column:id"`
-	UserID     int `gorm:"type:int;not null;column:t_user_id"`
-	BuildingID int `gorm:"type:int;not null;column:t_building_id"`
+	ID         int `gorm:"primaryKey;autoIncrement;column:id" json:"-"`
+	UserID     int `gorm:"type:int;not null;column:t_user_id" json:"-"`
+	BuildingID int `gorm:"type:int;not null;column:t_building_id" json:"-"`
 	PlaceIndex int `gorm:"type:int;not null;column:place_index;default:0"`
 
-	User     TUser     `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE"`
+	User     TUser     `gorm:"foreignKey:UserID;references:ID;constraint:OnDelete:CASCADE" json:"-"`
 	Building TBuilding `gorm:"foreignKey:BuildingID;references:ID;constraint:OnDelete:CASCADE"`
 }
 
