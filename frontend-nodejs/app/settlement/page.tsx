@@ -384,7 +384,7 @@ export default function SettlementPage() {
               {/* 光沢エフェクト */}
               <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
               {/* キラキラエフェクト */}
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-yellow-300 animate-ping"></span>
+              <span className="absolute -top-1 -right-0 w-2.5 h-2.5 rounded-full bg-yellow-300 animate-ping"></span>
             </motion.button>
 
             <AnimatePresence>
