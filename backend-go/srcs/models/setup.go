@@ -50,7 +50,8 @@ func ConnectDataBase() {
 		log.Fatal("Could not connect to the database", err)
 	}
 
-	DB.AutoMigrate(&TUser{})
+	DB.SetupJoinTable(&TUser{}, "Buildings", &TUserBuilding{})
+	DB.AutoMigrate(&TBuilding{})
 	DB.AutoMigrate(&TWork{})
 	DB.AutoMigrate(&TWorkLog{})
 	DB.AutoMigrate(&TFriendship{})

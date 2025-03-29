@@ -12,4 +12,4 @@ type TWorkLog struct {
 	Work    TWork     `gorm:"foreignKey:WorkID;references:ID" json:"-"`
 }
 
-func (*TWorkLog) TableName() string { return "work_logs" }
+func (*TWorkLog) TableName() string { return "t_work_logs" }

@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"srcs/buildings"
 	"srcs/models"
 
 	"github.com/gin-gonic/gin"
@@ -61,6 +62,13 @@ func Register(reqContext *gin.Context) {
 	user, err := registerUser(registerInput)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to create user"})
+		reqContext.Error(err)
+		return
+	}
+
+	err = buildings.BuildDefaultBuilding(*user)
+	if err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to create default building"})
 		reqContext.Error(err)
 		return
 	}

@@ -1,0 +1,17 @@
+{
+  "Buildings": [{
+    "ExteriorImageURL": "hajimarinomise_exterior_url",
+    "InteriorImageURL": "hajimarinomise_interior_url",
+    "DefaultName": "はじまりの店",
+    "RequiredCoinCount": 200,
+    "SaleStartTime": "2025-03-26T00:00:00+09:00",
+    "IsInStore": true
+  },{
+    "ExteriorImageURL": "hajimarinotyugakko_exterior_url",
+    "InteriorImageURL": "hajimarinotyugakko_interior_url",
+    "DefaultName": "はじまりの中学校",
+    "RequiredCoinCount": 200,
+    "SaleStartTime": "2025-03-26T00:00:00+09:00",
+    "IsInStore": true
+  }]
+}
