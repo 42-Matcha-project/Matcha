@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+	"srcs/coins"
 	"srcs/models"
 	"srcs/utils"
 	"time"
@@ -61,6 +62,13 @@ func LogWorkHandler(reqContext *gin.Context) {
 	workLog, err := logWork(logWorkInput, *user)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to get work log"})
+		reqContext.Error(err)
+		return
+	}
+
+	err = coins.GiveUserCoins(*user, coins.CalculateCoinCountFromStudyMinutes(logWorkInput.Minutes))
+	if err != nil {
+		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to give user coins"})
 		reqContext.Error(err)
 		return
 	}
