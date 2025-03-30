@@ -54,8 +54,6 @@ export default function SettlementPage() {
   } | null>(null);
   const [showStoreTooltip, setShowStoreTooltip] = useState(false);
   const [showGiftTooltip, setShowGiftTooltip] = useState(false);
-  const [showBuildingSelectionModal, setShowBuildingSelectionModal] =
-    useState(false);
 
   const [userStats] = useState({
     level: 1,
@@ -74,8 +72,8 @@ export default function SettlementPage() {
       isUnlocked: true,
       requiredLevel: 1,
       price: 0,
-      position: { x: 50, y: 50 },
-      image: "/images/house.png?height=300&width=300",
+      position: { x: 50, y: 20 },
+      image: "/images/house.png?height=700&width=700",
       description:
         "あなたの拠点となるマイハウスです。ここから様々な自習活動を始めることができます。レベルアップすると設備が充実していきます。",
     },
@@ -86,8 +84,8 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 3,
       price: 100,
-      position: { x: 25, y: 25 },
-      image: "/placeholder.svg?height=120&width=120",
+      position: { x: 20, y: 15 },
+      image: "/placeholder.svg?height=200&width=200",
       description:
         "静かな環境で集中して勉強できる図書館です。読書や資料調査に最適な場所で、知識を深めることができます。",
     },
@@ -98,8 +96,8 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 5,
       price: 250,
-      position: { x: 75, y: 25 },
-      image: "/placeholder.svg?height=120&width=120",
+      position: { x: 80, y: 20 },
+      image: "/placeholder.svg?height=200&width=200",
       description:
         "基礎学習に最適な小学校です。グループでの学習や基本的なスキルの習得に役立ちます。楽しく学べる環境が整っています。",
     },
@@ -110,8 +108,8 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 10,
       price: 500,
-      position: { x: 25, y: 75 },
-      image: "/placeholder.svg?height=120&width=120",
+      position: { x: 25, y: 40 },
+      image: "/placeholder.svg?height=200&width=200",
       description:
         "高度な学習ができる大学です。専門的な知識やスキルを身につけるための施設が充実しています。研究活動も行えます。",
     },
@@ -122,8 +120,8 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 15,
       price: 750,
-      position: { x: 75, y: 75 },
-      image: "/images/research_institute.png?height=120&width=120",
+      position: { x: 75, y: 50 },
+      image: "/images/research_institute.png?height=200&width=200",
       description:
         "最先端の研究ができる研究所です。高度な設備と静かな環境で、最も集中して学習に取り組むことができます。",
     },
@@ -134,8 +132,8 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 7,
       price: 300,
-      position: { x: 50, y: 80 },
-      image: "/images/cafe.png?height=100&width=100",
+      position: { x: 40, y: 65 },
+      image: "/images/cafe.png?height=180&width=180",
       description:
         "リラックスした雰囲気で学習できるカフェです。軽食を楽しみながら、気軽に勉強や読書ができます。交流の場としても活用できます。",
     },
@@ -311,7 +309,6 @@ export default function SettlementPage() {
 
   // 建物を選択してルームを作成する
   const handleBuildingSelection = (buildingId: string) => {
-    setShowBuildingSelectionModal(false);
     router.push(`/host/building-selection?buildingId=${buildingId}`);
   };
 
@@ -478,15 +475,15 @@ export default function SettlementPage() {
 
         {/* メインコンテンツ */}
         <main
-          className="relative w-full min-h-[calc(100vh-60px)] overflow-y-auto pb-40 pt-16 scroll-smooth"
+          className="relative w-full overflow-y-auto pb-32 pt-16 scroll-smooth"
           ref={containerRef}
           style={{ willChange: "scroll-position" }}
         >
           {/* 建物配置エリア */}
-          <div className="relative h-[90vh] w-full z-10 mx-auto my-8 rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner">
+          <div className="relative h-[320vh] w-full z-10 mx-auto rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner pb-40">
             {buildings.map((building) => {
               const isSelected = selectedBuilding === building.id;
-              const scale = isSelected ? 1.2 : 1;
+              const scale = isSelected ? 1.25 : 1;
 
               // 初回演出時のみ遅延を適用、それ以外は即表示
               const positionBasedDelay = shouldShowAnimation
@@ -521,8 +518,8 @@ export default function SettlementPage() {
                       : "",
                   )}
                   whileHover={{
-                    y: -10,
-                    scale: 1.1,
+                    y: -15,
+                    scale: building.id === "house" ? 1.15 : 1.1,
                     transition: {
                       type: "spring",
                       stiffness: 500,
@@ -552,7 +549,7 @@ export default function SettlementPage() {
                     className={cn(
                       "relative flex flex-col items-center transition-all duration-200",
                       "hover:drop-shadow-[0_15px_15px_rgba(217,119,6,0.25)]",
-                      building.id === "house" && "scale-110",
+                      building.id === "house" && "scale-150",
                     )}
                   >
                     {/* ホバー時のグロー効果 */}
@@ -566,7 +563,12 @@ export default function SettlementPage() {
                     ></div>
 
                     {/* 建物画像 */}
-                    <div className="relative w-24 h-24 mb-2">
+                    <div
+                      className={cn(
+                        "relative mb-2",
+                        building.id === "house" ? "w-48 h-48" : "w-40 h-40",
+                      )}
+                    >
                       <Image
                         src={building.image || "/placeholder.svg"}
                         alt={building.name}
@@ -578,6 +580,8 @@ export default function SettlementPage() {
                             ? "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.4)]"
                             : "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.2)]",
                         )}
+                        quality={95}
+                        priority={building.id === "house"}
                       />
 
                       {/* 選択インジケーター */}
@@ -914,6 +918,18 @@ export default function SettlementPage() {
                     {showPurchaseDialog.name}を購入しますか？
                   </h3>
 
+                  <div className="flex justify-center mb-6">
+                    <div className="relative w-72 h-72">
+                      <Image
+                        src={showPurchaseDialog.image || "/placeholder.svg"}
+                        alt={showPurchaseDialog.name}
+                        fill
+                        className="object-contain drop-shadow-lg"
+                        quality={95}
+                      />
+                    </div>
+                  </div>
+
                   <div className="bg-white/60 p-4 rounded-xl mb-4">
                     <div className="flex justify-between items-center mb-2">
                       <span className="text-amber-800">価格</span>
@@ -1048,12 +1064,14 @@ export default function SettlementPage() {
                   </h3>
 
                   <div className="flex justify-center mb-4">
-                    <div className="relative w-32 h-32">
+                    <div className="relative w-96 h-96">
                       <Image
                         src={showBuildingDetails.image || "/placeholder.svg"}
                         alt={showBuildingDetails.name}
                         fill
                         className="object-contain drop-shadow-lg"
+                        quality={95}
+                        priority
                       />
                     </div>
                   </div>
@@ -1101,6 +1119,34 @@ export default function SettlementPage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* スクロールインジケーター */}
+          <div className="fixed bottom-4 right-4 bg-amber-100/70 rounded-full p-3 shadow-lg backdrop-blur-sm z-40">
+            <div className="text-amber-800 text-sm font-medium mb-1 text-center">
+              スクロールして探索
+            </div>
+            <motion.div
+              animate={{ y: [0, 5, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+              className="flex justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-amber-600"
+              >
+                <path d="M12 5v14"></path>
+                <path d="m19 12-7 7-7-7"></path>
+              </svg>
+            </motion.div>
+          </div>
         </main>
       </div>
     </div>
