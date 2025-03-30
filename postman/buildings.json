@@ -1,0 +1,213 @@
+{
+  "info": {
+    "_postman_id": "66926bb0-1718-4796-b9be-4b21660e2166",
+    "name": "CI(建物)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "40190595",
+    "_collection_link": "https://matcha-0044.postman.co/workspace/Matcha%25E3%2583%25AF%25E3%2583%25BC%25E3%2582%25AF%25E3%2582%25B9%25E3%2583%259A%25E3%2583%25BC%25E3%2582%25B9~92830edc-e8ea-4a8f-8413-95d98177a966/collection/40190595-66926bb0-1718-4796-b9be-4b21660e2166?action=share&source=collection_link&creator=40190595"
+  },
+  "item": [
+    {
+      "name": "ログイン Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスがJSON形式であることを確認",
+              "pm.test(\"レスポンスがJSONであることを確認\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "// \"token\" キーがレスポンスに含まれていることを確認し、その値を環境変数に保存",
+              "pm.test('\"Token\" キーが含まれていることを確認', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"Token\");",
+              "",
+              "    // tokenの値を環境変数に保存",
+              "    pm.environment.set(\"jwt_token\", jsonData.Token);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"Username\": \"test\",\n    \"Password\": \"test\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "description": "**説明**\n\nユーザーのログイン処理を行うAPI。\n\n**JOSNデータ**\n\n``` json\n{\n    \"Username\": \"文字列\",\n    \"Email\": \"文字列\",// UsernameかEmailは必須(どちらも含んでも良い)\n    \"Password\": \"文字列\"// 必須\n}\n\n ```"
+      },
+      "response": []
+    },
+    {
+      "name": "建物を建てる Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"BuildingID\": 1,\n    \"PlaceIndex\": 3\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/buildings/build",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "buildings",
+            "build"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "所持している建物一覧 Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにBuildingsフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('OwnBuildings');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/buildings/get-own",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "buildings",
+            "get-own"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "町の建物一覧 Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "pm.test(\"レスポンスのJSONにTownBuildingsフィールドが含まれていること\", function() {",
+              "    var jsonResponse = pm.response.json();",
+              "    pm.expect(jsonResponse).to.have.property('TownBuildings');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/buildings/get-town",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "buildings",
+            "get-town"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}

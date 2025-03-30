@@ -29,6 +29,8 @@ type TUser struct {
 	Works    []TWork    `gorm:"foreignKey:UserID;references:ID" json:"-"`
 	WorkLogs []TWorkLog `gorm:"foreignKey:UserID;references:ID" json:"-"`
 
+	Buildings []TBuilding `gorm:"many2many:t_user_buildings" json:"-"`
+
 	FriendshipsSent     []TFriendship `gorm:"foreignKey:RequesterID;references:ID" json:"-"`
 	FriendshipsReceived []TFriendship `gorm:"foreignKey:ReceiverID;references:ID" json:"-"`
 }
