@@ -8,6 +8,66 @@
   },
   "item": [
     {
+      "name": "ログイン Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスがJSON形式であることを確認",
+              "pm.test(\"レスポンスがJSONであることを確認\", function () {",
+              "    pm.response.to.be.json;",
+              "});",
+              "",
+              "// \"token\" キーがレスポンスに含まれていることを確認し、その値を環境変数に保存",
+              "pm.test('\"Token\" キーが含まれていることを確認', function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"Token\");",
+              "",
+              "    // tokenの値を環境変数に保存",
+              "    pm.environment.set(\"jwt_token\", jsonData.Token);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"Username\": \"test\",\n    \"Password\": \"test\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "auth",
+            "login"
+          ]
+        },
+        "description": "**説明**\n\nユーザーのログイン処理を行うAPI。\n\n**JOSNデータ**\n\n``` json\n{\n    \"Username\": \"文字列\",\n    \"Email\": \"文字列\",// UsernameかEmailは必須(どちらも含んでも良い)\n    \"Password\": \"文字列\"// 必須\n}\n\n ```"
+      },
+      "response": []
+    },
+    {
       "name": "ストアにある建物一覧 Copy",
       "event": [
         {
