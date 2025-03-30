@@ -16,21 +16,11 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// 建物の型定義
-interface Building {
-  id: string;
-  name: string;
-  level: number;
-  isUnlocked: boolean;
-  requiredLevel: number;
-  price: number;
-  position: {
-    x: number;
-    y: number;
-  };
-  image: string;
-  description?: string; // 建物の説明
-}
+// インポート追加
+import { Building, PurchaseSuccess } from "../types/settlement";
+import { buildings } from "../data/buildings";
+import { cloudEffects } from "../data/cloudEffects";
+import { initialUserStats } from "../data/initialUserStats";
 
 export default function SettlementPage() {
   const router = useRouter();
@@ -48,112 +38,16 @@ export default function SettlementPage() {
   );
   const [showBuildingDetails, setShowBuildingDetails] =
     useState<Building | null>(null);
-  const [purchaseSuccess, setPurchaseSuccess] = useState<{
-    buildingId: string;
-    name: string;
-  } | null>(null);
+  const [purchaseSuccess, setPurchaseSuccess] =
+    useState<PurchaseSuccess | null>(null);
   const [showStoreTooltip, setShowStoreTooltip] = useState(false);
   const [showGiftTooltip, setShowGiftTooltip] = useState(false);
 
-  const [userStats] = useState({
-    level: 1,
-    dayStreak: 3,
-    totalStudyHours: 12.5,
-    username: "開拓者",
-    coins: 250, // ユーザーが所持するコイン
-  });
+  // 初期ユーザーデータを使用
+  const [userStats] = useState(initialUserStats);
 
-  // 建物データ
-  const buildings: Building[] = [
-    {
-      id: "house",
-      name: "マイハウス",
-      level: 1,
-      isUnlocked: true,
-      requiredLevel: 1,
-      price: 0,
-      position: { x: 50, y: 20 },
-      image: "/images/house.png?height=700&width=700",
-      description:
-        "あなたの拠点となるマイハウスです。ここから様々な自習活動を始めることができます。レベルアップすると設備が充実していきます。",
-    },
-    {
-      id: "library",
-      name: "図書館",
-      level: 3,
-      isUnlocked: false,
-      requiredLevel: 3,
-      price: 100,
-      position: { x: 20, y: 15 },
-      image: "/placeholder.svg?height=200&width=200",
-      description:
-        "静かな環境で集中して勉強できる図書館です。読書や資料調査に最適な場所で、知識を深めることができます。",
-    },
-    {
-      id: "school",
-      name: "小学校",
-      level: 5,
-      isUnlocked: false,
-      requiredLevel: 5,
-      price: 250,
-      position: { x: 80, y: 20 },
-      image: "/placeholder.svg?height=200&width=200",
-      description:
-        "基礎学習に最適な小学校です。グループでの学習や基本的なスキルの習得に役立ちます。楽しく学べる環境が整っています。",
-    },
-    {
-      id: "university",
-      name: "大学",
-      level: 10,
-      isUnlocked: false,
-      requiredLevel: 10,
-      price: 500,
-      position: { x: 25, y: 40 },
-      image: "/placeholder.svg?height=200&width=200",
-      description:
-        "高度な学習ができる大学です。専門的な知識やスキルを身につけるための施設が充実しています。研究活動も行えます。",
-    },
-    {
-      id: "lab",
-      name: "研究所",
-      level: 15,
-      isUnlocked: false,
-      requiredLevel: 15,
-      price: 750,
-      position: { x: 75, y: 50 },
-      image: "/images/research_institute.png?height=200&width=200",
-      description:
-        "最先端の研究ができる研究所です。高度な設備と静かな環境で、最も集中して学習に取り組むことができます。",
-    },
-    {
-      id: "cafe",
-      name: "カフェ",
-      level: 7,
-      isUnlocked: false,
-      requiredLevel: 7,
-      price: 300,
-      position: { x: 40, y: 65 },
-      image: "/images/cafe.png?height=180&width=180",
-      description:
-        "リラックスした雰囲気で学習できるカフェです。軽食を楽しみながら、気軽に勉強や読書ができます。交流の場としても活用できます。",
-    },
-  ];
-
-  // 雲のデータ
-  const clouds = [
-    { id: 1, x: 10, y: 20, size: 160, delay: 0.2, scale: 1.7 },
-    { id: 2, x: 30, y: 40, size: 180, delay: 0.5, scale: 1.8 },
-    { id: 3, x: 60, y: 30, size: 200, delay: 0.3, scale: 1.9 },
-    { id: 4, x: 80, y: 50, size: 170, delay: 0.7, scale: 1.6 },
-    { id: 5, x: 20, y: 70, size: 190, delay: 0.4, scale: 1.8 },
-    { id: 6, x: 50, y: 80, size: 160, delay: 0.6, scale: 1.7 },
-    { id: 7, x: 70, y: 15, size: 200, delay: 0.1, scale: 1.9 },
-    { id: 8, x: 40, y: 60, size: 220, delay: 0.8, scale: 2.0 },
-    { id: 9, x: 15, y: 45, size: 180, delay: 0.35, scale: 1.7 },
-    { id: 10, x: 85, y: 30, size: 190, delay: 0.55, scale: 1.8 },
-    { id: 11, x: 45, y: 25, size: 170, delay: 0.25, scale: 1.6 },
-    { id: 12, x: 65, y: 65, size: 200, delay: 0.65, scale: 1.9 },
-  ];
+  // 雲のデータを使用
+  const clouds = cloudEffects;
 
   // クライアントサイドでのみマウント状態を設定
   useEffect(() => {
@@ -305,11 +199,6 @@ export default function SettlementPage() {
     alert(
       "プレゼントボックスは開発中です！今後様々な報酬を受け取れるようになります。",
     );
-  };
-
-  // 建物を選択してルームを作成する
-  const handleBuildingSelection = (buildingId: string) => {
-    router.push(`/host/building-selection?buildingId=${buildingId}`);
   };
 
   return (
