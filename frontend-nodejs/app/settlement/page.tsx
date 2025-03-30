@@ -29,6 +29,7 @@ interface Building {
     y: number;
   };
   image: string;
+  description?: string; // 建物の説明
 }
 
 export default function SettlementPage() {
@@ -39,13 +40,14 @@ export default function SettlementPage() {
   const [showButtons, setShowButtons] = useState(false);
   const [showClouds, setShowClouds] = useState(false);
   const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
-  const [initialLoadComplete, setInitialLoadComplete] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [isMounted, setIsMounted] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState<Building | null>(
     null,
   );
+  const [showBuildingDetails, setShowBuildingDetails] =
+    useState<Building | null>(null);
   const [purchaseSuccess, setPurchaseSuccess] = useState<{
     buildingId: string;
     name: string;
@@ -70,8 +72,10 @@ export default function SettlementPage() {
       isUnlocked: true,
       requiredLevel: 1,
       price: 0,
-      position: { x: 50, y: 50 },
-      image: "/placeholder.svg?height=120&width=120",
+      position: { x: 50, y: 20 },
+      image: "/images/house.png?height=700&width=700",
+      description:
+        "あなたの拠点となるマイハウスです。ここから様々な自習活動を始めることができます。レベルアップすると設備が充実していきます。",
     },
     {
       id: "library",
@@ -80,8 +84,10 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 3,
       price: 100,
-      position: { x: 25, y: 25 },
-      image: "/placeholder.svg?height=120&width=120",
+      position: { x: 20, y: 15 },
+      image: "/placeholder.svg?height=200&width=200",
+      description:
+        "静かな環境で集中して勉強できる図書館です。読書や資料調査に最適な場所で、知識を深めることができます。",
     },
     {
       id: "school",
@@ -90,8 +96,10 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 5,
       price: 250,
-      position: { x: 75, y: 25 },
-      image: "/placeholder.svg?height=120&width=120",
+      position: { x: 80, y: 20 },
+      image: "/placeholder.svg?height=200&width=200",
+      description:
+        "基礎学習に最適な小学校です。グループでの学習や基本的なスキルの習得に役立ちます。楽しく学べる環境が整っています。",
     },
     {
       id: "university",
@@ -100,8 +108,10 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 10,
       price: 500,
-      position: { x: 25, y: 75 },
-      image: "/placeholder.svg?height=120&width=120",
+      position: { x: 25, y: 40 },
+      image: "/placeholder.svg?height=200&width=200",
+      description:
+        "高度な学習ができる大学です。専門的な知識やスキルを身につけるための施設が充実しています。研究活動も行えます。",
     },
     {
       id: "lab",
@@ -110,8 +120,10 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 15,
       price: 750,
-      position: { x: 75, y: 75 },
-      image: "/placeholder.svg?height=120&width=120",
+      position: { x: 75, y: 50 },
+      image: "/images/research_institute.png?height=200&width=200",
+      description:
+        "最先端の研究ができる研究所です。高度な設備と静かな環境で、最も集中して学習に取り組むことができます。",
     },
     {
       id: "cafe",
@@ -120,8 +132,10 @@ export default function SettlementPage() {
       isUnlocked: false,
       requiredLevel: 7,
       price: 300,
-      position: { x: 50, y: 85 },
-      image: "/placeholder.svg?height=120&width=120",
+      position: { x: 40, y: 65 },
+      image: "/images/cafe.png?height=180&width=180",
+      description:
+        "リラックスした雰囲気で学習できるカフェです。軽食を楽しみながら、気軽に勉強や読書ができます。交流の場としても活用できます。",
     },
   ];
 
@@ -157,9 +171,6 @@ export default function SettlementPage() {
         setShouldShowAnimation(true);
         setShowClouds(true);
 
-        // まず初期ロードを完了してから
-        setInitialLoadComplete(true);
-
         // 少し遅延を入れてからコンテンツを表示
         setTimeout(() => {
           setContentVisible(true);
@@ -168,7 +179,6 @@ export default function SettlementPage() {
         // 2回目以降は演出をスキップして直接コンテンツを表示
         setIsLoaded(true);
         setShowButtons(true);
-        setInitialLoadComplete(true);
 
         // 少し遅延を入れてからコンテンツを表示
         setTimeout(() => {
@@ -219,14 +229,27 @@ export default function SettlementPage() {
   }, [isMounted, shouldShowAnimation]);
 
   // 建物を選択または購入
-  const handleBuildingClick = (buildingId: string) => {
+  const handleBuildingClick = (buildingId: string, e: React.MouseEvent) => {
+    // イベントの伝播を停止して、親要素のクリックイベントが発火しないようにする
+    e.stopPropagation();
+
     const building = buildings.find((b) => b.id === buildingId);
     if (!building) return;
 
     if (building.isUnlocked) {
-      setSelectedBuilding(buildingId);
+      // 既に選択されている建物をクリックした場合は選択解除
+      if (selectedBuilding === buildingId) {
+        setSelectedBuilding(null);
+        setShowBuildingDetails(null);
+      } else {
+        // 他の建物が選択されていても、新しい建物を選択したら即座に切り替える
+        setSelectedBuilding(buildingId);
+        setShowBuildingDetails(building);
+      }
     } else {
-      // 未購入の建物の場合は購入ダイアログを表示
+      // 未購入の建物の場合は選択状態をクリアして購入ダイアログを表示
+      setSelectedBuilding(null);
+      setShowBuildingDetails(null);
       setShowPurchaseDialog(building);
     }
   };
@@ -284,11 +307,26 @@ export default function SettlementPage() {
     );
   };
 
+  // 建物を選択してルームを作成する
+  const handleBuildingSelection = (buildingId: string) => {
+    router.push(`/host/building-selection?buildingId=${buildingId}`);
+  };
+
   return (
-    <div className="min-h-screen overflow-hidden relative">
+    <div
+      className="min-h-screen relative"
+      onClick={(e) => {
+        // クリックされた要素が建物でない場合のみ選択状態をリセット
+        if ((e.target as HTMLElement).closest(".building-item") === null) {
+          setSelectedBuilding(null);
+          setShowBuildingDetails(null);
+        }
+      }}
+      style={{ scrollBehavior: "smooth" }}
+    >
       {/* 背景パターン */}
       <div
-        className="absolute inset-0 z-0"
+        className="fixed inset-0 z-0"
         style={{
           backgroundColor: "#FEF3C7",
         }}
@@ -307,7 +345,7 @@ export default function SettlementPage() {
         <AnimatePresence>
           {isLoaded && isMounted && shouldShowAnimation && (
             <motion.div
-              className="absolute inset-0 bg-white/50 z-20 pointer-events-none"
+              className="fixed inset-0 bg-white/50 z-20 pointer-events-none"
               initial={{ opacity: 1 }}
               animate={{ opacity: 0 }}
               transition={{ duration: 3, delay: 2 }}
@@ -316,7 +354,7 @@ export default function SettlementPage() {
         </AnimatePresence>
 
         {/* ヘッダー */}
-        <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between shadow-md z-40 relative font-sans">
+        <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between z-50 sticky top-0 left-0 right-0 font-sans">
           <div className="flex items-center">
             <Home className="h-7 w-7 mr-2" />
             <h1 className="text-1xl font-bold tracking-wide">マイ開拓地</h1>
@@ -437,14 +475,15 @@ export default function SettlementPage() {
 
         {/* メインコンテンツ */}
         <main
-          className="relative w-full h-[calc(100vh-60px)] overflow-hidden"
+          className="relative w-full overflow-y-auto pb-32 pt-16 scroll-smooth"
           ref={containerRef}
+          style={{ willChange: "scroll-position" }}
         >
           {/* 建物配置エリア */}
-          <div className="absolute inset-0 z-10">
+          <div className="relative h-[320vh] w-full z-10 mx-auto rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner pb-40">
             {buildings.map((building) => {
               const isSelected = selectedBuilding === building.id;
-              const scale = isSelected ? 1.2 : 1;
+              const scale = isSelected ? 1.25 : 1;
 
               // 初回演出時のみ遅延を適用、それ以外は即表示
               const positionBasedDelay = shouldShowAnimation
@@ -471,7 +510,7 @@ export default function SettlementPage() {
                     y: isSelected ? -20 : isLoaded && isMounted ? 0 : 30,
                   }}
                   className={cn(
-                    "absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300",
+                    "absolute transform -translate-x-1/2 -translate-y-1/2 cursor-pointer transition-all duration-300 building-item",
                     building.isUnlocked ? "" : "grayscale opacity-70",
                     // 初回演出時のみblur効果を適用、それ以外の場合は適用しない
                     shouldShowAnimation && !(isLoaded && isMounted)
@@ -479,8 +518,8 @@ export default function SettlementPage() {
                       : "",
                   )}
                   whileHover={{
-                    y: -10,
-                    scale: 1.1,
+                    y: -15,
+                    scale: building.id === "house" ? 1.15 : 1.1,
                     transition: {
                       type: "spring",
                       stiffness: 500,
@@ -504,12 +543,13 @@ export default function SettlementPage() {
                     top: `${building.position.y}%`,
                     zIndex: isSelected ? 30 : 20,
                   }}
-                  onClick={() => handleBuildingClick(building.id)}
+                  onClick={(e) => handleBuildingClick(building.id, e)}
                 >
                   <div
                     className={cn(
                       "relative flex flex-col items-center transition-all duration-200",
                       "hover:drop-shadow-[0_15px_15px_rgba(217,119,6,0.25)]",
+                      building.id === "house" && "scale-150",
                     )}
                   >
                     {/* ホバー時のグロー効果 */}
@@ -523,21 +563,25 @@ export default function SettlementPage() {
                     ></div>
 
                     {/* 建物画像 */}
-                    <div className="relative w-24 h-24 mb-2">
+                    <div
+                      className={cn(
+                        "relative mb-2",
+                        building.id === "house" ? "w-48 h-48" : "w-40 h-40",
+                      )}
+                    >
                       <Image
                         src={building.image || "/placeholder.svg"}
                         alt={building.name}
                         fill
                         className={cn(
                           "object-contain drop-shadow-lg transition-all duration-1000",
-                          // 初回演出時のみblur効果を適用、それ以外の場合は適用しない
-                          shouldShowAnimation && !(isLoaded && isMounted)
-                            ? "blur-sm"
-                            : "filter-none",
+                          isLoaded && isMounted ? "filter-none" : "blur-sm",
                           building.isUnlocked
                             ? "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.4)]"
                             : "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.2)]",
                         )}
+                        quality={95}
+                        priority={building.id === "house"}
                       />
 
                       {/* 選択インジケーター */}
@@ -634,7 +678,7 @@ export default function SettlementPage() {
           {/* 雲のアニメーション */}
           <AnimatePresence>
             {showClouds && isMounted && (
-              <div className="absolute inset-0 z-40 pointer-events-none">
+              <div className="fixed inset-0 z-40 pointer-events-none">
                 {clouds.map((cloud) => (
                   <motion.div
                     key={cloud.id}
@@ -690,7 +734,7 @@ export default function SettlementPage() {
 
           {/* 左上のタイトル */}
           <motion.div
-            className="absolute top-8 left-8 z-20 text-left"
+            className="fixed top-24 left-8 z-50 text-left"
             initial={
               shouldShowAnimation
                 ? { opacity: 0, x: -50 }
@@ -735,7 +779,7 @@ export default function SettlementPage() {
           <AnimatePresence>
             {showButtons && isMounted && (
               <motion.div
-                className="absolute top-8 right-5 transform -translate-x-1/2 z-30 flex flex-row space-x-6"
+                className="fixed top-24 right-5 transform -translate-x-1/2 z-50 flex flex-row space-x-6"
                 initial={
                   shouldShowAnimation
                     ? { opacity: 0, y: 50 }
@@ -766,7 +810,7 @@ export default function SettlementPage() {
                   ></div>
 
                   <button
-                    onClick={goToCreateRoom}
+                    onClick={() => goToCreateRoom()}
                     className="relative w-48 h-12 bg-gradient-to-br from-amber-500 to-amber-600 text-white rounded-lg flex items-center justify-center z-10 border-2 border-amber-500 group-hover:border-amber-400 transition-all duration-300"
                     style={{
                       boxShadow:
@@ -852,14 +896,19 @@ export default function SettlementPage() {
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
-                onClick={() => setShowPurchaseDialog(null)}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPurchaseDialog(null);
+                }}
               >
                 <motion.div
                   initial={{ scale: 0.8, y: 20 }}
                   animate={{ scale: 1, y: 0 }}
                   exit={{ scale: 0.8, y: 20 }}
                   className="bg-gradient-to-b from-amber-50 to-amber-100 p-6 rounded-2xl shadow-xl max-w-md mx-4 relative"
-                  onClick={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
                 >
                   <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-amber-500 p-3 rounded-full shadow-lg">
                     <ShoppingBag className="h-8 w-8 text-white" />
@@ -868,6 +917,18 @@ export default function SettlementPage() {
                   <h3 className="text-2xl font-bold text-amber-900 mt-6 mb-4 text-center">
                     {showPurchaseDialog.name}を購入しますか？
                   </h3>
+
+                  <div className="flex justify-center mb-6">
+                    <div className="relative w-72 h-72">
+                      <Image
+                        src={showPurchaseDialog.image || "/placeholder.svg"}
+                        alt={showPurchaseDialog.name}
+                        fill
+                        className="object-contain drop-shadow-lg"
+                        quality={95}
+                      />
+                    </div>
+                  </div>
 
                   <div className="bg-white/60 p-4 rounded-xl mb-4">
                     <div className="flex justify-between items-center mb-2">
@@ -970,6 +1031,122 @@ export default function SettlementPage() {
               </motion.div>
             )}
           </AnimatePresence>
+
+          {/* 建物詳細ポップアップ */}
+          <AnimatePresence>
+            {showBuildingDetails && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 bg-black/40 flex items-center justify-center z-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowBuildingDetails(null);
+                  setSelectedBuilding(null);
+                }}
+              >
+                <motion.div
+                  initial={{ scale: 0.8, y: 20 }}
+                  animate={{ scale: 1, y: 0 }}
+                  exit={{ scale: 0.8, y: 20 }}
+                  className="bg-gradient-to-b from-amber-50 to-amber-100 p-6 rounded-2xl shadow-xl max-w-md mx-4 relative"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <div className="absolute -top-10 left-1/2 transform -translate-x-1/2 bg-amber-500 p-3 rounded-full shadow-lg">
+                    <Home className="h-8 w-8 text-white" />
+                  </div>
+
+                  <h3 className="text-2xl font-bold text-amber-900 mt-6 mb-2 text-center">
+                    {showBuildingDetails.name}
+                  </h3>
+
+                  <div className="flex justify-center mb-4">
+                    <div className="relative w-96 h-96">
+                      <Image
+                        src={showBuildingDetails.image || "/placeholder.svg"}
+                        alt={showBuildingDetails.name}
+                        fill
+                        className="object-contain drop-shadow-lg"
+                        quality={95}
+                        priority
+                      />
+                    </div>
+                  </div>
+
+                  <div className="bg-white/60 p-4 rounded-xl mb-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-amber-800">レベル</span>
+                      <span className="font-bold text-amber-900">
+                        Lv.{showBuildingDetails.level}
+                      </span>
+                    </div>
+
+                    <div className="mt-3 pt-3 border-t border-amber-200">
+                      <p className="text-amber-800 text-sm leading-relaxed">
+                        {showBuildingDetails.description ||
+                          "詳細情報がありません。"}
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      className="flex-1 py-3 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300 transition-colors"
+                      onClick={() => {
+                        setShowBuildingDetails(null);
+                        setSelectedBuilding(null);
+                      }}
+                    >
+                      閉じる
+                    </button>
+
+                    <button
+                      className="flex-1 py-3 rounded-lg font-medium transition-colors flex justify-center items-center bg-gradient-to-r from-amber-500 to-amber-600 text-white hover:from-amber-600 hover:to-amber-700"
+                      onClick={() => {
+                        setShowBuildingDetails(null);
+                        setSelectedBuilding(null);
+                        goToCreateRoom();
+                      }}
+                    >
+                      自習ルーム作成
+                      <Home className="h-5 w-5 ml-2" />
+                    </button>
+                  </div>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* スクロールインジケーター */}
+          <div className="fixed bottom-4 right-4 bg-amber-100/70 rounded-full p-3 shadow-lg backdrop-blur-sm z-40">
+            <div className="text-amber-800 text-sm font-medium mb-1 text-center">
+              スクロールして探索
+            </div>
+            <motion.div
+              animate={{ y: [0, 5, 0] }}
+              transition={{ repeat: Infinity, duration: 1.5 }}
+              className="flex justify-center"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="24"
+                height="24"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="text-amber-600"
+              >
+                <path d="M12 5v14"></path>
+                <path d="m19 12-7 7-7-7"></path>
+              </svg>
+            </motion.div>
+          </div>
         </main>
       </div>
     </div>
