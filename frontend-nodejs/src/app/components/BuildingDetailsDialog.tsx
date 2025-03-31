@@ -50,9 +50,10 @@ export default function BuildingDetailsDialog({
               src={building.image || "/placeholder.svg"}
               alt={building.name}
               fill
+              sizes="(max-width: 768px) 100vw, 600px"
               className="object-contain drop-shadow-lg"
               quality={95}
-              priority
+              priority={building.id === "house" || building.id === "cafe"}
             />
           </div>
         </div>

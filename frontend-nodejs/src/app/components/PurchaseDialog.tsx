@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Coins, ShoppingBag } from "lucide-react";
-import { cn } from "@/src/lib/utils";
+import { cn } from "@/lib/utils";
 import { Building, UserStats } from "../../types/settlement";
 
 interface PurchaseDialogProps {
@@ -55,8 +55,10 @@ export default function PurchaseDialog({
               src={building.image || "/placeholder.svg"}
               alt={building.name}
               fill
+              sizes="(max-width: 768px) 100vw, 400px"
               className="object-contain drop-shadow-lg"
               quality={95}
+              priority={building.id === "house" || building.id === "cafe"}
             />
           </div>
         </div>
