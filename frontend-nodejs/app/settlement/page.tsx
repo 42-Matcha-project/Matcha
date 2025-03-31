@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building, PurchaseSuccess } from "../types/settlement";
@@ -12,6 +12,7 @@ import { initialUserStats } from "../data/initialUserStats";
 
 // カスタムフック
 import { useTimeManager } from "../hooks/useTimeManager";
+import { useAnimationState } from "../hooks/useAnimationState";
 
 // コンポーネントをインポート
 import SettlementHeader from "../components/SettlementHeader";
@@ -28,12 +29,16 @@ export default function SettlementPage() {
   // 時間管理フックを使用
   const { currentTime, isMounted } = useTimeManager();
 
-  const [isLoaded, setIsLoaded] = useState(false);
+  // アニメーション状態管理フックを使用
+  const {
+    isLoaded,
+    showButtons,
+    showClouds,
+    shouldShowAnimation,
+    contentVisible,
+  } = useAnimationState(isMounted);
+
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
-  const [showButtons, setShowButtons] = useState(false);
-  const [showClouds, setShowClouds] = useState(false);
-  const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
-  const [contentVisible, setContentVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState<Building | null>(
     null,
@@ -50,67 +55,6 @@ export default function SettlementPage() {
 
   // 雲のデータを使用
   const clouds = cloudEffects;
-
-  // 初期ロード時の処理
-  useEffect(() => {
-    if (!isMounted) return;
-
-    // ロード状態を確認するために少し遅延を入れる
-    setTimeout(() => {
-      // LocalStorageをチェックして初回訪問かどうか確認
-      const hasSeenAnimation =
-        localStorage.getItem("hasSeenCloudAnimation") === "true";
-
-      if (!hasSeenAnimation) {
-        // 初回訪問時は演出を表示
-        setShouldShowAnimation(true);
-        setShowClouds(true);
-
-        // 少し遅延を入れてからコンテンツを表示
-        setTimeout(() => {
-          setContentVisible(true);
-        }, 300);
-      } else {
-        // 2回目以降は演出をスキップして直接コンテンツを表示
-        setIsLoaded(true);
-        setShowButtons(true);
-
-        // 少し遅延を入れてからコンテンツを表示
-        setTimeout(() => {
-          setContentVisible(true);
-        }, 300);
-      }
-    }, 200);
-  }, [isMounted]);
-
-  // ページロード時のアニメーション
-  useEffect(() => {
-    if (!isMounted || !shouldShowAnimation) return;
-
-    // ページロード時のアニメーションシーケンス
-    const sequence = async () => {
-      // 最初に少し待機
-      await new Promise((resolve) => setTimeout(resolve, 800));
-
-      // ページがロードされたことを示す
-      setIsLoaded(true);
-
-      // 雲が消えるまで待機
-      await new Promise((resolve) => setTimeout(resolve, 2500));
-
-      // 雲を消す
-      setShowClouds(false);
-
-      // ボタンを表示
-      await new Promise((resolve) => setTimeout(resolve, 800));
-      setShowButtons(true);
-
-      // アニメーションを見たことをローカルストレージに記録
-      localStorage.setItem("hasSeenCloudAnimation", "true");
-    };
-
-    sequence();
-  }, [isMounted, shouldShowAnimation]);
 
   // 建物を選択または購入
   const handleBuildingClick = (buildingId: string, e: React.MouseEvent) => {
