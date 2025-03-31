@@ -3,7 +3,7 @@
 import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building, PurchaseSuccess } from "../types/settlement";
+import { Building } from "../types/settlement";
 
 // データのインポート
 import { buildings } from "../data/buildings";
@@ -13,6 +13,7 @@ import { initialUserStats } from "../data/initialUserStats";
 // カスタムフック
 import { useTimeManager } from "../hooks/useTimeManager";
 import { useAnimationState } from "../hooks/useAnimationState";
+import { useBuildingManager } from "../hooks/useBuildingManager";
 
 // コンポーネントをインポート
 import SettlementHeader from "../components/SettlementHeader";
@@ -38,65 +39,33 @@ export default function SettlementPage() {
     contentVisible,
   } = useAnimationState(isMounted);
 
-  const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
-  const [showPurchaseDialog, setShowPurchaseDialog] = useState<Building | null>(
-    null,
-  );
-  const [showBuildingDetails, setShowBuildingDetails] =
-    useState<Building | null>(null);
-  const [purchaseSuccess, setPurchaseSuccess] =
-    useState<PurchaseSuccess | null>(null);
-  const [showStoreTooltip, setShowStoreTooltip] = useState(false);
-  const [showGiftTooltip, setShowGiftTooltip] = useState(false);
-
   // 初期ユーザーデータを使用
   const [userStats] = useState(initialUserStats);
+
+  // 建物管理フックを使用
+  const {
+    selectedBuilding,
+    showPurchaseDialog,
+    showBuildingDetails,
+    purchaseSuccess,
+    handleBuildingClick,
+    purchaseBuilding,
+    clearSelection,
+    closePurchaseDialog,
+    closeBuildingDetails,
+  } = useBuildingManager(buildings, userStats.coins);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [showStoreTooltip, setShowStoreTooltip] = useState(false);
+  const [showGiftTooltip, setShowGiftTooltip] = useState(false);
 
   // 雲のデータを使用
   const clouds = cloudEffects;
 
-  // 建物を選択または購入
-  const handleBuildingClick = (buildingId: string, e: React.MouseEvent) => {
-    // イベントの伝播を停止して、親要素のクリックイベントが発火しないようにする
-    e.stopPropagation();
-
-    const building = buildings.find((b) => b.id === buildingId);
-    if (!building) return;
-
-    if (building.isUnlocked) {
-      // 既に選択されている建物をクリックした場合は選択解除
-      if (selectedBuilding === buildingId) {
-        setSelectedBuilding(null);
-        setShowBuildingDetails(null);
-      } else {
-        // 他の建物が選択されていても、新しい建物を選択したら即座に切り替える
-        setSelectedBuilding(buildingId);
-        setShowBuildingDetails(building);
-      }
-    } else {
-      // 未購入の建物の場合は選択状態をクリアして購入ダイアログを表示
-      setSelectedBuilding(null);
-      setShowBuildingDetails(null);
-      setShowPurchaseDialog(building);
-    }
-  };
-
-  // 建物を購入する
-  const purchaseBuilding = (building: Building) => {
-    // 十分なコインがあるか確認
-    if (userStats.coins >= building.price) {
-      // 実際のシステムでは、ここでAPIリクエストを送信してユーザーデータを更新する
-
-      // 疑似的な購入成功の処理
-      setPurchaseSuccess({ buildingId: building.id, name: building.name });
-      setShowPurchaseDialog(null);
-
-      // 3秒後に成功メッセージを消す
-      setTimeout(() => {
-        setPurchaseSuccess(null);
-      }, 3000);
-
+  // 実際の購入処理（UI表示とメッセージ）
+  const handlePurchase = (building: Building) => {
+    const success = purchaseBuilding(building);
+    if (success) {
       // 実際のシステムではここでデータを更新
       // この例では表示だけのデモ
       alert(
@@ -105,7 +74,6 @@ export default function SettlementPage() {
     } else {
       // コインが足りない場合
       alert("コインが足りません！勉強を続けてコインを集めましょう。");
-      setShowPurchaseDialog(null);
     }
   };
 
@@ -141,8 +109,7 @@ export default function SettlementPage() {
       onClick={(e) => {
         // クリックされた要素が建物でない場合のみ選択状態をリセット
         if ((e.target as HTMLElement).closest(".building-item") === null) {
-          setSelectedBuilding(null);
-          setShowBuildingDetails(null);
+          clearSelection();
         }
       }}
       style={{ scrollBehavior: "smooth" }}
@@ -296,8 +263,8 @@ export default function SettlementPage() {
             <PurchaseDialog
               building={showPurchaseDialog}
               userStats={userStats}
-              onPurchase={purchaseBuilding}
-              onClose={() => setShowPurchaseDialog(null)}
+              onPurchase={handlePurchase}
+              onClose={closePurchaseDialog}
             />
           )}
 
@@ -310,15 +277,8 @@ export default function SettlementPage() {
           {showBuildingDetails && (
             <BuildingDetailsDialog
               building={showBuildingDetails}
-              onClose={() => {
-                setShowBuildingDetails(null);
-                setSelectedBuilding(null);
-              }}
-              onCreateRoom={() => {
-                setShowBuildingDetails(null);
-                setSelectedBuilding(null);
-                goToCreateRoom();
-              }}
+              onClose={closeBuildingDetails}
+              onCreateRoom={goToCreateRoom}
             />
           )}
 
