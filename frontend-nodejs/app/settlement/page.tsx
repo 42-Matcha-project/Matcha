@@ -10,6 +10,9 @@ import { buildings } from "../data/buildings";
 import { cloudEffects } from "../data/cloudEffects";
 import { initialUserStats } from "../data/initialUserStats";
 
+// カスタムフック
+import { useTimeManager } from "../hooks/useTimeManager";
+
 // コンポーネントをインポート
 import SettlementHeader from "../components/SettlementHeader";
 import BuildingCard from "../components/BuildingCard";
@@ -21,7 +24,10 @@ import PurchaseSuccessNotification from "../components/PurchaseSuccessNotificati
 
 export default function SettlementPage() {
   const router = useRouter();
-  const [currentTime, setCurrentTime] = useState(new Date());
+
+  // 時間管理フックを使用
+  const { currentTime, isMounted } = useTimeManager();
+
   const [isLoaded, setIsLoaded] = useState(false);
   const [selectedBuilding, setSelectedBuilding] = useState<string | null>(null);
   const [showButtons, setShowButtons] = useState(false);
@@ -29,7 +35,6 @@ export default function SettlementPage() {
   const [shouldShowAnimation, setShouldShowAnimation] = useState(false);
   const [contentVisible, setContentVisible] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [isMounted, setIsMounted] = useState(false);
   const [showPurchaseDialog, setShowPurchaseDialog] = useState<Building | null>(
     null,
   );
@@ -46,10 +51,9 @@ export default function SettlementPage() {
   // 雲のデータを使用
   const clouds = cloudEffects;
 
-  // クライアントサイドでのみマウント状態を設定
+  // 初期ロード時の処理
   useEffect(() => {
-    // マウント直後は何も表示しない
-    setIsMounted(true);
+    if (!isMounted) return;
 
     // ロード状態を確認するために少し遅延を入れる
     setTimeout(() => {
@@ -77,17 +81,6 @@ export default function SettlementPage() {
         }, 300);
       }
     }, 200);
-  }, []);
-
-  // 時計の更新
-  useEffect(() => {
-    if (!isMounted) return;
-
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
-
-    return () => clearInterval(timer);
   }, [isMounted]);
 
   // ページロード時のアニメーション
