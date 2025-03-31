@@ -1,0 +1,58 @@
+services:
+  backend-go:
+    build: backend-go
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend-go/srcs/:/usr/src/app/srcs
+    env_file:
+      - .env
+    tty: true
+    depends_on:
+      - db-mysql
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+
+  db-postgres:
+    build:
+      context: ./db-postgres
+      args:
+        POSTGRES_GENERAL_USER: ${POSTGRES_GENERAL_USER}
+        POSTGRES_GENERAL_PASSWORD: ${POSTGRES_GENERAL_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./db-postgres/data:/var/lib/postgresql/data
+      - ./db-postgres/logs:/var/log/postgresql
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost", "--quiet"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s
+    tty: true
+
+  frontend-nodejs:
+    build: frontend-nodejs
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend-nodejs/srcs/:/usr/src/app/srcs
+    env_file:
+      - .env
+    tty: true
+    depends_on:
+      - backend-go
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+      interval: 30s
+      retries: 3
+      start_period: 10s
+      timeout: 10s

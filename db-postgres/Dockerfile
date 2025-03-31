@@ -1,0 +1,14 @@
+FROM postgres:17.4
+COPY ./entry-point.sh /
+RUN chmod +x /entry-point.sh
+COPY ./configs/postgresql.conf /var/lib/postgresql/data/postgresql.conf
+
+ARG POSTGRES_GENERAL_USER
+ARG POSTGRES_GENERAL_PASSWORD
+ARG POSTGRES_DB
+
+ARG POSTGRES_GENERAL_USER=$POSTGRES_GENERAL_USER
+ARG POSTGRES_GENERAL_PASSWORD=$POSTGRES_GENERAL_PASSWORD
+ARG POSTGRES_DB=$POSTGRES_DB
+
+RUN /entry-point.sh
