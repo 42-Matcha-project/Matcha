@@ -1,7 +1,9 @@
 package models
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
 	"os"
 	"srcs/token"
@@ -41,6 +43,25 @@ func (*TUser) TableName() string {
 		AutoMigrateの際に自動で参照される。
 	*/
 	return "t_users"
+}
+
+func (user *TUser) DeductCoins(requiredCoinCount int) error {
+	if user.CoinCount < requiredCoinCount {
+		return errors.New("Not enough coins")
+	}
+	user.CoinCount -= requiredCoinCount
+	err := DB.Save(&user).Error
+	return err
+}
+
+func (user *TUser) IsBuildingIDOwned(buildingID int) (bool, error) {
+	err := DB.Where("t_building_id = ? AND t_user_id = ?", buildingID, user.ID).First(&TUserBuilding{}).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (user *TUser) CreateUser() (*TUser, error) {

@@ -12,6 +12,7 @@ import (
 	"srcs/password"
 	"srcs/profile"
 	"srcs/reports"
+	"srcs/store"
 	"srcs/study_room"
 	"srcs/utils"
 	"srcs/works"
@@ -107,7 +108,12 @@ func main() {
 	buildingsRoutes.Use(middlewares.JWTValidationMiddleware())
 	buildingsRoutes.GET("/get-own", buildings.GetOwnBuildingsHandler)
 	buildingsRoutes.GET("/get-town", buildings.GetTownBuildingsHandler)
+	buildingsRoutes.GET("/get-store", buildings.GetNonOwnedBuildingsInStoreHandler)
 	buildingsRoutes.POST("/build", buildings.BuildBuildingsHandler)
+
+	storeRoutes := router.Group("/store")
+	storeRoutes.Use(middlewares.JWTValidationMiddleware())
+	storeRoutes.POST("/buy", store.BuyBuildingHandler)
 
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middlewares.AdminJWTValidationMiddleware())

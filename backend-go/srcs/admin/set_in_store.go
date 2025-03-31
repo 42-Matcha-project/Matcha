@@ -29,7 +29,7 @@ func setBuildingsInStore(setBuildingsInStoreInput SetBuildingsInStoreInput) erro
 			DefaultName:       inputBuilding.DefaultName,
 			CustomName:        "",
 			RequiredCoinCount: inputBuilding.RequiredCoinCount,
-			IsInStore:         inputBuilding.IsInStore,
+			IsInStore:         utils.IsOnSale(inputBuilding.SaleStartTime, inputBuilding.SaleEndTime),
 			SaleStartTime:     utils.ConvertToNullTime(inputBuilding.SaleStartTime),
 			SaleEndTime:       utils.ConvertToNullTime(inputBuilding.SaleEndTime),
 		}
@@ -50,7 +50,6 @@ type BuildingInfo struct {
 	InteriorImageURL  string    `json:"InteriorImageUrl" binding:"required"`
 	DefaultName       string    `json:"DefaultName" binding:"required"`
 	RequiredCoinCount int       `json:"RequiredCoinCount" binding:"required"`
-	IsInStore         bool      `json:"IsInStore" binding:"required"`
 	SaleStartTime     time.Time `json:"SaleStartTime"`
 	SaleEndTime       time.Time `json:"SaleEndTime"`
 }
