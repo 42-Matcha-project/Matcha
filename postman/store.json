@@ -1,10 +1,10 @@
 {
   "info": {
-    "_postman_id": "946cbd0b-aa96-4831-afc8-2d220ea5eece",
-    "name": "CI(作業記録)",
+    "_postman_id": "e17e344f-6483-4c19-8b65-03dab6c3ab0e",
+    "name": "CI(ストア)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "40190595",
-    "_collection_link": "https://matcha-0044.postman.co/workspace/Matcha%25E3%2583%25AF%25E3%2583%25BC%25E3%2582%25AF%25E3%2582%25B9%25E3%2583%259A%25E3%2583%25BC%25E3%2582%25B9~92830edc-e8ea-4a8f-8413-95d98177a966/collection/40190595-946cbd0b-aa96-4831-afc8-2d220ea5eece?action=share&source=collection_link&creator=40190595"
+    "_collection_link": "https://matcha-0044.postman.co/workspace/Matcha%25E3%2583%25AF%25E3%2583%25BC%25E3%2582%25AF%25E3%2582%25B9%25E3%2583%259A%25E3%2583%25BC%25E3%2582%25B9~92830edc-e8ea-4a8f-8413-95d98177a966/collection/40190595-e17e344f-6483-4c19-8b65-03dab6c3ab0e?action=share&source=collection_link&creator=40190595"
   },
   "item": [
     {
@@ -68,7 +68,7 @@
       "response": []
     },
     {
-      "name": "作業追加 Copy",
+      "name": "ストアにある建物一覧 Copy",
       "event": [
         {
           "listen": "test",
@@ -78,9 +78,50 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"レスポンスのJSONにWorkフィールドが含まれていること\", function() {",
+              "pm.test(\"レスポンスのJSONにBuildingsフィールドが含まれていること\", function() {",
               "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('Work');",
+              "    pm.expect(jsonResponse).to.have.property('Buildings');",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/buildings/get-store",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "buildings",
+            "get-store"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "建物購入 Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "    pm.response.to.have.status(200);",
               "});",
               ""
             ],
@@ -100,7 +141,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"WorkName\": \"C言語\",\n    \"IconImageURL\": \"url\"\n}",
+          "raw": "{\n    \"BuildingID\": 2\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -108,162 +149,15 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/works/add",
+          "raw": "http://localhost:8080/store/buy",
           "protocol": "http",
           "host": [
             "localhost"
           ],
           "port": "8080",
           "path": [
-            "works",
-            "add"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "作業一覧取得 Copy",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test(\"レスポンスのJSONにWorksフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('Works');",
-              "});",
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": " Bearer {{jwt_token}}",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "http://localhost:8080/works/get",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "works",
-            "get"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "作業ログ記録 Copy",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test(\"レスポンスのJSONにworkLogフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('WorkLog');",
-              "});",
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "POST",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": " Bearer {{jwt_token}}",
-            "type": "text"
-          }
-        ],
-        "body": {
-          "mode": "raw",
-          "raw": "{\n    \"WorkID\": 1,\n    \"Minutes\": 1000\n}",
-          "options": {
-            "raw": {
-              "language": "json"
-            }
-          }
-        },
-        "url": {
-          "raw": "http://localhost:8080/works/log",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "works",
-            "log"
-          ]
-        }
-      },
-      "response": []
-    },
-    {
-      "name": "作業ログ取得 Copy",
-      "event": [
-        {
-          "listen": "test",
-          "script": {
-            "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
-              "    pm.response.to.have.status(200);",
-              "});",
-              "",
-              "pm.test(\"レスポンスのJSONにWorkLogsフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('WorkLogs');",
-              "});",
-              ""
-            ],
-            "type": "text/javascript",
-            "packages": {}
-          }
-        }
-      ],
-      "request": {
-        "method": "GET",
-        "header": [
-          {
-            "key": "Authorization",
-            "value": " Bearer {{jwt_token}}",
-            "type": "text"
-          }
-        ],
-        "url": {
-          "raw": "http://localhost:8080/works/log",
-          "protocol": "http",
-          "host": [
-            "localhost"
-          ],
-          "port": "8080",
-          "path": [
-            "works",
-            "log"
+            "store",
+            "buy"
           ]
         }
       },

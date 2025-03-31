@@ -28,6 +28,8 @@ jobs:
           echo "ADMIN_EMAIL_PASSWORD=${{ secrets.ADMIN_EMAIL_PASSWORD }}" >> .env
           echo "ADMIN_USERNAME=${{ secrets.ADMIN_USERNAME }}" >> .env
           echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
+          echo "MINUTES_PER_INTERVAL=${{ secrets.MINUTES_PER_INTERVAL }}" >> .env
+          echo "COIN_COUNT_PER_INTERVAL=${{ secrets.COIN_COUNT_PER_INTERVAL }}" >> .env
           echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
           echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
           echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
@@ -77,6 +79,9 @@ jobs:
 
       - name: Test Buildings API
         run: newman run ./postman/buildings.json --reporters cli,junit --reporter-junit-export results.xml
+
+      - name: Test Store API
+        run: newman run ./postman/store.json --reporters cli,junit --reporter-junit-export results.xml
 
       - name: Test Password API
         run: newman run ./postman/password.json --reporters cli,junit --reporter-junit-export results.xml
