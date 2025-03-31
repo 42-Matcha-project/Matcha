@@ -2,7 +2,7 @@
 
 import React, { useContext, useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
-import { SidebarContext } from "../contexts/SidebarContext";
+import { SidebarContext } from "../../contexts/SidebarContext";
 import TweetForm from "../components/TweetForm";
 import PostList from "../components/PostList";
 import { Post } from "./types";

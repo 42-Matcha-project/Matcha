@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Coins, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Building, UserStats } from "../types/settlement";
+import { Building, UserStats } from "../../types/settlement";
 
 interface PurchaseDialogProps {
   building: Building;

@@ -2,7 +2,7 @@
 
 import { motion } from "framer-motion";
 import { ShoppingBag } from "lucide-react";
-import { PurchaseSuccess } from "../types/settlement";
+import { PurchaseSuccess } from "../../types/settlement";
 
 interface PurchaseSuccessNotificationProps {
   purchaseSuccess: PurchaseSuccess;

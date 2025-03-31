@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { CloudEffect } from "../types/settlement";
+import { CloudEffect } from "../../types/settlement";
 
 interface CloudAnimationProps {
   clouds: CloudEffect[];

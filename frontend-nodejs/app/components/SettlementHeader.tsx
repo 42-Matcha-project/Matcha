@@ -11,7 +11,7 @@ import {
   Gift,
   Coins,
 } from "lucide-react";
-import { UserStats } from "../types/settlement";
+import { UserStats } from "../../types/settlement";
 
 interface SettlementHeaderProps {
   currentTime: Date;

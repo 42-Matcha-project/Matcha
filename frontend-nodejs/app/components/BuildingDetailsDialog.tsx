@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Home } from "lucide-react";
-import { Building } from "../types/settlement";
+import { Building } from "../../types/settlement";
 
 interface BuildingDetailsDialogProps {
   building: Building;
