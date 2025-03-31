@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef } from "react";
-import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building } from "../types/settlement";
 
@@ -14,6 +13,7 @@ import { initialUserStats } from "../data/initialUserStats";
 import { useTimeManager } from "../hooks/useTimeManager";
 import { useAnimationState } from "../hooks/useAnimationState";
 import { useBuildingManager } from "../hooks/useBuildingManager";
+import { useSettlementNavigation } from "../hooks/useSettlementNavigation";
 
 // コンポーネントをインポート
 import SettlementHeader from "../components/SettlementHeader";
@@ -25,8 +25,6 @@ import CloudAnimation from "../components/CloudAnimation";
 import PurchaseSuccessNotification from "../components/PurchaseSuccessNotification";
 
 export default function SettlementPage() {
-  const router = useRouter();
-
   // 時間管理フックを使用
   const { currentTime, isMounted } = useTimeManager();
 
@@ -55,9 +53,19 @@ export default function SettlementPage() {
     closeBuildingDetails,
   } = useBuildingManager(buildings, userStats.coins);
 
+  // ナビゲーションフックを使用
+  const {
+    showStoreTooltip,
+    showGiftTooltip,
+    setShowStoreTooltip,
+    setShowGiftTooltip,
+    goToCreateRoom,
+    goToJoinRoom,
+    goToStore,
+    goToGifts,
+  } = useSettlementNavigation();
+
   const containerRef = useRef<HTMLDivElement>(null);
-  const [showStoreTooltip, setShowStoreTooltip] = useState(false);
-  const [showGiftTooltip, setShowGiftTooltip] = useState(false);
 
   // 雲のデータを使用
   const clouds = cloudEffects;
@@ -75,32 +83,6 @@ export default function SettlementPage() {
       // コインが足りない場合
       alert("コインが足りません！勉強を続けてコインを集めましょう。");
     }
-  };
-
-  // ルーム作成ページへ移動
-  const goToCreateRoom = () => {
-    router.push("/host/building-selection");
-  };
-
-  // ルーム参加ページへ移動
-  const goToJoinRoom = () => {
-    router.push("/join");
-  };
-
-  // ストアページへ移動
-  const goToStore = () => {
-    // 将来的にはストアページへのルーティングを実装
-    alert(
-      "ストアは開発中です！今後さまざまな建物やアイテムを購入できるようになります。",
-    );
-  };
-
-  // プレゼントページへ移動
-  const goToGifts = () => {
-    // 将来的にはプレゼントページへのルーティングを実装
-    alert(
-      "プレゼントボックスは開発中です！今後様々な報酬を受け取れるようになります。",
-    );
   };
 
   return (
@@ -247,7 +229,7 @@ export default function SettlementPage() {
                   type: "spring",
                 }}
               >
-                <ActionButton color="amber" onClick={() => goToCreateRoom()}>
+                <ActionButton color="amber" onClick={goToCreateRoom}>
                   ルームを作成
                 </ActionButton>
 
