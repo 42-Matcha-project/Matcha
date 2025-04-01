@@ -1,4 +1,4 @@
-FROM postgres:17.4
+FROM postgres:16.0
 COPY ./entry-point.sh /
 RUN chmod +x /entry-point.sh
 COPY ./configs/postgresql.conf /var/lib/postgresql/data/postgresql.conf
