@@ -3,11 +3,11 @@
 import Layout from "../../components/Layout";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import FileInputButton from "@/src/app/components/FileInputButton";
-import ImagePreview from "@/src/app/components/ImagePreview";
-import Button from "@/src/app/components/Button";
-import FormField from "@/src/app/components/FormField";
-import TagSelector from "@/src/app/components/TagSelector";
+import FileInputButton from "@/app/components/FileInputButton";
+import ImagePreview from "@/app/components/ImagePreview";
+import Button from "@/app/components/Button";
+import FormField from "@/app/components/FormField";
+import TagSelector from "@/app/components/TagSelector";
 import useFileUploader from "@/hooks/useFileUploader";
 
 export default function ProfileDetails() {

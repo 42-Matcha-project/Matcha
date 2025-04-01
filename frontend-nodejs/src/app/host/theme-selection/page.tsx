@@ -5,8 +5,8 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Check, ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
-import { cn } from "@/src/lib/utils";
-import ThemeToggle from "@/src/app/components/ThemeToggle";
+import { cn } from "@/lib/utils";
+import ThemeToggle from "@/app/components/ThemeToggle";
 
 // テーマの種類
 type ThemeType =

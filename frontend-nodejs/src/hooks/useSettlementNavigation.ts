@@ -12,6 +12,13 @@ export function useSettlementNavigation() {
   const [showGiftTooltip, setShowGiftTooltip] = useState(false);
 
   /**
+   * マイハウスページへ移動
+   */
+  const goToMyHouse = () => {
+    router.push("/myhouse");
+  };
+
+  /**
    * ルーム作成ページへ移動
    */
   const goToCreateRoom = () => {
@@ -50,6 +57,7 @@ export function useSettlementNavigation() {
     showGiftTooltip,
     setShowStoreTooltip,
     setShowGiftTooltip,
+    goToMyHouse,
     goToCreateRoom,
     goToJoinRoom,
     goToStore,

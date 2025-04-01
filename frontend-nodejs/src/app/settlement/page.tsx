@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building } from "../../types/settlement";
+import { useRouter } from "next/navigation";
 
 // データのインポート
 import { buildings } from "../../data/buildings";
@@ -69,6 +70,8 @@ export default function SettlementPage() {
 
   // 雲のデータを使用
   const clouds = cloudEffects;
+
+  const router = useRouter();
 
   // 実際の購入処理（UI表示とメッセージ）
   const handlePurchase = (building: Building) => {
@@ -241,14 +244,16 @@ export default function SettlementPage() {
           </AnimatePresence>
 
           {/* 購入ダイアログ */}
-          {showPurchaseDialog && (
-            <PurchaseDialog
-              building={showPurchaseDialog}
-              userStats={userStats}
-              onPurchase={handlePurchase}
-              onClose={closePurchaseDialog}
-            />
-          )}
+          <AnimatePresence>
+            {showPurchaseDialog && (
+              <PurchaseDialog
+                building={showPurchaseDialog}
+                userStats={userStats}
+                onPurchase={handlePurchase}
+                onClose={closePurchaseDialog}
+              />
+            )}
+          </AnimatePresence>
 
           {/* 購入成功通知 */}
           {purchaseSuccess && (
@@ -256,13 +261,19 @@ export default function SettlementPage() {
           )}
 
           {/* 建物詳細ポップアップ */}
-          {showBuildingDetails && (
-            <BuildingDetailsDialog
-              building={showBuildingDetails}
-              onClose={closeBuildingDetails}
-              onCreateRoom={goToCreateRoom}
-            />
-          )}
+          <AnimatePresence>
+            {showBuildingDetails && (
+              <BuildingDetailsDialog
+                building={showBuildingDetails}
+                onClose={closeBuildingDetails}
+                onCreateRoom={
+                  showBuildingDetails.id === "house"
+                    ? () => router.push("/myhouse")
+                    : goToCreateRoom
+                }
+              />
+            )}
+          </AnimatePresence>
 
           {/* スクロールインジケーター */}
           <div className="fixed bottom-4 right-4 bg-amber-100/70 rounded-full p-3 shadow-lg backdrop-blur-sm z-40">
