@@ -9,7 +9,7 @@ services:
       - .env
     tty: true
     depends_on:
-      - db-mysql
+      - db-postgres
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
       interval: 30s
@@ -17,25 +17,27 @@ services:
       start_period: 10s
       timeout: 10s
 
-  db-mysql:
+  db-postgres:
     build:
-      context: ./db-mysql
+      context: ./db-postgres
       args:
-        MYSQL_USER: ${MYSQL_USER}
-        MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+        POSTGRES_GENERAL_USER: ${POSTGRES_GENERAL_USER}
+        POSTGRES_GENERAL_PASSWORD: ${POSTGRES_GENERAL_PASSWORD}
+        POSTGRES_DB: ${POSTGRES_DB}
     ports:
-      - "3306:3306"
+      - "5432:5432"
     volumes:
-      - ./db-mysql/data/:/var/lib/mysql
-      - ./db-mysql/logs:/var/log/mysql
+      - ./db-postgres/data:/var/lib/postgresql/data
+      - ./db-postgres/logs:/var/log/postgresql
     env_file:
       - .env
     healthcheck:
-      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "--silent"]
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost", "--quiet"]
       interval: 30s
       retries: 3
       start_period: 10s
       timeout: 10s
+    tty: true
 
   frontend-nodejs:
     build: frontend-nodejs

@@ -6,7 +6,7 @@ import (
 	"os"
 	"time"
 
-	"gorm.io/driver/mysql"
+	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 )
 
@@ -17,13 +17,17 @@ func createDataBase(dbUser string, dbPass string, dbHost string, dbPort string, 
 		データベース名を指定せずに接続したのち、データベースを作成する関数。
 		元々存在していたら実行されない。
 	*/
-	dsnWithoutDB := fmt.Sprintf("%s:%s@tcp(%s:%s)/?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort)
-	DB, err := gorm.Open(mysql.Open(dsnWithoutDB), &gorm.Config{})
+	dsnWithoutDB := fmt.Sprintf("host=%s user=%s password=%s port=%s dbname=postgres sslmode=disable", dbHost, dbUser, dbPass, dbPort)
+	DB, err := gorm.Open(postgres.Open(dsnWithoutDB), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Could not connect to database")
 	}
 
-	DB.Exec(fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s", dbName))
+	var exists bool
+	DB.Raw("SELECT 1 FROM pg_database WHERE datname = ?", dbName).Scan(&exists)
+	if !exists {
+		DB.Exec(fmt.Sprintf("CREATE DATABASE %s OWNER %s", dbName, dbUser))
+	}
 }
 
 func ConnectDataBase() {
@@ -31,17 +35,23 @@ func ConnectDataBase() {
 		環境変数からDSNを生成し、DATABASEとの接続を確立する関数。
 		Userテーブルを作成する。
 	*/
-	dbUser := os.Getenv("MYSQL_USER")
-	dbPass := os.Getenv("MYSQL_PASSWORD")
-	dbName := os.Getenv("DATABASE_NAME")
+	dbUser := os.Getenv("POSTGRES_USER")
+	dbPass := os.Getenv("POSTGRES_PASSWORD")
+	dbName := os.Getenv("POSTGRES_DB")
 	dbHost := os.Getenv("DATABASE_HOST")
 	dbPort := os.Getenv("DATABASE_PORT")
 
 	createDataBase(dbUser, dbPass, dbHost, dbPort, dbName)
-	dsn := fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?charset=utf8mb4&parseTime=True&loc=Local", dbUser, dbPass, dbHost, dbPort, dbName)
+	var sslMode string
+	if os.Getenv("ENVIRONMENT") == "development" {
+		sslMode = "disable"
+	} else {
+		sslMode = "require"
+	}
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=%s", dbHost, dbUser, dbPass, dbName, dbPort, sslMode)
 	var err error
 	DB, err = gorm.Open(
-		mysql.Open(dsn),
+		postgres.Open(dsn),
 		&gorm.Config{
 			PrepareStmt: true,
 		})
@@ -57,13 +67,13 @@ func ConnectDataBase() {
 	DB.AutoMigrate(&TFriendship{})
 
 	if os.Getenv("ENVIRONMENT") == "production" {
-		mysqlDB, err := DB.DB()
+		postgresDB, err := DB.DB()
 		if err != nil {
 			log.Fatal("DB取得失敗:", err)
 		}
-		mysqlDB.SetMaxIdleConns(10)
-		mysqlDB.SetMaxOpenConns(100)
-		mysqlDB.SetConnMaxLifetime(time.Hour)
+		postgresDB.SetMaxIdleConns(10)
+		postgresDB.SetMaxOpenConns(100)
+		postgresDB.SetConnMaxLifetime(time.Hour)
 
 		fmt.Println("DB接続成功！")
 	}
