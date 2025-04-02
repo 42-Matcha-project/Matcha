@@ -3,16 +3,14 @@
 import Layout from "../../components/Layout";
 import Link from "next/link";
 import { useRef, useState } from "react";
-import FileInputButton from "@/src/app/components/FileInputButton";
-import ImagePreview from "@/src/app/components/ImagePreview";
-import Button from "@/src/app/components/Button";
-import FormField from "@/src/app/components/FormField";
-import TagSelector from "@/src/app/components/TagSelector";
-import useFileUploader from "@/hooks/useFileUploader";
+import FileInputButton from "@/app/components/FileInputButton";
+import Button from "@/app/components/Button";
+import FormField from "@/app/components/FormField";
+import TagSelector from "@/app/components/TagSelector";
 
 export default function ProfileDetails() {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const { previewUrls, fileError, handleFilesChange } = useFileUploader(5);
+  // const { previewUrls, fileError, handleFilesChange } = useFileUploader(5);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   const availableTags = ["スポーツ", "動物", "映画", "音楽", "旅行"];
@@ -80,7 +78,6 @@ export default function ProfileDetails() {
                 type="file"
                 id="photos"
                 ref={fileInputRef}
-                onChange={handleFilesChange}
                 accept="image/*"
                 multiple
                 className="hidden"
@@ -97,14 +94,7 @@ export default function ProfileDetails() {
                 <br />
                 残りの4枚は、趣味の写真など、あなたらしさが伝わるお気に入りの写真をどうぞお選びください。
               </p>
-              {/* エラーメッセージ表示 */}
-              {fileError && (
-                <p className="mt-2 text-sm text-red-600">{fileError}</p>
-              )}
             </FormField>
-
-            {/* プレビュー表示 */}
-            <ImagePreview previewUrls={previewUrls} maxFiles={5} />
           </div>
 
           {/* ボタン */}

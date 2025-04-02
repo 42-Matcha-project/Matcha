@@ -12,8 +12,8 @@ import {
   Bell,
   X,
 } from "lucide-react";
-import { Button } from "@/src/components/ui/button";
-import { cn } from "@/src/lib/utils";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import ThemeToggle from "./ThemeToggle";
 
 // 参加者の型定義
