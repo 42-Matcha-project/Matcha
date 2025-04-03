@@ -14,9 +14,7 @@ interface StudyGoal {
 
 // 初期目標データ
 const initialGoals: StudyGoal[] = [
-  { id: 1, text: "数学の問題集 p.25-30", completed: true, color: "green" },
-  { id: 2, text: "英語の単語50個", completed: false, color: "orange" },
-  { id: 3, text: "歴史の年表を覚える", completed: false, color: "gray" },
+  { id: 1, text: "例）数学の問題集 p.25-30", completed: true, color: "green" },
 ];
 
 interface StudyStatsProps {

@@ -3,35 +3,35 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { Book, MessageSquare, ChevronUp, ChevronDown } from "lucide-react";
+import { MessageSquare, ChevronUp, ChevronDown } from "lucide-react";
 import Image from "next/image";
 
 // コンポーネントをインポート
 import { Header } from "./components/Header";
-import { NotesPanel } from "./components/NotesPanel";
 import { ChatPanel } from "./components/ChatPanel";
 import { StudyStats } from "./components/StudyStats";
 
 // 初期データをインポート
-import { initialParticipants, initialNotes, initialMessages } from "./data";
+import { initialParticipants, initialMessages } from "./data";
 
 export default function CozyRoomPage() {
-  const [currentTime, setCurrentTime] = useState(new Date());
+  // Initialize currentTime as null to avoid hydration mismatch
+  const [currentTime, setCurrentTime] = useState<Date | null>(null);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [activeTab, setActiveTab] = useState("memo");
+  const [activeTab, setActiveTab] = useState("chat");
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
 
   // 参加者データ
   const [participants] = useState(initialParticipants);
 
-  // メモデータ
-  const [notes, setNotes] = useState(initialNotes);
-
   // チャットメッセージ
   const [messages, setMessages] = useState(initialMessages);
 
-  // 時計の更新
+  // 時計の更新 - クライアントサイドでのみ実行
   useEffect(() => {
+    // Set initial time immediately once we're on the client
+    setCurrentTime(new Date());
+
     const timer = setInterval(() => {
       setCurrentTime(new Date());
     }, 1000);
@@ -231,7 +231,7 @@ export default function CozyRoomPage() {
               )}
             >
               <Tabs
-                defaultValue="memo"
+                defaultValue="chat"
                 value={activeTab}
                 onValueChange={setActiveTab}
               >
@@ -259,18 +259,10 @@ export default function CozyRoomPage() {
                   className={cn(
                     "transition-all duration-300 overflow-hidden",
                     isPanelExpanded
-                      ? "h-[40vh] min-h-[550px] max-h-[500px]"
+                      ? "h-[40vh] min-h-[500px] max-h-[600px]"
                       : "h-0",
                   )}
                 >
-                  <TabsContent value="memo" className="h-full overflow-hidden">
-                    <NotesPanel
-                      notes={notes}
-                      setNotes={setNotes}
-                      isDarkMode={isDarkMode}
-                    />
-                  </TabsContent>
-
                   <TabsContent value="chat" className="h-full overflow-hidden">
                     <ChatPanel
                       messages={messages}
@@ -279,9 +271,12 @@ export default function CozyRoomPage() {
                     />
                   </TabsContent>
 
-                  <TabsContent value="stats" className="h-full overflow-auto">
-                    <div className="h-full flex items-center justify-center p-4">
-                      <div className="w-full max-w-3xl px-8 py-6 transform transition-all duration-300 hover:scale-[1.02]">
+                  <TabsContent
+                    value="stats"
+                    className="h-full overflow-auto py-4"
+                  >
+                    <div className="h-full flex items-center justify-center">
+                      <div className="w-full max-w-2xl px-4 py-4 transform transition-all duration-300 hover:scale-[1.01]">
                         <StudyStats isDarkMode={isDarkMode} />
                       </div>
                     </div>

@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 interface HeaderProps {
   isDarkMode: boolean;
   toggleDarkMode: () => void;
-  currentTime: Date;
+  currentTime: Date | null;
 }
 
 export function Header({
@@ -20,6 +20,11 @@ export function Header({
 }: HeaderProps) {
   const router = useRouter();
   const [showInviteTooltip, setShowInviteTooltip] = useState(false);
+
+  // Format time with safety check for null
+  const formattedTime = currentTime
+    ? currentTime.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })
+    : "--:--";
 
   // 招待リンクをコピー
   const copyInviteLink = () => {
@@ -110,12 +115,7 @@ export function Header({
           )}
         >
           <Clock className="h-4 w-4 mr-1" />
-          <span>
-            {currentTime.toLocaleTimeString([], {
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </span>
+          <span>{formattedTime}</span>
         </div>
 
         <Button
