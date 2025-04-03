@@ -68,7 +68,7 @@ export function Header({
             isDarkMode ? "bg-amber-800" : "bg-amber-200",
           )}
         >
-          こたつルーム
+          マイルーム
         </span>
       </div>
 

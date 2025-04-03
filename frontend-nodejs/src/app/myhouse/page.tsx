@@ -4,10 +4,10 @@ import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { Book, MessageSquare, ChevronUp, ChevronDown } from "lucide-react";
+import Image from "next/image";
 
 // コンポーネントをインポート
 import { Header } from "./components/Header";
-import { Room } from "./components/Room";
 import { NotesPanel } from "./components/NotesPanel";
 import { ChatPanel } from "./components/ChatPanel";
 
@@ -47,11 +47,21 @@ export default function CozyRoomPage() {
   return (
     <div
       className={cn(
-        "min-h-screen transition-colors duration-300",
+        "min-h-screen transition-colors duration-300 relative",
         isDarkMode
           ? "bg-amber-950 text-amber-50"
           : "bg-amber-50 text-amber-950",
       )}
+      style={{
+        backgroundImage: `url('/images/new-house.png')`,
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundRepeat: "no-repeat",
+        backgroundColor: isDarkMode
+          ? "rgba(120, 53, 15, 0.85)"
+          : "rgba(245, 225, 180, 0.5)",
+        backgroundBlendMode: isDarkMode ? "overlay" : "soft-light",
+      }}
     >
       {/* ヘッダー */}
       <Header
@@ -62,8 +72,179 @@ export default function CozyRoomPage() {
 
       {/* メインコンテンツ */}
       <main className="container mx-auto px-4 py-6 flex flex-col h-[calc(100vh-56px)]">
-        {/* 部屋エリア */}
-        <Room participants={participants} isDarkMode={isDarkMode} />
+        {/* 参加者の表示領域 */}
+        <div className="flex-1 mb-4 relative">
+          {/* 座布団 - 背景に合わせた配置 */}
+          {participants.map((user, index) => {
+            // 背景画像の特定の位置に合わせて座布団を配置
+            let posX, posY;
+
+            // 参加者の数に応じて位置を調整
+            if (participants.length <= 4) {
+              // 少人数の場合は特定の位置に配置
+              if (index === 0) {
+                // 左側のソファ
+                posX = 25;
+                posY = 55;
+              } else if (index === 1) {
+                // 右側のソファ
+                posX = 75;
+                posY = 55;
+              } else if (index === 2) {
+                // 下側のソファ/椅子
+                posX = 50;
+                posY = 70;
+              } else {
+                // 上側の椅子
+                posX = 50;
+                posY = 40;
+              }
+            } else {
+              // 参加者が多い場合は適切に分散
+              const positions = [
+                { x: 25, y: 55 }, // 左側のソファ
+                { x: 75, y: 55 }, // 右側のソファ
+                { x: 50, y: 70 }, // 下側のソファ/椅子
+                { x: 50, y: 40 }, // 上側の椅子
+                { x: 35, y: 45 }, // 左上の椅子
+                { x: 65, y: 45 }, // 右上の椅子
+                { x: 35, y: 65 }, // 左下の椅子
+                { x: 65, y: 65 }, // 右下の椅子
+              ];
+
+              const pos = positions[index % positions.length];
+              posX = pos.x;
+              posY = pos.y;
+            }
+
+            return (
+              <div
+                key={`cushion-${user.id}`}
+                className="absolute"
+                style={{
+                  left: `${posX}%`,
+                  top: `${posY}%`,
+                  transform: "translate(-50%, -50%)",
+                  zIndex: 5,
+                }}
+              >
+                <div
+                  className={cn(
+                    "w-20 h-5 rounded-full transform transition-all opacity-0", // 座布団を非表示に（背景に椅子やソファがあるため）
+                    isDarkMode
+                      ? "bg-amber-700/60 border border-amber-600/40"
+                      : "bg-amber-300/60 border border-amber-400/40",
+                  )}
+                ></div>
+              </div>
+            );
+          })}
+
+          {/* 参加者アバター - 背景に合わせた配置 */}
+          {participants.map((user, index) => {
+            // 背景画像の特定の位置に合わせてアバターを配置
+            let posX, posY;
+
+            // 参加者の数に応じて位置を調整
+            if (participants.length <= 4) {
+              // 少人数の場合は特定の位置に配置
+              if (index === 0) {
+                // 左側のソファ
+                posX = 25;
+                posY = 53;
+              } else if (index === 1) {
+                // 右側のソファ
+                posX = 75;
+                posY = 53;
+              } else if (index === 2) {
+                // 下側のソファ/椅子
+                posX = 50;
+                posY = 67;
+              } else {
+                // 上側の椅子
+                posX = 50;
+                posY = 38;
+              }
+            } else {
+              // 参加者が多い場合は適切に分散
+              const positions = [
+                { x: 25, y: 53 }, // 左側のソファ
+                { x: 75, y: 53 }, // 右側のソファ
+                { x: 50, y: 67 }, // 下側のソファ/椅子
+                { x: 50, y: 38 }, // 上側の椅子
+                { x: 35, y: 43 }, // 左上の椅子
+                { x: 65, y: 43 }, // 右上の椅子
+                { x: 35, y: 63 }, // 左下の椅子
+                { x: 65, y: 63 }, // 右下の椅子
+              ];
+
+              const pos = positions[index % positions.length];
+              posX = pos.x;
+              posY = pos.y;
+            }
+
+            return (
+              <div
+                key={user.id}
+                className="absolute"
+                style={{
+                  left: `${posX}%`,
+                  top: `${posY}%`,
+                  transform: "translate(-50%, -50%)",
+                  zIndex: user.id === 1 ? 20 : 10,
+                }}
+              >
+                {/* 影 */}
+                <div className="absolute bottom-[-3px] left-1/2 transform -translate-x-1/2 w-10 h-1 bg-black/20 rounded-full blur-sm"></div>
+
+                <div className="flex flex-col items-center">
+                  <div
+                    className={cn(
+                      "relative w-16 h-16 rounded-full overflow-hidden border-2",
+                      user.id === 1
+                        ? isDarkMode
+                          ? "border-amber-500"
+                          : "border-amber-600"
+                        : isDarkMode
+                          ? "border-amber-700"
+                          : "border-amber-300",
+                    )}
+                  >
+                    <Image
+                      src={user.avatar || "/images/user1.png"}
+                      alt={user.name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 64px"
+                      className="object-cover"
+                    />
+                  </div>
+                  <span
+                    className={cn(
+                      "mt-1 px-2 py-0.5 rounded-full text-xs font-medium",
+                      isDarkMode
+                        ? "bg-amber-800/80 text-amber-50"
+                        : "bg-white/85 text-amber-950 border border-amber-400/50",
+                    )}
+                  >
+                    {user.name}
+                  </span>
+
+                  {/* ステータスインジケーター */}
+                  <div
+                    className={cn(
+                      "mt-1 w-2 h-2 rounded-full",
+                      user.status === "studying"
+                        ? "bg-green-500"
+                        : user.status === "break"
+                          ? "bg-amber-500"
+                          : "bg-slate-500",
+                    )}
+                  ></div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
 
         {/* メモ・チャットエリア */}
         <div className="relative">
@@ -76,8 +257,8 @@ export default function CozyRoomPage() {
                 "transform transition-all duration-300 hover:scale-105",
                 "border shadow-md",
                 isDarkMode
-                  ? "bg-amber-700 text-amber-50 hover:bg-amber-600 border-amber-600"
-                  : "bg-amber-300 text-amber-950 hover:bg-amber-400 border-amber-400",
+                  ? "bg-amber-700/90 text-amber-50 hover:bg-amber-600 border-amber-600"
+                  : "bg-amber-400/90 text-amber-950 hover:bg-amber-500 border-amber-500/80 backdrop-blur-sm",
               )}
             >
               {isPanelExpanded ? (
@@ -98,8 +279,8 @@ export default function CozyRoomPage() {
             className={cn(
               "rounded-xl overflow-hidden border transition-all duration-300",
               isDarkMode
-                ? "bg-amber-900/80 border-amber-800"
-                : "bg-white/80 border-amber-200",
+                ? "bg-amber-900/90 border-amber-800 shadow-lg"
+                : "bg-amber-50/95 border-amber-200 shadow-md",
             )}
           >
             <Tabs
