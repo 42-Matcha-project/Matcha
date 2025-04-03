@@ -4,7 +4,7 @@ import classnames from "classnames";
 import { Home, User, Bell, Mail, Settings } from "lucide-react";
 import Link from "next/link";
 import { useContext } from "react";
-import { SidebarContext } from "../contexts/SidebarContext";
+import { SidebarContext } from "../../contexts/SidebarContext";
 import { usePathname } from "next/navigation";
 
 const Sidebar: React.FC = () => {

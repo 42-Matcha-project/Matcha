@@ -452,8 +452,6 @@ const GlobalStyles = () => (
       }
     }
 
-    @import url("https://fonts.googleapis.com/css2?family=Kosugi+Maru&display=swap");
-
     html,
     body {
       height: 100%;
@@ -464,7 +462,7 @@ const GlobalStyles = () => (
     }
 
     .bubbly-text {
-      font-family: "Kosugi Maru", sans-serif;
+      font-family: sans-serif;
       display: inline-block;
       position: relative;
       color: inherit;

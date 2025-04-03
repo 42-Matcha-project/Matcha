@@ -4,7 +4,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Coins, ShoppingBag } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Building } from "../types/settlement";
+import { Building } from "../../types/settlement";
 
 interface BuildingCardProps {
   building: Building;
@@ -107,6 +107,7 @@ export default function BuildingCard({
             src={building.image || "/placeholder.svg"}
             alt={building.name}
             fill
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             className={cn(
               "object-contain drop-shadow-lg transition-all duration-1000",
               isLoaded && isMounted ? "filter-none" : "blur-sm",
@@ -115,7 +116,11 @@ export default function BuildingCard({
                 : "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.2)]",
             )}
             quality={95}
-            priority={building.id === "house"}
+            priority={
+              isLoaded &&
+              isMounted &&
+              (building.id === "house" || building.id === "cafe")
+            }
           />
 
           {/* 選択インジケーター */}

@@ -1,16 +1,13 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "./contexts/theme-context";
+import { ThemeProvider } from "@/contexts/theme-context";
 
+// 必要なフォントのみを保持し、display: swapで最適化
 const geistSans = Geist({
   variable: "--font-geist-sans",
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  display: "swap",
 });
 
 export const metadata: Metadata = {
@@ -28,7 +25,7 @@ export default function RootLayout({
       <body
         className={`
           relative min-h-screen
-          ${geistSans.variable} ${geistMono.variable}
+          ${geistSans.variable}
           antialiased
         `}
       >

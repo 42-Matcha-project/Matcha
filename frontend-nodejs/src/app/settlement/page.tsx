@@ -2,18 +2,18 @@
 
 import { useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building } from "../types/settlement";
+import { Building } from "../../types/settlement";
 
 // データのインポート
-import { buildings } from "../data/buildings";
-import { cloudEffects } from "../data/cloudEffects";
-import { initialUserStats } from "../data/initialUserStats";
+import { buildings } from "../../data/buildings";
+import { cloudEffects } from "../../data/cloudEffects";
+import { initialUserStats } from "../../data/initialUserStats";
 
 // カスタムフック
-import { useTimeManager } from "../hooks/useTimeManager";
-import { useAnimationState } from "../hooks/useAnimationState";
-import { useBuildingManager } from "../hooks/useBuildingManager";
-import { useSettlementNavigation } from "../hooks/useSettlementNavigation";
+import { useTimeManager } from "../../hooks/useTimeManager";
+import { useAnimationState } from "../../hooks/useAnimationState";
+import { useBuildingManager } from "../../hooks/useBuildingManager";
+import { useSettlementNavigation } from "../../hooks/useSettlementNavigation";
 
 // コンポーネントをインポート
 import SettlementHeader from "../components/SettlementHeader";
