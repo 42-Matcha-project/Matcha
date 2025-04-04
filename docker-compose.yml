@@ -20,10 +20,6 @@ services:
   db-postgres:
     build:
       context: ./db-postgres
-      args:
-        POSTGRES_GENERAL_USER: ${POSTGRES_GENERAL_USER}
-        POSTGRES_GENERAL_PASSWORD: ${POSTGRES_GENERAL_PASSWORD}
-        POSTGRES_DB: ${POSTGRES_DB}
     ports:
       - "5432:5432"
     volumes:
