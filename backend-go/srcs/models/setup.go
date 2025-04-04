@@ -12,24 +12,6 @@ import (
 
 var DB *gorm.DB
 
-func createDataBase(dbUser string, dbPass string, dbHost string, dbPort string, dbName string) {
-	/*
-		データベース名を指定せずに接続したのち、データベースを作成する関数。
-		元々存在していたら実行されない。
-	*/
-	dsnWithoutDB := fmt.Sprintf("host=%s user=%s password=%s port=%s dbname=postgres sslmode=disable", dbHost, dbUser, dbPass, dbPort)
-	DB, err := gorm.Open(postgres.Open(dsnWithoutDB), &gorm.Config{})
-	if err != nil {
-		log.Fatal("Could not connect to database")
-	}
-
-	var exists bool
-	DB.Raw("SELECT 1 FROM pg_database WHERE datname = ?", dbName).Scan(&exists)
-	if !exists {
-		DB.Exec(fmt.Sprintf("CREATE DATABASE %s OWNER %s", dbName, dbUser))
-	}
-}
-
 func ConnectDataBase() {
 	/*
 		環境変数からDSNを生成し、DATABASEとの接続を確立する関数。
@@ -41,7 +23,6 @@ func ConnectDataBase() {
 	dbHost := os.Getenv("DATABASE_HOST")
 	dbPort := os.Getenv("DATABASE_PORT")
 
-	createDataBase(dbUser, dbPass, dbHost, dbPort, dbName)
 	var sslMode string
 	if os.Getenv("ENVIRONMENT") == "development" {
 		sslMode = "disable"
