@@ -30,17 +30,14 @@ jobs:
           echo "ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}" >> .env
           echo "MINUTES_PER_INTERVAL=${{ secrets.MINUTES_PER_INTERVAL }}" >> .env
           echo "COIN_COUNT_PER_INTERVAL=${{ secrets.COIN_COUNT_PER_INTERVAL }}" >> .env
+          echo "BACKEND_PORT=${{ secrets.BACKEND_PORT }}" >> .env
           echo "POSTGRES_USER=${{ secrets.POSTGRES_USER }}" >> .env
           echo "POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}" >> .env
           echo "POSTGRES_DB=${{ secrets.POSTGRES_DB }}" >> .env
           echo "POSTGRES_GENERAL_USER=${{ secrets.POSTGRES_GENERAL_PASSWORD }}" >> .env
           echo "DATABASE_HOST=${{ secrets.DATABASE_HOST }}" >> .env
           echo "DATABASE_PORT=${{ secrets.DATABASE_PORT }}" >> .env
-          echo "BACKEND_AUTH_GROUP=${{ secrets.BACKEND_AUTH_GROUP }}" >> .env
-          echo "BACKEND_REGISTER_URL=${{ secrets.BACKEND_REGISTER_URL }}" >> .env
-          echo "BACKEND_LOGIN_URL=${{ secrets.BACKEND_LOGIN_URL }}" >> .env
-          echo "BACKEND_SETTINGS_GROUP=${{ secrets.BACKEND_SETTINGS_GROUP }}" >> .env
-          echo "BACKEND_USER_URL=${{ secrets.BACKEND_USER_URL }}" >> .env
+
 
       - name: Start app
         run: |
