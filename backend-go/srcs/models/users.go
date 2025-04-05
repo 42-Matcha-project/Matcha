@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"srcs/token"
-	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -74,7 +73,6 @@ func (user *TUser) CreateUser() (*TUser, error) {
 	}
 
 	user.Password = string(hashedPassword)
-	user.Username = strings.ToLower(user.Username)
 
 	timeZone := os.Getenv("TIME_ZONE")
 	location, err := time.LoadLocation(timeZone)
