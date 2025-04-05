@@ -11,12 +11,11 @@ func CreateAdminUser() {
 		管理者を作成してDBに保存する関数
 	*/
 	var err error
-	if err = models.DB.Where("id = ?", 1).First(&models.TUser{}).Error; err == nil {
+	if err = models.DB.Where("username = ?", os.Getenv("ADMIN_USERNAME")).First(&models.TUser{}).Error; err == nil {
 		return
 	}
 
 	adminUser := &models.TUser{
-		ID:       1,
 		Username: os.Getenv("ADMIN_USERNAME"),
 		Email:    os.Getenv("ADMIN_EMAIL"),
 		Password: os.Getenv("ADMIN_PASSWORD"),

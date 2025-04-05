@@ -119,5 +119,6 @@ func main() {
 	adminGroup.Use(middlewares.AdminJWTValidationMiddleware())
 	adminGroup.POST("/buildings/set-in-store", admin.SetBuildingsInStoreHandler)
 
-	router.Run(":8080")
+	backendPort := os.Getenv("BACKEND_PORT")
+	router.Run(":" + backendPort)
 }
