@@ -1,0 +1,20 @@
+name: Auto Deploy Backend-Go
+
+on:
+  push:
+    branches:
+      - development-main-*
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to Render
+        env:
+          RENDER_SERVICE_ID: ${{ secrets.RENDER_BACKEND_GO_DEV_ID }}
+          RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+        run: |
+          curl -X POST "https://api.render.com/deploy/$RENDER_SERVICE_ID"
