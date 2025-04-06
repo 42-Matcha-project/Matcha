@@ -8,15 +8,7 @@ import (
 )
 
 func ProductionLogger() gin.HandlerFunc {
-	if err := os.MkdirAll("logs/gin", 0755); err != nil {
-		log.Fatal("Error creating log directory.", err)
-	}
-
-	logFile, err := os.OpenFile("logs/gin/access.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		log.Fatal("Can't open log file.", err)
-	}
-	logger := log.New(logFile, "[production] ", 11)
+	logger := log.New(os.Stdout, "[production] ", log.LstdFlags)
 	return func(c *gin.Context) {
 		start := time.Now()
 		c.Next()
