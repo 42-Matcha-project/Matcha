@@ -175,7 +175,7 @@ const Register = () => {
         setIsLoading(true);
 
         // APIリクエストの作成
-        const response = await fetch(`http://localhost:8080/auth/register`, {
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -205,6 +205,7 @@ const Register = () => {
         // ログインページへリダイレクト
         window.location.href = "/login";
       } catch (error: unknown) {
+        console.log("BACKEND_BASE_URL:", process.env.BACKEND_BASE_URL);
         console.error("Registration error:", error);
         // エラーオブジェクトからメッセージを安全に抽出
         let errorMessage = "登録処理中にエラーが発生しました";
