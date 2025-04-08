@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: frontend-next
+    env: node
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
+    healthCheckTimeout: 60
+    envVars:
+      - key: PORT
+        value: 3000
+      - key: NODE_ENV
+        value: production
