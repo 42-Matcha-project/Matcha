@@ -29,7 +29,7 @@ export function useSettlementNavigation() {
    * ルーム参加ページへ移動
    */
   const goToJoinRoom = () => {
-    router.push("/join");
+    router.push("/guest/join");
   };
 
   /**

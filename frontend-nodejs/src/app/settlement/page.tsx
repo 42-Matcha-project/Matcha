@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building } from "../../types/settlement";
 import { useRouter } from "next/navigation";
@@ -25,6 +25,9 @@ import ActionButton from "../components/ActionButton";
 import CloudAnimation from "../components/CloudAnimation";
 import PurchaseSuccessNotification from "../components/PurchaseSuccessNotification";
 
+// Add import for the initializeBuildingState function
+import { initializeBuildingState } from "../../utils/buildingStateUtils";
+
 export default function SettlementPage() {
   // 時間管理フックを使用
   const { currentTime, isMounted } = useTimeManager();
@@ -41,12 +44,18 @@ export default function SettlementPage() {
   // 初期ユーザーデータを使用
   const [userStats] = useState(initialUserStats);
 
+  // 初期化処理: 建物の状態を初期化
+  useEffect(() => {
+    initializeBuildingState(buildings);
+  }, []);
+
   // 建物管理フックを使用
   const {
     selectedBuilding,
     showPurchaseDialog,
     showBuildingDetails,
     purchaseSuccess,
+    managedBuildings,
     handleBuildingClick,
     purchaseBuilding,
     clearSelection,
@@ -149,7 +158,7 @@ export default function SettlementPage() {
         >
           {/* 建物配置エリア */}
           <div className="relative h-[320vh] w-full z-10 mx-auto rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner pb-40">
-            {buildings.map((building) => (
+            {managedBuildings.map((building) => (
               <BuildingCard
                 key={building.id}
                 building={building}

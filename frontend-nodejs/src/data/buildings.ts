@@ -18,7 +18,7 @@ export const buildings: Building[] = [
     id: "library",
     name: "図書館",
     level: 3,
-    isUnlocked: false,
+    isUnlocked: true,
     requiredLevel: 3,
     price: 100,
     position: { x: 20, y: 15 },

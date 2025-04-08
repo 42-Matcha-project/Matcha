@@ -175,20 +175,23 @@ const Register = () => {
         setIsLoading(true);
 
         // APIリクエストの作成
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/register`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/register`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              Username: username,
+              Email: email,
+              Password: password,
+              DisplayName: displayName,
+              IconImageUrl: "", // 任意項目、初期値は空文字列
+            }),
+            credentials: "include",
           },
-          body: JSON.stringify({
-            Username: username,
-            Email: email,
-            Password: password,
-            DisplayName: displayName,
-            IconImageUrl: "", // 任意項目、初期値は空文字列
-          }),
-          credentials: "include",
-        });
+        );
 
         // レスポンスの処理
         if (!response.ok) {

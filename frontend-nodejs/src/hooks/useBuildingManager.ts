@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Building, PurchaseSuccess } from "../types/settlement";
+import { unlockBuilding, applyUnlockState } from "../utils/buildingStateUtils";
 
 /**
  * 建物管理のためのカスタムフック
@@ -17,6 +18,15 @@ export function useBuildingManager(buildings: Building[], userCoins: number) {
     useState<Building | null>(null);
   const [purchaseSuccess, setPurchaseSuccess] =
     useState<PurchaseSuccess | null>(null);
+  // ローカルストレージから状態を復元した建物のリスト
+  const [managedBuildings, setManagedBuildings] =
+    useState<Building[]>(buildings);
+
+  // 初期化時に建物のアンロック状態を適用
+  useEffect(() => {
+    const updatedBuildings = applyUnlockState(buildings);
+    setManagedBuildings(updatedBuildings);
+  }, [buildings]);
 
   /**
    * 建物クリックのハンドラ
@@ -26,7 +36,7 @@ export function useBuildingManager(buildings: Building[], userCoins: number) {
     // イベントの伝播を停止して、親要素のクリックイベントが発火しないようにする
     e.stopPropagation();
 
-    const building = buildings.find((b) => b.id === buildingId);
+    const building = managedBuildings.find((b) => b.id === buildingId);
     if (!building) return;
 
     if (building.isUnlocked) {
@@ -54,7 +64,14 @@ export function useBuildingManager(buildings: Building[], userCoins: number) {
   const purchaseBuilding = (building: Building) => {
     // 十分なコインがあるか確認
     if (userCoins >= building.price) {
-      // 実際のシステムでは、ここでAPIリクエストを送信してユーザーデータを更新する
+      // 建物をアンロック状態に設定
+      unlockBuilding(building.id);
+
+      // 管理中の建物リストを更新
+      const updatedBuildings = managedBuildings.map((b) =>
+        b.id === building.id ? { ...b, isUnlocked: true } : b,
+      );
+      setManagedBuildings(updatedBuildings);
 
       // 疑似的な購入成功の処理
       setPurchaseSuccess({ buildingId: building.id, name: building.name });
@@ -102,6 +119,7 @@ export function useBuildingManager(buildings: Building[], userCoins: number) {
     showPurchaseDialog,
     showBuildingDetails,
     purchaseSuccess,
+    managedBuildings,
     handleBuildingClick,
     purchaseBuilding,
     clearSelection,

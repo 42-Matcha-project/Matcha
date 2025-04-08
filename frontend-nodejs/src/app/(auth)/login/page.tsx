@@ -157,14 +157,17 @@ const Login = () => {
         }
 
         // ログインAPIリクエストを送信
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(requestBody),
+            credentials: "include",
           },
-          body: JSON.stringify(requestBody),
-          credentials: "include",
-        });
+        );
 
         let data;
         try {
@@ -197,7 +200,7 @@ const Login = () => {
           localStorage.setItem("token", token);
 
           // ログイン成功後のリダイレクト
-          window.location.href = "/role-selection";
+          window.location.href = "/settlement";
         } catch (error) {
           // JSONパースエラーまたはその他のエラー
           console.error("Login error:", error);
