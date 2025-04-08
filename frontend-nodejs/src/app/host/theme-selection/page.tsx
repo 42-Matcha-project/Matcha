@@ -189,7 +189,7 @@ export default function ThemeSelectionPage() {
       }
 
       // バックエンドAPIにリクエストを送信してルームコードを取得
-      const response = await fetch("http://localhost:8080/study-room/create", {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/study-room/create`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
