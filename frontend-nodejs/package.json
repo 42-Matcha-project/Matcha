@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start -p $PORT",
     "lint": "next lint",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "deploy": "npm run build && npm start",
+    "prepare-render": "npm install && npm run build"
   },
   "dependencies": {
     "@radix-ui/react-avatar": "^1.1.3",
