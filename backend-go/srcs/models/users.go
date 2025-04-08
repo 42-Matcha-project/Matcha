@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"net/http"
 	"os"
+	"srcs/applogs"
 	"srcs/token"
 	"time"
 
@@ -63,13 +64,13 @@ func (user *TUser) IsBuildingIDOwned(buildingID int) (bool, error) {
 	return true, nil
 }
 
-func (user *TUser) CreateUser() (*TUser, error) {
+func (user *TUser) CreateUser() (*TUser, error, int) {
 	/*
 		DBに新規ユーザーを保存する関数。
 	*/
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return nil, err, applogs.FailedToHashPassword
 	}
 
 	user.Password = string(hashedPassword)
@@ -77,7 +78,7 @@ func (user *TUser) CreateUser() (*TUser, error) {
 	timeZone := os.Getenv("TIME_ZONE")
 	location, err := time.LoadLocation(timeZone)
 	if err != nil {
-		return nil, err
+		return nil, err, applogs.FailedToLoadTimeZone
 	}
 	if user.CreatedAt.IsZero() {
 		user.CreatedAt = time.Now().In(location)
@@ -89,9 +90,9 @@ func (user *TUser) CreateUser() (*TUser, error) {
 
 	err = DB.Create(user).Error
 	if err != nil {
-		return nil, err
+		return nil, err, applogs.FailedToCreateUser
 	}
-	return user, nil
+	return user, nil, applogs.CreateUserSuccess
 }
 
 func (user *TUser) PrepareOutput() *TUser {
@@ -110,7 +111,7 @@ func PrepareOutput(users []*TUser) []*TUser {
 	return users
 }
 
-func FetchUserAndGenerateJWTTokenString(username string, email string, password string) (string, error) {
+func FetchUserAndGenerateJWTTokenString(username string, email string, password string) (string, error, int) {
 	/*
 		JWTトークンを生成する関数。
 		usernameかemailからユーザーを識別し、DBから対応するユーザーを取り出す。
@@ -119,19 +120,19 @@ func FetchUserAndGenerateJWTTokenString(username string, email string, password 
 	*/
 	var user TUser
 	if err := DB.Where("username = ? OR email = ?", username, email).First(&user).Error; err != nil {
-		return "", err
+		return "", err, applogs.UserNotFound
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", err
+		return "", err, applogs.FailedToHashPassword
 	}
 
 	jwtTokenString, err := token.GenerateJWTTokenString(uint(user.ID))
 	if err != nil {
-		return "", err
+		return "", err, applogs.FailedToGenerateJWTToken
 	}
 
-	return jwtTokenString, nil
+	return jwtTokenString, nil, applogs.JWTGenerateSuccess
 }
 
 func GetUserInfo(reqContext *gin.Context) {
