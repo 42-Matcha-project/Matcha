@@ -23,7 +23,7 @@ export default function GuestJoinPage() {
   // 参加者を見るボタンの処理
   const handleViewParticipants = () => {
     if (!roomCode.trim()) {
-      alert("参加者を見るにはルームコードを入力してください");
+      alert("参加者を後に表示");
       return;
     }
 
