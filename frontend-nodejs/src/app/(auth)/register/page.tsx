@@ -424,8 +424,24 @@ const Register = () => {
     setApiError("");
 
     try {
-      // メール送信APIをコールする
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/otp/generate`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            Email: email,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "認証コードの送信に失敗しました");
+      }
+
       setCodeSent(true);
       setResendCountdown(60); // 60秒間は再送信不可
       alert(`${email}に認証コードを送信しました。メールをご確認ください。`);
@@ -451,7 +467,6 @@ const Register = () => {
     setApiError("");
 
     try {
-      // ここでAPIを呼び出す
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: {
