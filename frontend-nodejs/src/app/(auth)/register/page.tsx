@@ -4,7 +4,7 @@ import type React from "react";
 import { useState, type ReactNode, useEffect, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, Shield, Info } from "lucide-react";
+import { Mail, Shield, Info, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 // 木の看板コンポーネント
@@ -179,6 +179,10 @@ const Register = () => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
+  // パスワード表示/非表示の状態
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const router = useRouter();
 
   // フィールドの検証
@@ -336,6 +340,8 @@ const Register = () => {
         }
       } else {
         console.log("Response is not JSON or empty");
+        const text = await response.text();
+        console.log("Response text:", text.substring(0, 200)); // 最初の200文字だけログ出力
       }
 
       if (!response.ok) {
@@ -367,6 +373,16 @@ const Register = () => {
   const handleConfirmPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
     setConfirmPassword(e.target.value);
     validateConfirmPassword(e.target.value, password);
+  };
+
+  // パスワード表示/非表示の切り替え
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+
+  // 確認用パスワード表示/非表示の切り替え
+  const toggleConfirmPasswordVisibility = () => {
+    setShowConfirmPassword(!showConfirmPassword);
   };
 
   const validatePassword = (value: string) => {
@@ -1005,13 +1021,30 @@ const Register = () => {
                 </div>
                 <div className="relative mt-2">
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={handlePassword}
-                    className="w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
+                    className="w-full px-4 py-3 pr-12 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
                     placeholder="8文字以上の安全なパスワード"
                   />
+                  <button
+                    type="button"
+                    onClick={togglePasswordVisibility}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-amber-800 focus:outline-none"
+                    aria-label={
+                      showPassword ? "パスワードを隠す" : "パスワードを表示"
+                    }
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
+                {errors.password && (
+                  <div className="mt-2 text-red-500">{errors.password}</div>
+                )}
               </div>
 
               {/* パスワード確認フィールド */}
@@ -1025,15 +1058,33 @@ const Register = () => {
                 </div>
                 <div className="relative mt-2">
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={handleConfirmPassword}
-                    className="w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
+                    className="w-full px-4 py-3 pr-12 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
                     placeholder="同じパスワードを再入力"
                   />
+                  <button
+                    type="button"
+                    onClick={toggleConfirmPasswordVisibility}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-amber-800 focus:outline-none"
+                    aria-label={
+                      showConfirmPassword
+                        ? "パスワードを隠す"
+                        : "パスワードを表示"
+                    }
+                  >
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
-                {errors.password && (
-                  <div className="mt-2 text-red-500">{errors.password}</div>
+                {errors.confirmPassword && (
+                  <div className="mt-2 text-red-500">
+                    {errors.confirmPassword}
+                  </div>
                 )}
               </div>
 
