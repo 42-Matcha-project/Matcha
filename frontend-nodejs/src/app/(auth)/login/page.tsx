@@ -2,6 +2,7 @@
 
 import React, { useState, ReactNode } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 // 木の看板コンポーネント
 const WoodenSign = ({
@@ -83,6 +84,7 @@ const RequiredTag = () => {
 };
 
 const Login = () => {
+  const router = useRouter();
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isComposing, setIsComposing] = useState(false);
@@ -430,7 +432,7 @@ const Login = () => {
                 boxShadow:
                   "0 2px 4px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.2)",
               }}
-              onClick={() => alert("パスワード再設定メールを送信しました")}
+              onClick={() => router.push("/password-reset")}
             >
               パスワードを忘れた方はこちら
             </button>
