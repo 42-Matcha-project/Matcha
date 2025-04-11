@@ -2,12 +2,16 @@ package applogs
 
 const (
 	// 000~ 成功
-	OTPGenerateSuccess = 000
-	OTPVerifySuccess   = 001
-	CreateUserSuccess  = 002
-	RegisterSuccess    = 003
-	JWTGenerateSuccess = 004
-	LoginSuccess       = 005
+	OTPGenerateSuccess                 = 0
+	OTPVerifySuccess                   = 1
+	CreateUserSuccess                  = 2
+	RegisterSuccess                    = 3
+	JWTGenerateSuccess                 = 4
+	LoginSuccess                       = 5
+	BuildBuildingSuccess               = 6
+	GetOwnBuildingsSuccess             = 7
+	GetNonOwnedBuildingsInStoreSuccess = 8
+	GetTownBuildingsSuccess            = 9
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound = 100
 	OTPNotMatch           = 101
@@ -18,7 +22,8 @@ const (
 	LackOfLoginData       = 106
 	UserNotFound          = 107
 	// 200~ フロントエンドレベル
-	InvalidJSONInput = 200
+	InvalidJSONInput       = 200
+	UserDoesNotOwnBuilding = 201
 	// 300~ バックエンドレベル
 	FailedToLoadTimeZone       = 301
 	FailedToSendEmail          = 302
@@ -31,6 +36,9 @@ const (
 	// 400~ データベースレベル
 	FailedToCreateUser           = 401
 	FailedToBuildDefaultBuilding = 402
+	FailedToGetBuildings         = 403
+	FailedToDeleteBuilding       = 404
+	FailedToCreateUserBuilding   = 405
 )
 
 var Message = map[int]string{}
@@ -43,6 +51,10 @@ func init() {
 	Message[RegisterSuccess] = "ユーザーの登録に成功しました。"
 	Message[JWTGenerateSuccess] = "JWTトークンの生成に成功しました。"
 	Message[LoginSuccess] = "ログインに成功しました。"
+	Message[BuildBuildingSuccess] = "建物の建設に成功しました。"
+	Message[GetOwnBuildingsSuccess] = "所有している建物の取得に成功しました。"
+	Message[GetNonOwnedBuildingsInStoreSuccess] = "ストアにある建物のうち所有していない建物の取得に成功しました。"
+	Message[GetTownBuildingsSuccess] = "町にある建物の取得に成功しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -54,6 +66,7 @@ func init() {
 	Message[UserNotFound] = "ユーザーが見つかりませんでした。"
 	// 200~ フロントエンドレベル
 	Message[InvalidJSONInput] = "JSONデータの形式にエラーがあります。"
+	Message[UserDoesNotOwnBuilding] = "ユーザーは建物を所有していません。"
 	// 300~ バックエンドレベル
 	Message[FailedToLoadTimeZone] = "タイムゾーンの取得に失敗しました。"
 	Message[FailedToSendEmail] = "メールの送信に失敗しました。"
@@ -64,6 +77,9 @@ func init() {
 	Message[FailedToHashPassword] = "パスワードのハッシュ化に失敗しました。"
 	Message[FailedToGenerateJWTToken] = "JWTトークンの生成に失敗しました。"
 	// 400~ データベースレベル
-	Message[FailedToCreateUser] = "ユーザーをデータベースに保存できませんでした。"
+	Message[FailedToCreateUser] = "データベースにユーザーを保存できませんでした。"
 	Message[FailedToBuildDefaultBuilding] = "初期建物を設定できませんでした。"
+	Message[FailedToGetBuildings] = "データベースから建物の取得に失敗しました。"
+	Message[FailedToDeleteBuilding] = "データベースから建物の削除に失敗しました。"
+	Message[FailedToCreateUserBuilding] = "データベースにユーザー建物情報を保存できませんでした。"
 }
