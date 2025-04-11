@@ -139,6 +139,21 @@ const useSakuraFlowers = () => {
   return flowers;
 };
 
+// APIレスポンスの型定義
+interface APIResponse {
+  Error?: string;
+  message?: string;
+}
+
+interface RegisterResponse extends APIResponse {
+  User?: {
+    ID?: string;
+    Username?: string;
+    DisplayName?: string;
+    Email?: string;
+  };
+}
+
 const Register = () => {
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -302,14 +317,29 @@ const Register = () => {
           },
           body: JSON.stringify({
             Email: email,
-            OTPCode: verificationCode,
+            OTP: verificationCode,
           }),
         },
       );
 
+      console.log("Verification response status:", response.status);
+
+      // レスポンスボディが空かどうかをチェック
+      let responseData: APIResponse = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        try {
+          responseData = await response.json();
+          console.log("Verification response data:", responseData);
+        } catch {
+          console.log("Empty or invalid JSON response");
+        }
+      } else {
+        console.log("Response is not JSON or empty");
+      }
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "認証コードの検証に失敗しました");
+        throw new Error(responseData.Error || "認証コードの検証に失敗しました");
       }
 
       // 検証成功
@@ -320,6 +350,7 @@ const Register = () => {
       if (error instanceof Error) {
         errorMessage = error.message;
       }
+      console.error("Verification error:", error);
       setApiError(errorMessage);
       return false;
     } finally {
@@ -437,9 +468,19 @@ const Register = () => {
         },
       );
 
+      console.log("Generate OTP response status:", response.status);
+
+      // レスポンスボディが空かどうかをチェック
+      let responseData: APIResponse = {};
+      try {
+        responseData = await response.json();
+        console.log("Generate OTP response data:", responseData);
+      } catch {
+        // レスポンスがJSONでない場合（空のボディなど）はスキップ
+      }
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "認証コードの送信に失敗しました");
+        throw new Error(responseData.Error || "認証コードの送信に失敗しました");
       }
 
       setCodeSent(true);
@@ -450,6 +491,7 @@ const Register = () => {
         error instanceof Error
           ? error.message
           : "認証コードの送信に失敗しました";
+      console.error("Generate OTP error:", error);
       setApiError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -467,33 +509,54 @@ const Register = () => {
     setApiError("");
 
     try {
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/register`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            Username: username,
+            DisplayName: displayName,
+            Email: email,
+            Password: password,
+          }),
         },
-        body: JSON.stringify({
-          username,
-          displayName,
-          email,
-          password,
-        }),
-      });
+      );
 
-      const data = await response.json();
+      console.log("Register response status:", response.status);
+
+      let responseData: RegisterResponse = {};
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        try {
+          responseData = await response.json();
+          console.log("Register response data:", responseData);
+        } catch (error) {
+          console.error("Failed to parse JSON response:", error);
+        }
+      } else {
+        console.log("Response is not JSON");
+        const text = await response.text();
+        console.log("Response text:", text.substring(0, 200)); // 最初の200文字だけログ出力
+      }
 
       if (!response.ok) {
-        throw new Error(data.message || "登録に失敗しました");
+        throw new Error(
+          responseData.Error || responseData.message || "登録に失敗しました",
+        );
       }
 
       // 登録成功
       alert("アカウントが作成されました。ログインしてください。");
       router.push("/login");
     } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "登録に失敗しました。もう一度お試しください。";
+      let errorMessage = "登録に失敗しました。もう一度お試しください。";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      console.error("Register error:", error);
       setApiError(errorMessage);
     } finally {
       setIsLoading(false);
