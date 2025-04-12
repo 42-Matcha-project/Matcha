@@ -524,6 +524,7 @@ const Register = () => {
       return;
     }
 
+    // ローディング状態を設定
     setIsLoading(true);
     setApiError("");
 
@@ -570,10 +571,10 @@ const Register = () => {
       // 登録成功 - UIのために少し遅延を設ける
       alert("アカウントが作成されました。ログインしてください。");
 
-      // 少し遅延してローディング状態を表示してからリダイレクト
+      // 少し遅延してからリダイレクト（ローディング表示は維持）
       setTimeout(() => {
         router.push("/login");
-      }, 1000);
+      }, 1500);
     } catch (error: unknown) {
       let errorMessage = "登録に失敗しました。もう一度お試しください。";
       if (error instanceof Error) {
@@ -700,9 +701,9 @@ const Register = () => {
   // Add a component for the full-page loading overlay
   const LoadingOverlay = () => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-5 rounded-lg shadow-lg flex flex-col items-center">
+      <div className="bg-white p-8 rounded-lg shadow-lg flex flex-col items-center max-w-sm w-full">
         <svg
-          className="animate-spin h-10 w-10 text-amber-600 mb-4"
+          className="animate-spin h-16 w-16 text-amber-600 mb-4"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -721,8 +722,12 @@ const Register = () => {
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           ></path>
         </svg>
-        <h3 className="text-lg font-semibold text-amber-800">登録中...</h3>
-        <p className="text-sm text-gray-600 mt-2">しばらくお待ちください</p>
+        <h3 className="text-xl font-bold text-amber-800 mb-2">登録処理中...</h3>
+        <p className="text-sm text-gray-600 text-center">
+          アカウントを作成しています。
+          <br />
+          このまましばらくお待ちください。
+        </p>
       </div>
     </div>
   );

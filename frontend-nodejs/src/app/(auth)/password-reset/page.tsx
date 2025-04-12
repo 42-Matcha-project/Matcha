@@ -487,9 +487,6 @@ const PasswordReset = () => {
     setIsVerifying(true);
     setApiError("");
 
-    // 処理中トーストを表示
-    showToast("認証コードを検証中...", "loading");
-
     // 検証処理を実行
     verifyCode();
   };
@@ -544,6 +541,11 @@ const PasswordReset = () => {
 
       // 検証成功
       setIsVerified(true);
+
+      // 直接ステップ3に進む（nextStep関数のバリデーションをバイパス）
+      setCurrentStep(3);
+      setSubmitAttempted(false);
+
       return true;
     } catch (error: unknown) {
       let errorMessage = "認証コードの検証中にエラーが発生しました";
@@ -647,7 +649,7 @@ const PasswordReset = () => {
   const validateEmailAndCode = () => {
     let isValid = true;
 
-    if (!validateEmail()) {
+    if (!isEmailValid()) {
       isValid = false;
     }
 
@@ -685,9 +687,6 @@ const PasswordReset = () => {
     // 即座にローディング状態に設定
     setIsLoading(true);
     setApiError("");
-
-    // 処理中トーストを表示
-    showToast("認証コードを送信中...", "loading");
 
     // メール送信処理を実行
     sendVerificationCode();
@@ -896,7 +895,7 @@ const PasswordReset = () => {
   // }
 
   // Add a component for the full-page loading overlay
-  const LoadingOverlay = () => (
+  const LoadingOverlay = ({ message = "処理中..." }: { message?: string }) => (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white p-5 rounded-lg shadow-lg flex flex-col items-center">
         <svg
@@ -919,7 +918,7 @@ const PasswordReset = () => {
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           ></path>
         </svg>
-        <h3 className="text-lg font-semibold text-amber-800">処理中...</h3>
+        <h3 className="text-lg font-semibold text-amber-800">{message}</h3>
         <p className="text-sm text-gray-600 mt-2">しばらくお待ちください</p>
       </div>
     </div>
@@ -933,10 +932,7 @@ const PasswordReset = () => {
     setIsLoading(true);
     setApiError("");
 
-    // 処理中トーストを表示
-    showToast("登録処理中...", "loading");
-
-    // 登録処理を実行
+    // 登録処理を実行 (ローディング状態はLoadingOverlayで表示するためトーストは表示しない)
     handleSubmit();
   };
 
@@ -991,7 +987,22 @@ const PasswordReset = () => {
         },
       );
 
-      const data = await response.json();
+      // Handle both JSON and non-JSON responses safely
+      let data: APIResponse = {};
+      let responseText = "";
+
+      try {
+        responseText = await response.text();
+        console.log("Raw API response:", responseText);
+
+        // Only try to parse as JSON if there's content and it looks like JSON
+        if (responseText && responseText.trim().startsWith("{")) {
+          data = JSON.parse(responseText);
+        }
+      } catch (parseError) {
+        console.error("JSON parse error:", parseError);
+        // We'll continue even with parse errors
+      }
 
       if (!response.ok) {
         throw new Error(
@@ -999,11 +1010,11 @@ const PasswordReset = () => {
         );
       }
 
-      // Success - show message and redirect
+      // Success - show message and immediately redirect to login page
       showToast("パスワードが正常に再設定されました", "success");
-      setTimeout(() => {
-        router.push("/login");
-      }, 2000);
+
+      // Immediate redirect to login page
+      router.push("/login");
     } catch (error: unknown) {
       let errorMessage = "処理中にエラーが発生しました";
       if (error instanceof Error) {
@@ -1020,7 +1031,14 @@ const PasswordReset = () => {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-orange-100 flex justify-center items-center py-10 px-4">
       {/* Loading overlay - show only when isLoading is true */}
-      {isLoading && <LoadingOverlay />}
+      {isLoading && (
+        <LoadingOverlay
+          message={
+            currentStep === 3 ? "登録処理中..." : "認証コードを送信中..."
+          }
+        />
+      )}
+      {isVerifying && <LoadingOverlay message="認証コードを検証中..." />}
       {/* 背景の羊皮紙風テクスチャ */}
       <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
       <style jsx>{floatAnimation}</style>
@@ -1490,11 +1508,13 @@ const PasswordReset = () => {
                 type="button"
                 onClick={nextStep}
                 disabled={
-                  (currentStep === 1 && !isEmailValid()) ||
+                  (currentStep === 1 &&
+                    (!username.trim() || !displayName.trim())) ||
                   (currentStep === 2 && (!isVerified || !codeSent))
                 }
                 className={`px-6 py-2 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                  (currentStep === 1 && !isEmailValid()) ||
+                  (currentStep === 1 &&
+                    (!username.trim() || !displayName.trim())) ||
                   (currentStep === 2 && (!isVerified || !codeSent))
                     ? "bg-gray-400 cursor-not-allowed opacity-60"
                     : "bg-amber-600 hover:bg-amber-700"
