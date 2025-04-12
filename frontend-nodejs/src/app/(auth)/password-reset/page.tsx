@@ -1,7 +1,13 @@
 "use client";
 
 import type React from "react";
-import { useState, type ReactNode, useEffect, useCallback } from "react";
+import {
+  useState,
+  type ReactNode,
+  useEffect,
+  useCallback,
+  useRef,
+} from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Mail, Shield, Info, Eye, EyeOff } from "lucide-react";
@@ -295,17 +301,8 @@ interface APIResponse {
   message?: string;
 }
 
-interface RegisterResponse extends APIResponse {
-  User?: {
-    ID?: string;
-    Username?: string;
-    DisplayName?: string;
-    Email?: string;
-  };
-}
-
 // Register コンポーネント内にトースト状態を追加
-const Register = () => {
+const PasswordReset = () => {
   // 既存の状態変数
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
@@ -665,9 +662,25 @@ const Register = () => {
     return isValid;
   };
 
+  // Add buttonRef for the send code button
+  const sendCodeButtonRef = useRef<HTMLButtonElement>(null);
+
   // メール送信ボタンクリック時のハンドラー
   const handleSendCode = () => {
     if (!email || isLoading) return;
+
+    // ボタンの参照を取得してテキストと状態を即座に更新
+    const button = sendCodeButtonRef.current;
+    if (button) {
+      button.innerHTML = `
+        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        送信中...
+      `;
+      button.disabled = true;
+    }
 
     // 即座にローディング状態に設定
     setIsLoading(true);
@@ -738,90 +751,6 @@ const Register = () => {
     }
   };
 
-  // 登録ボタンクリック時のハンドラー
-  const handleRegisterClick = () => {
-    if (isLoading) return;
-
-    // 即座にローディング状態に設定
-    setIsLoading(true);
-    setApiError("");
-
-    // 処理中トーストを表示
-    showToast("登録処理中...", "loading");
-
-    // 登録処理を実行
-    handleSubmit();
-  };
-
-  // 登録を完了する
-  const handleSubmit = async () => {
-    if (!validateAllFields()) {
-      setSubmitAttempted(true);
-      setIsLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/register`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            Username: username,
-            DisplayName: displayName,
-            Email: email,
-            Password: password,
-          }),
-        },
-      );
-
-      console.log("Register response status:", response.status);
-
-      let responseData: RegisterResponse = {};
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        try {
-          responseData = await response.json();
-          console.log("Register response data:", responseData);
-        } catch (error) {
-          console.error("Failed to parse JSON response:", error);
-        }
-      } else {
-        console.log("Response is not JSON");
-        const text = await response.text();
-        console.log("Response text:", text.substring(0, 200)); // 最初の200文字だけログ出力
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          responseData.Error || responseData.message || "登録に失敗しました",
-        );
-      }
-
-      // 成功トーストを表示
-      showToast("アカウントが作成されました！", "success");
-
-      // 登録成功
-      alert("アカウントが作成されました。ログインしてください。");
-      router.push("/login");
-    } catch (error: unknown) {
-      let errorMessage = "登録に失敗しました。もう一度お試しください。";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      console.error("Register error:", error);
-      setApiError(errorMessage);
-
-      // エラートーストを表示
-      showToast("登録に失敗しました", "error");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   // ステップを進める
   const nextStep = () => {
     if (currentStep === 1 && !validateUsernameAndDisplayName()) {
@@ -836,6 +765,33 @@ const Register = () => {
 
     setCurrentStep((prev) => prev + 1);
     setSubmitAttempted(false);
+  };
+
+  // リアルタイムで入力フィールドの検証を行う
+  useEffect(() => {
+    if (submitAttempted && currentStep === 1) {
+      validateUsername(username);
+      validateDisplayName(displayName);
+    }
+  }, [username, displayName, submitAttempted, currentStep]);
+
+  // リアルタイムでパスワードフィールドの検証を行う
+  useEffect(() => {
+    if (submitAttempted && currentStep === 3) {
+      validatePassword(password);
+      validateConfirmPassword(confirmPassword, password);
+    }
+  }, [password, confirmPassword, submitAttempted, currentStep]);
+
+  // Add email validation helper
+  const isEmailValid = () => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return email.trim().length > 0 && emailRegex.test(email);
+  };
+
+  // Password fields validation helper
+  const arePasswordFieldsValid = () => {
+    return password.length >= 8 && password === confirmPassword;
   };
 
   // ステップを戻る
@@ -939,8 +895,132 @@ const Register = () => {
   //   setToast(null)
   // }
 
+  // Add a component for the full-page loading overlay
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-5 rounded-lg shadow-lg flex flex-col items-center">
+        <svg
+          className="animate-spin h-10 w-10 text-amber-600 mb-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <h3 className="text-lg font-semibold text-amber-800">処理中...</h3>
+        <p className="text-sm text-gray-600 mt-2">しばらくお待ちください</p>
+      </div>
+    </div>
+  );
+
+  // 登録ボタンクリック時のハンドラー
+  const handleRegisterClick = () => {
+    if (isLoading) return;
+
+    // 即座にローディング状態に設定
+    setIsLoading(true);
+    setApiError("");
+
+    // 処理中トーストを表示
+    showToast("登録処理中...", "loading");
+
+    // 登録処理を実行
+    handleSubmit();
+  };
+
+  // Add the missing handleSubmit function
+  const handleSubmit = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setApiError("");
+
+    try {
+      // Use validateAllFields for the final step
+      if (currentStep === 3) {
+        if (!validateAllFields()) {
+          setSubmitAttempted(true);
+          setIsLoading(false);
+          return;
+        }
+      } else {
+        // Validate depending on current step
+        if (currentStep === 1 && !validateUsernameAndDisplayName()) {
+          setSubmitAttempted(true);
+          setIsLoading(false);
+          return;
+        }
+
+        if (currentStep === 2 && !validateEmailAndCode()) {
+          setSubmitAttempted(true);
+          setIsLoading(false);
+          return;
+        }
+
+        // If not on the final step, just go to next step
+        nextStep();
+        setIsLoading(false);
+        return;
+      }
+
+      // Only on the last step we actually submit the form
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/password-reset`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            Username: username,
+            Email: email,
+            Password: password,
+          }),
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          data.Error || data.message || "パスワード再設定に失敗しました",
+        );
+      }
+
+      // Success - show message and redirect
+      showToast("パスワードが正常に再設定されました", "success");
+      setTimeout(() => {
+        router.push("/login");
+      }, 2000);
+    } catch (error: unknown) {
+      let errorMessage = "処理中にエラーが発生しました";
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      console.error("Submit error:", error);
+      setApiError(errorMessage);
+      showToast("エラーが発生しました", "error");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-orange-100 flex justify-center items-center py-10 px-4">
+      {/* Loading overlay - show only when isLoading is true */}
+      {isLoading && <LoadingOverlay />}
       {/* 背景の羊皮紙風テクスチャ */}
       <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
       <style jsx>{floatAnimation}</style>
@@ -1122,6 +1202,7 @@ const Register = () => {
                 <div className="mt-2">
                   <button
                     type="button"
+                    ref={sendCodeButtonRef}
                     onClick={handleSendCode}
                     disabled={isLoading || resendCountdown > 0 || !email}
                     className={`relative w-full py-2 px-4 flex items-center justify-center ${
@@ -1408,9 +1489,13 @@ const Register = () => {
               <button
                 type="button"
                 onClick={nextStep}
-                disabled={currentStep === 2 && (!isVerified || !codeSent)}
+                disabled={
+                  (currentStep === 1 && !isEmailValid()) ||
+                  (currentStep === 2 && (!isVerified || !codeSent))
+                }
                 className={`px-6 py-2 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                  currentStep === 2 && (!isVerified || !codeSent)
+                  (currentStep === 1 && !isEmailValid()) ||
+                  (currentStep === 2 && (!isVerified || !codeSent))
                     ? "bg-gray-400 cursor-not-allowed opacity-60"
                     : "bg-amber-600 hover:bg-amber-700"
                 }`}
@@ -1420,9 +1505,9 @@ const Register = () => {
             ) : (
               <button
                 onClick={handleRegisterClick}
-                disabled={isLoading}
+                disabled={isLoading || !arePasswordFieldsValid()}
                 className={`relative px-8 py-3 bg-rose-900 text-white font-bold rounded-lg transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg ${
-                  isLoading
+                  isLoading || !arePasswordFieldsValid()
                     ? "opacity-70 cursor-not-allowed"
                     : "hover:scale-105 hover:bg-amber-700"
                 }`}
@@ -1454,7 +1539,7 @@ const Register = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    送信中...
+                    登録中...
                   </span>
                 ) : (
                   <span>登録する</span>
@@ -1481,4 +1566,4 @@ const Register = () => {
   );
 };
 
-export default Register;
+export default PasswordReset;

@@ -567,9 +567,13 @@ const Register = () => {
         );
       }
 
-      // 登録成功
+      // 登録成功 - UIのために少し遅延を設ける
       alert("アカウントが作成されました。ログインしてください。");
-      router.push("/login");
+
+      // 少し遅延してローディング状態を表示してからリダイレクト
+      setTimeout(() => {
+        router.push("/login");
+      }, 1000);
     } catch (error: unknown) {
       let errorMessage = "登録に失敗しました。もう一度お試しください。";
       if (error instanceof Error) {
@@ -577,8 +581,7 @@ const Register = () => {
       }
       console.error("Register error:", error);
       setApiError(errorMessage);
-    } finally {
-      setIsLoading(false);
+      setIsLoading(false); // エラー時はローディング状態を解除
     }
   };
 
@@ -694,8 +697,66 @@ const Register = () => {
     }
   };
 
+  // Add a component for the full-page loading overlay
+  const LoadingOverlay = () => (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white p-5 rounded-lg shadow-lg flex flex-col items-center">
+        <svg
+          className="animate-spin h-10 w-10 text-amber-600 mb-4"
+          xmlns="http://www.w3.org/2000/svg"
+          fill="none"
+          viewBox="0 0 24 24"
+        >
+          <circle
+            className="opacity-25"
+            cx="12"
+            cy="12"
+            r="10"
+            stroke="currentColor"
+            strokeWidth="4"
+          ></circle>
+          <path
+            className="opacity-75"
+            fill="currentColor"
+            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+          ></path>
+        </svg>
+        <h3 className="text-lg font-semibold text-amber-800">登録中...</h3>
+        <p className="text-sm text-gray-600 mt-2">しばらくお待ちください</p>
+      </div>
+    </div>
+  );
+
+  // リアルタイムで入力フィールドの検証を行う
+  useEffect(() => {
+    if (submitAttempted && currentStep === 1) {
+      validateUsername(username);
+      validateDisplayName(displayName);
+    }
+  }, [username, displayName, submitAttempted, currentStep]);
+
+  // リアルタイムでパスワードフィールドの検証を行う
+  useEffect(() => {
+    if (submitAttempted && currentStep === 3) {
+      validatePassword(password);
+      validateConfirmPassword(confirmPassword, password);
+    }
+  }, [password, confirmPassword, submitAttempted, currentStep]);
+
+  // ユーザー名とニックネームが入力されているかチェックする
+  const areBasicFieldsValid = () => {
+    return username.trim().length > 0 && displayName.trim().length > 0;
+  };
+
+  // パスワードフィールドが有効かチェックする
+  const arePasswordFieldsValid = () => {
+    return password.length >= 8 && password === confirmPassword;
+  };
+
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-orange-100 flex justify-center items-center py-10 px-4">
+      {/* Loading overlay - show only when isLoading is true */}
+      {isLoading && <LoadingOverlay />}
       {/* 背景の羊皮紙風テクスチャ */}
       <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
       <style jsx>{floatAnimation}</style>
@@ -1129,9 +1190,13 @@ const Register = () => {
               <button
                 type="button"
                 onClick={nextStep}
-                disabled={currentStep === 2 && (!isVerified || !codeSent)}
+                disabled={
+                  (currentStep === 1 && !areBasicFieldsValid()) ||
+                  (currentStep === 2 && (!isVerified || !codeSent))
+                }
                 className={`px-6 py-2 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                  currentStep === 2 && (!isVerified || !codeSent)
+                  (currentStep === 1 && !areBasicFieldsValid()) ||
+                  (currentStep === 2 && (!isVerified || !codeSent))
                     ? "bg-gray-400 cursor-not-allowed opacity-60"
                     : "bg-amber-600 hover:bg-amber-700"
                 }`}
@@ -1141,9 +1206,9 @@ const Register = () => {
             ) : (
               <button
                 onClick={handleSubmit}
-                disabled={isLoading}
+                disabled={isLoading || !arePasswordFieldsValid()}
                 className={`relative px-8 py-3 bg-rose-900 text-white font-bold rounded-lg transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg ${
-                  isLoading
+                  isLoading || !arePasswordFieldsValid()
                     ? "opacity-70 cursor-not-allowed"
                     : "hover:scale-105 hover:bg-amber-700"
                 }`}
@@ -1175,7 +1240,7 @@ const Register = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    送信中...
+                    登録中...
                   </span>
                 ) : (
                   <span>登録する</span>
