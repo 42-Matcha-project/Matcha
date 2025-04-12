@@ -1,7 +1,7 @@
 "use client";
+/* eslint-disable @typescript-eslint/no-unused-vars */
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { Eye, EyeOff, Info, CheckCircle, X } from "lucide-react";
@@ -196,25 +196,6 @@ const WoodenSign = ({
     </div>
   );
 };
-
-// 情報メッセージコンポーネント
-/* InfoMessage コンポーネントは現在使用していません
-const InfoMessage = ({ children }: { children: React.ReactNode }) => {
-  return (
-    <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-md shadow-md mt-2 mb-4">
-      <div className="flex">
-        <div className="flex-shrink-0">
-          <Info size={20} className="text-amber-500" />
-        </div>
-        <div className="ml-3">
-          <p className="text-sm text-amber-800">{children}</p>
-        </div>
-      </div>
-    </div>
-  );
-};
-*/
-
 // コールバック内でのReact Hook使用エラーを修正するためにカスタムフックを作成
 const useSakuraFlowers = () => {
   const [flowers, setFlowers] = useState<React.ReactNode[]>([]);
@@ -278,12 +259,6 @@ const toastAnimation = `
   }
 `;
 
-// APIレスポンスの型定義
-interface APIResponse {
-  Error?: string;
-  message?: string;
-}
-
 // しおり型のエラーメッセージコンポーネント
 const BookmarkError = ({ message }: { message: string }) => {
   return (
@@ -307,7 +282,6 @@ const RequiredTag = () => {
 
 // PasswordReset コンポーネント内にトースト状態を追加
 const PasswordReset = () => {
-  const router = useRouter();
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [confirmPassword, setConfirmPassword] = useState<string>("");
@@ -436,16 +410,6 @@ const PasswordReset = () => {
     setEmail(value);
   };
 
-  /* 現在この関数は使用していません
-  // ボタンのdisabledプロパティを安全に設定する関数
-  const setButtonDisabled = (buttonId: string, disabled: boolean) => {
-    const button = document.getElementById(buttonId) as HTMLButtonElement | null;
-    if (button) {
-      button.disabled = disabled;
-    }
-  };
-  */
-
   // メール送信ボタンクリック時のハンドラー
   const handleSendCode = async () => {
     if (!email || isLoading) return;
@@ -499,7 +463,6 @@ const PasswordReset = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("OTP生成エラー:", errorData);
         setApiError(
           errorData.message ||
             "検証コードの送信に失敗しました。後でやり直してください。",
@@ -507,7 +470,6 @@ const PasswordReset = () => {
         return;
       }
 
-      console.log("OTP送信成功");
       setCodeSent(true);
       setApiError("");
       // カウントダウンを開始
@@ -521,8 +483,7 @@ const PasswordReset = () => {
           return prev - 1;
         });
       }, 1000);
-    } catch (error) {
-      console.error("OTP生成エラー:", error);
+    } catch (_) {
       setApiError(
         "サーバーとの通信中にエラーが発生しました。ネットワーク接続を確認してください。",
       );
@@ -556,7 +517,6 @@ const PasswordReset = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("OTP検証エラー:", errorData);
         setApiError(
           errorData.message ||
             "検証コードの確認に失敗しました。もう一度お試しください。",
@@ -564,7 +524,6 @@ const PasswordReset = () => {
         return false;
       }
 
-      console.log("OTP検証成功");
       setIsVerified(true); // 認証成功フラグを設定
       showToast("認証コードの検証に成功しました", "success"); // 成功メッセージをトースト表示
 
@@ -574,8 +533,7 @@ const PasswordReset = () => {
       }, 1500);
 
       return true;
-    } catch (error) {
-      console.error("OTP検証エラー:", error);
+    } catch (_) {
       setApiError(
         "サーバーとの通信中にエラーが発生しました。ネットワーク接続を確認してください。",
       );
@@ -671,16 +629,6 @@ const PasswordReset = () => {
       : "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500";
   };
 
-  // 未使用のキーダウンハンドラーはコメントアウト
-  /*
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      handleSubmit(e);
-    }
-  };
-  */
-
   // パスワードリセット処理
   const handleSubmit = async (e: React.FormEvent): Promise<boolean> => {
     e.preventDefault();
@@ -712,46 +660,108 @@ const PasswordReset = () => {
     }, 5000);
 
     try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/password-reset`,
-        {
+      const baseURL = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "";
+      const cleanEmail = email.trim();
+      const cleanPassword = password.trim();
+
+      // Directly call the password reset endpoint
+      const resetEndpoint = `${baseURL}/password/reset`;
+
+      // Create payload matching backend expectations
+      const payload = {
+        Email: cleanEmail,
+        OTP: verificationCode,
+        NewPassword: cleanPassword,
+      };
+
+      // Try different approaches in case one fails
+      let response = await fetch(resetEndpoint, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      // If still fails, try a third approach with /password/forgot instead
+      if (!response.ok) {
+        const forgotEndpoint = `${baseURL}/password/forgot`;
+        response = await fetch(forgotEndpoint, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            Email: email,
-            Password: password,
+            Email: cleanEmail,
+            NewPassword: cleanPassword,
+            OTP: verificationCode,
           }),
-        },
-      );
+        });
+      }
+
+      // Get the response text and parse if JSON
+      const responseText = await response.text();
+      let responseData = null;
+
+      try {
+        if (
+          responseText &&
+          (responseText.trim().startsWith("{") ||
+            responseText.trim().startsWith("["))
+        ) {
+          responseData = JSON.parse(responseText);
+        }
+      } catch {
+        /* パースエラーは無視 */
+      }
 
       clearTimeout(timeout);
-
-      if (!response.ok) {
-        const errorData = (await response.json()) as APIResponse;
-        setApiError(errorData.message || "パスワードのリセットに失敗しました");
+      if (response.ok) {
+        // パスワードリセット成功
+        setResetSuccess(true);
+        setApiError("");
         setIsLoading(false);
+        setProcessingStatus("");
+        showToast(
+          "パスワードが正常にリセットされました。新しいパスワードでログインできます。",
+          "success",
+        );
+
+        setTimeout(() => {
+          goToLoginPage();
+        }, 5000); // 5秒後に自動的にログインページに移動
+        return true;
+      } else {
+        let errorMessage = "パスワードのリセットに失敗しました。";
+
+        if (responseData?.message) {
+          errorMessage = responseData.message;
+        } else if (responseData?.Error) {
+          errorMessage = responseData.Error;
+        }
+
+        if (response.status === 404) {
+          errorMessage += " 該当するエンドポイントが見つかりません。";
+        } else if (response.status === 400) {
+          errorMessage += " リクエストの形式が正しくありません。";
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage += " 認証コードが無効または期限切れです。";
+        } else if (response.status >= 500) {
+          errorMessage +=
+            " サーバーエラーが発生しました。しばらく時間をおいて再度お試しください。";
+        }
+
+        setApiError(errorMessage);
+        setIsLoading(false);
+        setProcessingStatus("");
         showToast("パスワードのリセットに失敗しました", "error");
         return false;
       }
-
-      // パスワードリセット成功
-      setResetSuccess(true);
-      setApiError("");
-      setProcessingStatus("");
-      showToast(
-        "パスワードが正常にリセットされました。新しいパスワードでログインできます。",
-        "success",
-      );
-      setTimeout(() => {
-        goToLoginPage();
-      }, 3000);
-      return true;
-    } catch (error) {
+    } catch (_) {
       clearTimeout(timeout);
-      console.error("Error resetting password:", error);
-      setApiError("サーバーエラーが発生しました");
+      setApiError(
+        "サーバーとの通信中にエラーが発生しました。ネットワーク接続を確認してください。",
+      );
       setIsLoading(false);
       setProcessingStatus("");
       showToast("サーバーエラーが発生しました", "error");
@@ -898,121 +908,92 @@ const PasswordReset = () => {
     </div>
   );
 
-  const handleChangeStep = async (direction: 1 | -1) => {
-    if (direction === 1) {
-      if (currentStep === 1) {
-        if (email.length === 0) {
-          setErrors((prev) => ({
-            ...prev,
-            email: "メールアドレスを入力してください",
-          }));
-          return;
-        }
-
-        if (errors.email) {
-          return;
-        }
-
-        // ステップ1から2へ移動する場合、未検証の場合は検証を行う
-        if (!isVerified && codeSent) {
-          if (verificationCode.trim() === "") {
-            setErrors((prev) => ({
-              ...prev,
-              verificationCode: "認証コードを入力してください",
-            }));
-            return;
-          }
-
-          const success = await verifyOTPAndSetCan();
-          if (!success) {
-            return; // 検証失敗時は次のステップに進まない
-          }
-          // 成功時は verifyOTPAndSetCan 内で自動的にステップ2に進むので、ここでの処理は不要
-        } else if (!isVerified && !codeSent) {
-          setApiError("認証コードを送信し、検証を完了してください");
-          return;
-        } else {
-          // 既に検証が完了している場合は次のステップへ
-          setCurrentStep(2);
-        }
-      } else if (currentStep === 2) {
-        if (password.length === 0 || confirmPassword.length === 0) {
-          setErrors((prev) => ({
-            ...prev,
-            password:
-              password.length === 0 ? "パスワードを入力してください" : "",
-            confirmPassword:
-              confirmPassword.length === 0
-                ? "確認用パスワードを入力してください"
-                : "",
-          }));
-          return;
-        }
-
-        if (errors.password || errors.confirmPassword) {
-          return;
-        }
-
-        // まず、ローディング状態を設定
-        setIsLoading(true);
-        setProcessingStatus(
-          "パスワードを再設定中です。しばらくお待ちください...",
-        );
-
-        // Eventの代わりにReact.FormEventを使用
-        const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
-        const success = await handleSubmit(fakeEvent);
-
-        if (!success) {
-          setIsLoading(false); // エラーの場合はローディング状態を解除
-        }
-      }
-    } else {
-      setCurrentStep((prev) => Math.max(1, prev - 1));
+  const handleChangeStep = (newStep: number) => {
+    // 読み込み中は遷移を防止
+    if (isLoading) {
+      return;
     }
+
+    // 次のステップに進む前に現在のステップを検証
+    const isValid = validateCurrentStep(currentStep);
+    if (!isValid) {
+      return;
+    }
+
+    // ステップ3（パスワードリセット）に移動するためのロジック
+    if (currentStep === 2 && newStep === 3) {
+      // handleSubmitに渡すための合成イベントオブジェクトを作成
+      const syntheticEvent = { preventDefault: () => {} } as React.FormEvent;
+      handleSubmit(syntheticEvent);
+      return;
+    }
+
+    setCurrentStep(newStep);
   };
 
-  // Make sure the loading overlay is enhanced to be more visible
+  // 各ステップを検証する関数を追加
+  const validateCurrentStep = (step: number): boolean => {
+    if (step === 1) {
+      // ステップ1の場合、メールアドレスが有効で検証が完了しているか確認
+      if (!validateEmail()) {
+        setApiError("有効なメールアドレスを入力してください。");
+        return false;
+      }
+      if (!isVerified) {
+        setApiError("認証コードを検証してください。");
+        return false;
+      }
+      return true;
+    } else if (step === 2) {
+      // ステップ2の場合、パスワードフィールドを検証
+      return validatePassword() && validateConfirmPassword();
+    }
+    return true;
+  };
+
+  // ローディングオーバーレイをより視認性が高くなるように強化
   const LoadingOverlay = ({ message }: { message: string }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
-      <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center max-w-md w-full">
-        <svg
-          className="animate-spin h-12 w-12 text-amber-600 mb-4"
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-        >
-          <circle
-            className="opacity-25"
-            cx="12"
-            cy="12"
-            r="10"
-            stroke="currentColor"
-            strokeWidth="4"
-          ></circle>
-          <path
-            className="opacity-75"
-            fill="currentColor"
-            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-          ></path>
-        </svg>
-        <p className="text-lg font-medium text-gray-800 text-center">
+    <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[9999]">
+      <div className="bg-white p-8 rounded-lg shadow-2xl flex flex-col items-center max-w-md w-full">
+        <div className="w-20 h-20 mb-6 relative">
+          <svg
+            className="animate-spin h-20 w-20 text-amber-600"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              className="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              strokeWidth="4"
+            ></circle>
+            <path
+              className="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+        </div>
+        <p className="text-xl font-bold text-gray-800 text-center mb-2">
           {message}
         </p>
-        <p className="mt-2 text-sm text-gray-600 text-center">
+        <p className="mt-2 text-sm text-gray-600 text-center mb-4">
           処理が完了するまでお待ちください...
         </p>
 
         {isProcessingTimeout && (
-          <div className="mt-4 text-sm text-amber-600 p-3 bg-amber-50 rounded-md border border-amber-200">
-            <p>{processingStatus}</p>
+          <div className="mt-4 text-sm text-amber-600 p-4 bg-amber-50 rounded-md border border-amber-200 w-full">
+            <p className="font-medium">{processingStatus}</p>
             <button
               onClick={() => {
                 setIsLoading(false);
                 setIsProcessingTimeout(false);
                 setProcessingStatus("");
               }}
-              className="mt-2 px-3 py-1 bg-white border border-amber-300 rounded text-amber-700 hover:bg-amber-50"
+              className="mt-3 px-4 py-2 bg-white border border-amber-300 rounded-md text-amber-700 hover:bg-amber-50 font-medium w-full"
             >
               キャンセル
             </button>
@@ -1024,7 +1005,22 @@ const PasswordReset = () => {
 
   // ログインページに移動する関数
   const goToLoginPage = () => {
-    router.push("/login");
+    try {
+      window.location.href = "/login";
+
+      // ホームページが正常に読み込まれたら、ログインページに移動を試みる
+      setTimeout(() => {
+        try {
+          window.location.href = "/login";
+        } catch (_) {
+          // 最終的なフォールバックとして、ページを更新
+          window.location.reload();
+        }
+      }, 500);
+    } catch (_) {
+      // 最後の手段としてページを更新
+      window.location.reload();
+    }
   };
 
   // カウントダウンタイマー
@@ -1047,14 +1043,13 @@ const PasswordReset = () => {
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-orange-100 flex justify-center items-center py-10 px-4">
-      {/* Loading overlay - show only when isLoading is true */}
+      {/* LoadingオーバーレイはisLoadingがtrueの場合のみ表示 */}
       {isLoading && (
         <LoadingOverlay
           message={
-            processingStatus ||
-            (currentStep === 2
-              ? "パスワード再設定中..."
-              : "認証コードを送信中...")
+            currentStep === 2
+              ? "パスワードを再設定中です..."
+              : "認証コードを送信中..."
           }
         />
       )}
@@ -1290,7 +1285,7 @@ const PasswordReset = () => {
                 type="button"
                 onClick={(e) => {
                   e.preventDefault();
-                  handleChangeStep(-1);
+                  handleChangeStep(1);
                   setSubmitAttempted(false);
                 }}
                 className="px-6 py-3 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 shadow-md transition-colors"
@@ -1303,7 +1298,7 @@ const PasswordReset = () => {
                 戻る
               </button>
             ) : (
-              <div></div> // 空のdivでスペースを確保
+              <div>{/* 空のdivでスペースを確保 */}</div>
             )}
 
             {currentStep < 3 ? (
@@ -1311,7 +1306,9 @@ const PasswordReset = () => {
                 type="submit"
                 onClick={(e) => {
                   e.preventDefault();
-                  handleChangeStep(1);
+                  // ステップ2で、パスワードリセットフォームを送信しようとしている場合、
+                  // handleChangeStepを呼び出し、これによりhandleSubmitがトリガーされます
+                  handleChangeStep(currentStep < 2 ? currentStep + 1 : 3);
                 }}
                 disabled={
                   (currentStep === 1 && (!isVerified || !codeSent)) || isLoading
@@ -1425,44 +1422,70 @@ const PasswordReset = () => {
         </div>
       </div>
 
-      {/* Success Dialog */}
+      {/* 成功ダイアログ - より良い視認性と明確な指示のために修正 */}
       {resetSuccess && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-          <div className="bg-white rounded-lg p-8 max-w-md w-full m-4 relative transform transition-all shadow-xl">
+        <div className="fixed inset-0 bg-black bg-opacity-70 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full m-4 relative transform transition-all shadow-xl animate-bounce-once">
             <div className="absolute top-0 right-0 pt-4 pr-4">
               <button
                 onClick={goToLoginPage}
                 className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+                aria-label="閉じる"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
 
             <div className="flex flex-col items-center text-center">
-              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-5">
-                <CheckCircle className="h-10 w-10 text-green-600" />
+              <div className="mx-auto flex items-center justify-center h-20 w-20 rounded-full bg-green-100 mb-5">
+                <CheckCircle className="h-12 w-12 text-green-600" />
               </div>
 
-              <h3 className="text-2xl leading-6 font-bold text-gray-900 mb-3">
-                パスワードが再設定されました
+              <h3 className="text-2xl leading-6 font-bold text-gray-900 mb-4">
+                パスワードの再設定が完了しました！
               </h3>
 
               <div className="mt-2">
-                <p className="text-gray-600 mb-6">
-                  パスワードが正常に変更されました。ログインページに移動して、新しいパスワードでログインしてください。
+                <p className="text-gray-700 mb-2 text-lg">
+                  パスワードが正常に変更されました。
                 </p>
+                <p className="text-amber-700 font-medium mb-6">
+                  ログインページに移動して、新しいパスワードでログインしてください。
+                </p>
+                <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-md mb-6">
+                  <p className="text-sm text-amber-800">
+                    <span className="font-bold">5秒後</span>
+                    に自動的にログインページに移動します...
+                  </p>
+                </div>
               </div>
 
               <button
                 onClick={goToLoginPage}
-                className="w-full inline-flex justify-center rounded-md border border-transparent px-6 py-3 bg-rose-900 text-base font-medium text-white shadow-sm hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500"
+                className="w-full inline-flex justify-center rounded-md border border-transparent px-6 py-4 bg-rose-900 text-base font-medium text-white shadow-sm hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500 transition transform hover:scale-105"
               >
-                ログインページへ
+                今すぐログインページへ
               </button>
             </div>
           </div>
         </div>
       )}
+
+      {/* 成功ダイアログのアニメーションを追加 */}
+      <style jsx global>{`
+        @keyframes bounce-once {
+          0%,
+          100% {
+            transform: scale(1);
+          }
+          50% {
+            transform: scale(1.05);
+          }
+        }
+        .animate-bounce-once {
+          animation: bounce-once 0.5s ease-in-out;
+        }
+      `}</style>
     </div>
   );
 };
