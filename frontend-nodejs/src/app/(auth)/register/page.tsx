@@ -453,7 +453,10 @@ const Register = () => {
       isValid = false;
     }
 
-    if (!isVerified) {
+    if (!codeSent) {
+      setApiError("メールアドレスに認証コードを送信してください");
+      isValid = false;
+    } else if (!isVerified) {
       setApiError("認証コードを検証してください");
       isValid = false;
     }
@@ -1126,7 +1129,12 @@ const Register = () => {
               <button
                 type="button"
                 onClick={nextStep}
-                className="px-6 py-2 bg-amber-600 text-white font-medium rounded-md hover:bg-amber-700 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                disabled={currentStep === 2 && (!isVerified || !codeSent)}
+                className={`px-6 py-2 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 ${
+                  currentStep === 2 && (!isVerified || !codeSent)
+                    ? "bg-gray-400 cursor-not-allowed opacity-60"
+                    : "bg-amber-600 hover:bg-amber-700"
+                }`}
               >
                 次へ
               </button>
