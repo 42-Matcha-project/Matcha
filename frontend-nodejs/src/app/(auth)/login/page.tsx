@@ -3,6 +3,7 @@
 import React, { useState, ReactNode } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { Eye, EyeOff } from "lucide-react";
 
 // 木の看板コンポーネント
 const WoodenSign = ({
@@ -92,14 +93,14 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   // APIエラーを管理
   const [apiError, setApiError] = useState("");
-
-  // 入力エラー状態を管理
-  const [errors, setErrors] = useState({
-    usernameOrEmail: false,
-    password: false,
-  });
+  const [showPassword, setShowPassword] = useState(false);
   // 送信が試行されたかどうか
   const [submitAttempted, setSubmitAttempted] = useState(false);
+  // フォームのエラー状態を管理
+  const [errors, setErrors] = useState<{
+    usernameOrEmail: boolean;
+    password: boolean;
+  }>({ usernameOrEmail: false, password: false });
 
   const handleUsernameOrEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsernameOrEmail(e.target.value);
@@ -117,7 +118,7 @@ const Login = () => {
 
   // フィールドの検証
   const validateField = (field: string, value: string) => {
-    setErrors((prev) => ({
+    setErrors((prev: { usernameOrEmail: boolean; password: boolean }) => ({
       ...prev,
       [field]: value.trim() === "",
     }));
@@ -391,13 +392,27 @@ const Login = () => {
 
             <div className="relative mt-2 flex items-center">
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={password}
                 onChange={handlePassword}
                 onKeyDown={handleKeyDown}
                 className={getInputStyle("password", password)}
                 placeholder="例）taro1234"
               />
+              <button
+                type="button"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                onClick={() => setShowPassword(!showPassword)}
+                aria-label={
+                  showPassword ? "パスワードを隠す" : "パスワードを表示する"
+                }
+              >
+                {showPassword ? (
+                  <EyeOff className="h-5 w-5" />
+                ) : (
+                  <Eye className="h-5 w-5" />
+                )}
+              </button>
             </div>
             {errors.password && submitAttempted && (
               <BookmarkError message="パスワードを入力してね！" />
