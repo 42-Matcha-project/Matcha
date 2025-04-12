@@ -1,17 +1,10 @@
 "use client";
 
-import type React from "react";
-import {
-  useState,
-  type ReactNode,
-  useEffect,
-  useCallback,
-  useRef,
-} from "react";
-import Image from "next/image";
-import Link from "next/link";
-import { Mail, Shield, Info, Eye, EyeOff } from "lucide-react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import Image from "next/image";
+import { Eye, EyeOff, Info, CheckCircle, X } from "lucide-react";
 
 // トースト通知コンポーネント
 const Toast = ({
@@ -153,7 +146,7 @@ const WoodenSign = ({
   height = "h-12",
   rotation = "",
 }: {
-  children: ReactNode;
+  children: React.ReactNode;
   width?: string;
   height?: string;
   rotation?: string;
@@ -204,20 +197,9 @@ const WoodenSign = ({
   );
 };
 
-// しおり型のエラーメッセージコンポーネント
-const BookmarkError = ({ message }: { message: string }) => {
-  return (
-    <div className="relative mt-1 mx-auto animate-bounce">
-      <div className="absolute w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[15px] border-t-red-500 left-4 -top-1 z-10" />
-      <div className="bg-red-500 text-white px-4 py-1 rounded text-sm font-bold shadow-md">
-        {message}
-      </div>
-    </div>
-  );
-};
-
 // 情報メッセージコンポーネント
-const InfoMessage = ({ children }: { children: ReactNode }) => {
+/* InfoMessage コンポーネントは現在使用していません
+const InfoMessage = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="bg-amber-50 border-l-4 border-amber-500 p-3 rounded-md shadow-md mt-2 mb-4">
       <div className="flex">
@@ -231,6 +213,7 @@ const InfoMessage = ({ children }: { children: ReactNode }) => {
     </div>
   );
 };
+*/
 
 // コールバック内でのReact Hook使用エラーを修正するためにカスタムフックを作成
 const useSakuraFlowers = () => {
@@ -301,39 +284,61 @@ interface APIResponse {
   message?: string;
 }
 
-// Register コンポーネント内にトースト状態を追加
+// しおり型のエラーメッセージコンポーネント
+const BookmarkError = ({ message }: { message: string }) => {
+  return (
+    <div className="relative mt-1 mx-auto animate-bounce">
+      <div className="absolute w-0 h-0 border-l-[10px] border-l-transparent border-r-[10px] border-r-transparent border-t-[15px] border-t-red-500 left-4 -top-1 z-10" />
+      <div className="bg-red-500 text-white px-4 py-1 rounded text-sm font-bold shadow-md">
+        {message}
+      </div>
+    </div>
+  );
+};
+
+// 必須タグコンポーネント
+const RequiredTag = () => {
+  return (
+    <span className="ml-2 px-2 py-0.5 bg-amber-600 text-white text-xs font-bold rounded-full animate-pulse">
+      必須
+    </span>
+  );
+};
+
+// PasswordReset コンポーネント内にトースト状態を追加
 const PasswordReset = () => {
-  // 既存の状態変数
-  const [username, setUsername] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [email, setEmail] = useState("");
-  const [errors, setErrors] = useState({
-    username: "",
-    displayName: "",
+  const router = useRouter();
+  const [email, setEmail] = useState<string>("");
+  const [password, setPassword] = useState<string>("");
+  const [confirmPassword, setConfirmPassword] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [showConfirmPassword, setShowConfirmPassword] =
+    useState<boolean>(false);
+  const [verificationCode, setVerificationCode] = useState<string>("");
+  const [errors, setErrors] = useState<{
+    email: string;
+    password: string;
+    confirmPassword: string;
+    verificationCode: string;
+  }>({
     email: "",
     password: "",
     confirmPassword: "",
+    verificationCode: "",
   });
-  const [verificationCode, setVerificationCode] = useState("");
-  const [isVerified, setIsVerified] = useState(false);
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [apiError, setApiError] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [submitAttempted, setSubmitAttempted] = useState(false);
-  const [codeSent, setCodeSent] = useState(false);
-  const [resendCountdown, setResendCountdown] = useState(0);
-  // const [toast, setToast] = useState<{ message: string; type: "success" | "error" | "info" | "loading" } | null>(null)
-
-  // ステップベースのフォーム用の状態
-  const [currentStep, setCurrentStep] = useState(1);
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-
-  // パスワード表示/非表示の状態
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const router = useRouter();
+  const [submitAttempted, setSubmitAttempted] = useState<boolean>(false);
+  const [apiError, setApiError] = useState<string>("");
+  const [currentStep, setCurrentStep] = useState<number>(1);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [codeSent, setCodeSent] = useState<boolean>(false);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
+  const [resendCountdown, setResendCountdown] = useState<number>(0);
+  const [resetSuccess, setResetSuccess] = useState<boolean>(false);
+  // 処理ステータスを追加
+  const [processingStatus, setProcessingStatus] = useState("");
+  // 処理のタイムアウト検出用
+  const [isProcessingTimeout, setIsProcessingTimeout] = useState(false);
 
   // トースト通知用の状態を追加
   const [toastState, setToastState] = useState<{
@@ -363,339 +368,118 @@ const PasswordReset = () => {
     setToastState((prev) => ({ ...prev, visible: false }));
   };
 
-  // フィールドの検証
-  const validateField = useCallback((field: string, value: string) => {
-    setErrors((prev) => ({
-      ...prev,
-      [field]: value.trim() === "",
-    }));
-  }, []);
-
-  // 全フィールドの検証
-  const validateAllFields = () => {
-    const isUsernameValid = validateUsername(username);
-    const isDisplayNameValid = validateDisplayName(displayName);
-    const isEmailValid = validateEmail();
-    const isPasswordValid = validatePassword(password);
-    const isConfirmPasswordValid = validateConfirmPassword(
-      confirmPassword,
-      password,
-    );
-
-    return (
-      isUsernameValid &&
-      isDisplayNameValid &&
-      isEmailValid &&
-      isPasswordValid &&
-      isConfirmPasswordValid
-    );
-  };
-
-  // フィールドのバリデーション関数を修正
-  const validateUsername = (value: string) => {
-    if (!value) {
-      setErrors((prev) => ({ ...prev, username: "ユーザー名は必須です" }));
-      return false;
-    }
-    if (value.length < 3) {
-      setErrors((prev) => ({
-        ...prev,
-        username: "ユーザー名は3文字以上必要です",
-      }));
-      return false;
-    }
-    setErrors((prev) => ({ ...prev, username: "" }));
-    return true;
-  };
-
-  const validateDisplayName = (value: string) => {
-    if (!value) {
-      setErrors((prev) => ({ ...prev, displayName: "表示名は必須です" }));
-      return false;
-    }
-    setErrors((prev) => ({ ...prev, displayName: "" }));
-    return true;
-  };
-
-  // バリデーション関数
-  const validateEmail = () => {
+  // フィールド検証関数
+  const validateEmail = (): boolean => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!email) {
-      setErrors((prev) => ({
-        ...prev,
-        email: "メールアドレスを入力してください",
-      }));
+    if (!email.trim()) {
+      setErrors((prev) => ({ ...prev, email: "メールアドレスは必須です。" }));
       return false;
     } else if (!emailRegex.test(email)) {
       setErrors((prev) => ({
         ...prev,
-        email: "有効なメールアドレスを入力してください",
+        email: "有効なメールアドレスを入力してください。",
       }));
       return false;
-    }
-    setErrors((prev) => ({ ...prev, email: "" }));
-    return true;
-  };
-
-  const handleUsername = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setUsername(e.target.value);
-    if (submitAttempted) {
-      validateField("username", e.target.value);
-    }
-  };
-
-  const handleDisplayName = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setDisplayName(e.target.value);
-    if (submitAttempted) {
-      validateField("displayName", e.target.value);
-    }
-  };
-
-  const handleEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-    if (submitAttempted) {
-      validateField("email", e.target.value);
-    }
-    if (codeSent) {
-      setCodeSent(false);
-    }
-  };
-
-  // カウントダウンタイマー
-  useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (resendCountdown > 0) {
-      timer = setTimeout(() => {
-        setResendCountdown(resendCountdown - 1);
-      }, 1000);
-    }
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [resendCountdown]);
-
-  // 認証コード入力ハンドラを追加
-  const handleVerificationCode = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setVerificationCode(e.target.value);
-  };
-
-  // 認証コード検証ボタンクリック時のハンドラー
-  const handleVerifyCode = () => {
-    if (!verificationCode.trim() || isVerifying) return;
-
-    // 即座にローディング状態に設定
-    setIsVerifying(true);
-    setApiError("");
-
-    // 検証処理を実行
-    verifyCode();
-  };
-
-  // 認証コード検証関数を追加
-  const verifyCode = async () => {
-    if (!verificationCode.trim()) {
-      setApiError("認証コードを入力してください");
-      setIsVerifying(false);
-      return false;
-    }
-
-    try {
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/otp/verify`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            Email: email,
-            OTP: verificationCode,
-          }),
-        },
-      );
-
-      console.log("Verification response status:", response.status);
-
-      // レスポンスボディが空かどうかをチェック
-      let responseData: APIResponse = {};
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        try {
-          responseData = await response.json();
-          console.log("Verification response data:", responseData);
-        } catch {
-          console.log("Empty or invalid JSON response");
-        }
-      } else {
-        console.log("Response is not JSON or empty");
-        const text = await response.text();
-        console.log("Response text:", text.substring(0, 200)); // 最初の200文字だけログ出力
-      }
-
-      if (!response.ok) {
-        throw new Error(responseData.Error || "認証コードの検証に失敗しました");
-      }
-
-      // 成功トーストを表示
-      showToast("認証コードの検証に成功しました！", "success");
-
-      // 検証成功
-      setIsVerified(true);
-
-      // 直接ステップ3に進む（nextStep関数のバリデーションをバイパス）
-      setCurrentStep(3);
-      setSubmitAttempted(false);
-
+    } else {
+      setErrors((prev) => ({ ...prev, email: "" }));
       return true;
-    } catch (error: unknown) {
-      let errorMessage = "認証コードの検証中にエラーが発生しました";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      console.error("Verification error:", error);
-      setApiError(errorMessage);
-
-      // エラートーストを表示
-      showToast("検証に失敗しました", "error");
-
-      return false;
-    } finally {
-      setIsVerifying(false);
     }
   };
 
-  // パスワード関連のハンドラーを追加
-  const handlePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-    validatePassword(e.target.value);
-  };
-
-  const handleConfirmPassword = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setConfirmPassword(e.target.value);
-    validateConfirmPassword(e.target.value, password);
-  };
-
-  // パスワード表示/非表示の切り替え
-  const togglePasswordVisibility = () => {
-    setShowPassword(!showPassword);
-  };
-
-  // 確認用パスワード表示/非表示の切り替え
-  const toggleConfirmPasswordVisibility = () => {
-    setShowConfirmPassword(!showConfirmPassword);
-  };
-
-  const validatePassword = (value: string) => {
-    if (!value) {
-      setErrors((prev) => ({ ...prev, password: "パスワードは必須です" }));
-      return false;
-    }
-    if (value.length < 8) {
+  const validatePassword = (): boolean => {
+    if (!password.trim()) {
       setErrors((prev) => ({
         ...prev,
-        password: "パスワードは8文字以上必要です",
+        password: "パスワードは必須です。",
       }));
       return false;
-    }
-    setErrors((prev) => ({ ...prev, password: "" }));
-    return true;
-  };
-
-  const validateConfirmPassword = (value: string, passwordToMatch: string) => {
-    if (!value) {
+    } else if (password.length < 8) {
       setErrors((prev) => ({
         ...prev,
-        confirmPassword: "パスワード(確認)は必須です",
+        password: "パスワードは8文字以上で入力してください。",
       }));
       return false;
-    }
-    if (value !== passwordToMatch) {
-      setErrors((prev) => ({
-        ...prev,
-        confirmPassword: "パスワードが一致しません",
-      }));
-      return false;
-    }
-    setErrors((prev) => ({ ...prev, confirmPassword: "" }));
-    return true;
-  };
-
-  const validateUsernameAndDisplayName = () => {
-    let isValid = true;
-
-    if (!username.trim()) {
-      setErrors((prev) => ({
-        ...prev,
-        username: "ユーザー名を入力してください",
-      }));
-      isValid = false;
     } else {
-      setErrors((prev) => ({ ...prev, username: "" }));
+      setErrors((prev) => ({ ...prev, password: "" }));
+      return true;
     }
+  };
 
-    if (!displayName.trim()) {
+  const validateConfirmPassword = (): boolean => {
+    if (!confirmPassword.trim()) {
       setErrors((prev) => ({
         ...prev,
-        displayName: "ニックネームを入力してください",
+        confirmPassword: "パスワード(確認)は必須です。",
       }));
-      isValid = false;
+      return false;
+    } else if (confirmPassword !== password) {
+      setErrors((prev) => ({
+        ...prev,
+        confirmPassword: "パスワードが一致しません。",
+      }));
+      return false;
     } else {
-      setErrors((prev) => ({ ...prev, displayName: "" }));
+      setErrors((prev) => ({ ...prev, confirmPassword: "" }));
+      return true;
     }
-
-    return isValid;
   };
 
-  const validateEmailAndCode = () => {
-    let isValid = true;
-
-    if (!isEmailValid()) {
-      isValid = false;
-    }
-
-    if (!codeSent) {
-      setApiError("メールアドレスに認証コードを送信してください");
-      isValid = false;
-    } else if (!isVerified) {
-      setApiError("認証コードを検証してください");
-      isValid = false;
-    }
-
-    return isValid;
+  const validateAllFields = (): boolean => {
+    const isEmailValid = validateEmail();
+    const isPasswordValid = validatePassword();
+    const isConfirmPasswordValid = validateConfirmPassword();
+    return isEmailValid && isPasswordValid && isConfirmPasswordValid;
   };
 
-  // Add buttonRef for the send code button
-  const sendCodeButtonRef = useRef<HTMLButtonElement>(null);
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setEmail(value);
+  };
+
+  /* 現在この関数は使用していません
+  // ボタンのdisabledプロパティを安全に設定する関数
+  const setButtonDisabled = (buttonId: string, disabled: boolean) => {
+    const button = document.getElementById(buttonId) as HTMLButtonElement | null;
+    if (button) {
+      button.disabled = disabled;
+    }
+  };
+  */
 
   // メール送信ボタンクリック時のハンドラー
-  const handleSendCode = () => {
+  const handleSendCode = async () => {
     if (!email || isLoading) return;
 
-    // ボタンの参照を取得してテキストと状態を即座に更新
-    const button = sendCodeButtonRef.current;
+    // ボタンのテキストを変更して、ボタンを無効化
+    const button = document.getElementById(
+      "send-code-button",
+    ) as HTMLButtonElement | null;
     if (button) {
-      button.innerHTML = `
-        <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        送信中...
-      `;
+      button.innerHTML = `<svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+      <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+      <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+    </svg>
+    送信中...`;
       button.disabled = true;
     }
 
-    // 即座にローディング状態に設定
     setIsLoading(true);
     setApiError("");
 
-    // メール送信処理を実行
-    sendVerificationCode();
+    try {
+      await sendVerificationCode();
+    } finally {
+      setIsLoading(false);
+      // ボタンを元に戻す
+      if (button) {
+        button.innerHTML = "コードを送信";
+        button.disabled = false;
+      }
+    }
   };
 
-  // メール送信処理
   const sendVerificationCode = async () => {
     if (!validateEmail()) {
-      setIsLoading(false);
       return;
     }
 
@@ -713,90 +497,93 @@ const PasswordReset = () => {
         },
       );
 
-      console.log("Generate OTP response status:", response.status);
-
-      // レスポンスボディが空かどうかをチェック
-      let responseData: APIResponse = {};
-      try {
-        responseData = await response.json();
-        console.log("Generate OTP response data:", responseData);
-      } catch {
-        // レスポンスがJSONでない場合（空のボディなど）はスキップ
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("OTP生成エラー:", errorData);
+        setApiError(
+          errorData.message ||
+            "検証コードの送信に失敗しました。後でやり直してください。",
+        );
+        return;
       }
+
+      console.log("OTP送信成功");
+      setCodeSent(true);
+      setApiError("");
+      // カウントダウンを開始
+      setResendCountdown(60);
+      const interval = setInterval(() => {
+        setResendCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    } catch (error) {
+      console.error("OTP生成エラー:", error);
+      setApiError(
+        "サーバーとの通信中にエラーが発生しました。ネットワーク接続を確認してください。",
+      );
+    }
+  };
+
+  // 認証コード検証処理
+  const verifyOTPAndSetCan = async () => {
+    if (verificationCode.length !== 6 || isLoading) {
+      return false;
+    }
+
+    setIsLoading(true);
+    setApiError("");
+    setIsVerifying(true);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/otp/verify`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            Email: email,
+            OTP: verificationCode,
+          }),
+        },
+      );
 
       if (!response.ok) {
-        throw new Error(responseData.Error || "認証コードの送信に失敗しました");
+        const errorData = await response.json();
+        console.error("OTP検証エラー:", errorData);
+        setApiError(
+          errorData.message ||
+            "検証コードの確認に失敗しました。もう一度お試しください。",
+        );
+        return false;
       }
 
-      setCodeSent(true);
-      setResendCountdown(60); // 60秒間は再送信不可
+      console.log("OTP検証成功");
+      setIsVerified(true); // 認証成功フラグを設定
+      showToast("認証コードの検証に成功しました", "success"); // 成功メッセージをトースト表示
 
-      // 成功トーストを表示
-      showToast("認証コードを送信しました！", "success");
+      // 少し遅延させてからステップ2へ移動
+      setTimeout(() => {
+        setCurrentStep(2);
+      }, 1500);
 
-      alert(`${email}に認証コードを送信しました。メールをご確認ください。`);
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : "認証コードの送信に失敗しました";
-      console.error("Generate OTP error:", error);
-      setApiError(errorMessage);
-
-      // エラートーストを表示
-      showToast("送信に失敗しました", "error");
+      return true;
+    } catch (error) {
+      console.error("OTP検証エラー:", error);
+      setApiError(
+        "サーバーとの通信中にエラーが発生しました。ネットワーク接続を確認してください。",
+      );
+      return false;
     } finally {
       setIsLoading(false);
+      setIsVerifying(false);
     }
-  };
-
-  // ステップを進める
-  const nextStep = () => {
-    if (currentStep === 1 && !validateUsernameAndDisplayName()) {
-      setSubmitAttempted(true);
-      return;
-    }
-
-    if (currentStep === 2 && !validateEmailAndCode()) {
-      setSubmitAttempted(true);
-      return;
-    }
-
-    setCurrentStep((prev) => prev + 1);
-    setSubmitAttempted(false);
-  };
-
-  // リアルタイムで入力フィールドの検証を行う
-  useEffect(() => {
-    if (submitAttempted && currentStep === 1) {
-      validateUsername(username);
-      validateDisplayName(displayName);
-    }
-  }, [username, displayName, submitAttempted, currentStep]);
-
-  // リアルタイムでパスワードフィールドの検証を行う
-  useEffect(() => {
-    if (submitAttempted && currentStep === 3) {
-      validatePassword(password);
-      validateConfirmPassword(confirmPassword, password);
-    }
-  }, [password, confirmPassword, submitAttempted, currentStep]);
-
-  // Add email validation helper
-  const isEmailValid = () => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return email.trim().length > 0 && emailRegex.test(email);
-  };
-
-  // Password fields validation helper
-  const arePasswordFieldsValid = () => {
-    return password.length >= 8 && password === confirmPassword;
-  };
-
-  // ステップを戻る
-  const prevStep = () => {
-    setCurrentStep((prev) => prev - 1);
-    setSubmitAttempted(false);
   };
 
   // カスタムフックを使用
@@ -809,10 +596,10 @@ const PasswordReset = () => {
   // ステップインジケーターを追加
   const StepIndicator = () => (
     <div className="flex items-center justify-between mb-8">
-      {[1, 2, 3].map((step) => (
+      {[1, 2].map((step) => (
         <div key={step} className="flex flex-col items-center">
           <div
-            className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
+            className={`w-12 h-12 rounded-full flex items-center justify-center text-white font-bold ${
               currentStep === step
                 ? "bg-amber-600"
                 : currentStep > step
@@ -840,15 +627,15 @@ const PasswordReset = () => {
             )}
           </div>
           <span
-            className={`text-sm mt-1 ${currentStep === step ? "font-bold" : ""}`}
+            className={`text-sm mt-2 ${currentStep === step ? "font-bold" : ""}`}
           >
-            {step === 1 ? "プロフィール" : step === 2 ? "認証" : "パスワード"}
+            {step === 1 ? "アカウント確認と認証" : "パスワード設定"}
           </span>
         </div>
       ))}
       <div
         className="absolute left-0 right-0 h-0.5 bg-gray-300 -z-10"
-        style={{ top: "1.25rem" }}
+        style={{ top: "1.5rem" }}
       ></div>
     </div>
   );
@@ -876,30 +663,321 @@ const PasswordReset = () => {
   `;
 
   // 入力枠のスタイル
-  const getInputStyle = (fieldName: "username" | "displayName" | "email") => {
+  const getInputStyle = (
+    fieldName: "email" | "password" | "confirmPassword" | "verificationCode",
+  ) => {
     return errors[fieldName]
       ? "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-red-500 shadow-md focus:outline-none focus:ring-2 focus:ring-red-500 animate-pulse text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
       : "w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500";
   };
 
+  // 未使用のキーダウンハンドラーはコメントアウト
+  /*
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
-      handleSubmit();
+      handleSubmit(e);
+    }
+  };
+  */
+
+  // パスワードリセット処理
+  const handleSubmit = async (e: React.FormEvent): Promise<boolean> => {
+    e.preventDefault();
+    setSubmitAttempted(true);
+
+    if (!validateAllFields()) {
+      return false;
+    }
+
+    // ステップ1が完了していない場合は処理を中止
+    if (currentStep === 1 || !isVerified) {
+      setApiError("認証を完了してください");
+      return false;
+    }
+
+    // 処理中の状態をクリアに設定
+    setIsLoading(true);
+    setApiError("");
+    setProcessingStatus("パスワードを再設定中です。しばらくお待ちください...");
+    setIsProcessingTimeout(false);
+
+    // 処理中トーストを表示
+    showToast("パスワードを再設定中です...", "loading");
+
+    // 処理タイムアウト検出用タイマーを設定
+    const timeout = setTimeout(() => {
+      setIsProcessingTimeout(true);
+      setProcessingStatus("処理に時間がかかっています...");
+    }, 5000);
+
+    try {
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/password-reset`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            Email: email,
+            Password: password,
+          }),
+        },
+      );
+
+      clearTimeout(timeout);
+
+      if (!response.ok) {
+        const errorData = (await response.json()) as APIResponse;
+        setApiError(errorData.message || "パスワードのリセットに失敗しました");
+        setIsLoading(false);
+        showToast("パスワードのリセットに失敗しました", "error");
+        return false;
+      }
+
+      // パスワードリセット成功
+      setResetSuccess(true);
+      setApiError("");
+      setProcessingStatus("");
+      showToast(
+        "パスワードが正常にリセットされました。新しいパスワードでログインできます。",
+        "success",
+      );
+      setTimeout(() => {
+        goToLoginPage();
+      }, 3000);
+      return true;
+    } catch (error) {
+      clearTimeout(timeout);
+      console.error("Error resetting password:", error);
+      setApiError("サーバーエラーが発生しました");
+      setIsLoading(false);
+      setProcessingStatus("");
+      showToast("サーバーエラーが発生しました", "error");
+      return false;
     }
   };
 
-  // Replace the unused handleCloseToast function with a comment
-  // const handleCloseToast = () => {
-  //   setToast(null)
-  // }
+  // ステップ1: メールアドレス入力と認証コード送信/検証
+  const renderStep1 = () => (
+    <div className="flex flex-col space-y-6 w-full max-w-md">
+      {/* メールアドレスフィールド */}
+      <div className="mb-6">
+        <div className="relative">
+          <WoodenSign width="w-full" rotation="-rotate-1">
+            <div className="flex items-center">
+              <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                メールアドレス
+              </label>
+              <RequiredTag />
+            </div>
+          </WoodenSign>
+        </div>
+        <div className="relative mt-2">
+          <input
+            type="email"
+            id="email"
+            name="email"
+            placeholder="例）taro@example.com"
+            value={email}
+            onChange={handleEmailChange}
+            onBlur={() => validateEmail()}
+            className={getInputStyle("email")}
+            disabled={isVerified || isLoading}
+          />
+          {errors.email && submitAttempted && (
+            <BookmarkError message={errors.email} />
+          )}
+        </div>
+      </div>
 
-  // Add a component for the full-page loading overlay
-  const LoadingOverlay = ({ message = "処理中..." }: { message?: string }) => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white p-5 rounded-lg shadow-lg flex flex-col items-center">
+      {/* 認証コード送信ボタン */}
+      <div className="flex justify-center mt-4">
+        <button
+          type="button"
+          id="send-code-button"
+          onClick={handleSendCode}
+          className={`px-6 py-3 rounded-lg text-white font-bold transition-colors shadow-md ${
+            codeSent && resendCountdown > 0
+              ? "bg-gray-500 cursor-not-allowed"
+              : "bg-rose-900 hover:bg-rose-800"
+          } focus:outline-none`}
+          style={{
+            textShadow: "0 2px 2px rgba(0,0,0,0.5)",
+            boxShadow:
+              "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
+          }}
+          disabled={(codeSent && resendCountdown > 0) || isLoading || !email}
+        >
+          {codeSent && resendCountdown > 0
+            ? `再送信 (${resendCountdown}秒)`
+            : codeSent
+              ? "認証コードを再送信"
+              : "認証コードを送信"}
+        </button>
+      </div>
+
+      {/* 認証コード入力と検証 (認証コード送信後のみ表示) */}
+      {codeSent && (
+        <div className="mt-6">
+          <div className="mb-6">
+            <div className="relative">
+              <WoodenSign width="w-full" rotation="rotate-1">
+                <div className="flex items-center">
+                  <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                    認証コード
+                  </label>
+                  <RequiredTag />
+                  {isVerified && (
+                    <span className="ml-2 px-2 py-0.5 bg-green-600 text-white text-xs font-bold rounded-full">
+                      ✓ 検証済み
+                    </span>
+                  )}
+                </div>
+              </WoodenSign>
+            </div>
+            <div className="relative mt-2">
+              <input
+                type="text"
+                id="verificationCode"
+                name="verificationCode"
+                placeholder="メールで受け取った6桁のコード"
+                value={verificationCode}
+                onChange={handleVerificationCode}
+                className={`${getInputStyle("verificationCode")} ${
+                  isVerified ? "bg-green-50 border-green-500" : ""
+                }`}
+                disabled={isVerified || isVerifying}
+              />
+              {isVerified && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <CheckCircle className="h-5 w-5 text-green-500" />
+                </div>
+              )}
+            </div>
+            {errors.verificationCode && submitAttempted && (
+              <BookmarkError message={errors.verificationCode} />
+            )}
+          </div>
+          <div className="flex justify-center mt-4">
+            <button
+              type="button"
+              onClick={verifyOTPAndSetCan}
+              className={`px-6 py-3 rounded-lg text-white font-bold transition-colors shadow-md ${
+                isVerified
+                  ? "bg-green-600 cursor-not-allowed"
+                  : "bg-rose-900 hover:bg-rose-800"
+              } focus:outline-none flex items-center justify-center`}
+              style={{
+                textShadow: "0 2px 2px rgba(0,0,0,0.5)",
+                boxShadow:
+                  "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
+              }}
+              disabled={isVerified || isVerifying || !verificationCode.trim()}
+            >
+              {isVerified ? (
+                <>
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  認証完了
+                </>
+              ) : isVerifying ? (
+                "検証中..."
+              ) : (
+                "認証コードを検証"
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* APIエラーメッセージ */}
+      {apiError && (
+        <div className="text-red-500 text-sm mt-4 text-center">{apiError}</div>
+      )}
+    </div>
+  );
+
+  const handleChangeStep = async (direction: 1 | -1) => {
+    if (direction === 1) {
+      if (currentStep === 1) {
+        if (email.length === 0) {
+          setErrors((prev) => ({
+            ...prev,
+            email: "メールアドレスを入力してください",
+          }));
+          return;
+        }
+
+        if (errors.email) {
+          return;
+        }
+
+        // ステップ1から2へ移動する場合、未検証の場合は検証を行う
+        if (!isVerified && codeSent) {
+          if (verificationCode.trim() === "") {
+            setErrors((prev) => ({
+              ...prev,
+              verificationCode: "認証コードを入力してください",
+            }));
+            return;
+          }
+
+          const success = await verifyOTPAndSetCan();
+          if (!success) {
+            return; // 検証失敗時は次のステップに進まない
+          }
+          // 成功時は verifyOTPAndSetCan 内で自動的にステップ2に進むので、ここでの処理は不要
+        } else if (!isVerified && !codeSent) {
+          setApiError("認証コードを送信し、検証を完了してください");
+          return;
+        } else {
+          // 既に検証が完了している場合は次のステップへ
+          setCurrentStep(2);
+        }
+      } else if (currentStep === 2) {
+        if (password.length === 0 || confirmPassword.length === 0) {
+          setErrors((prev) => ({
+            ...prev,
+            password:
+              password.length === 0 ? "パスワードを入力してください" : "",
+            confirmPassword:
+              confirmPassword.length === 0
+                ? "確認用パスワードを入力してください"
+                : "",
+          }));
+          return;
+        }
+
+        if (errors.password || errors.confirmPassword) {
+          return;
+        }
+
+        // まず、ローディング状態を設定
+        setIsLoading(true);
+        setProcessingStatus(
+          "パスワードを再設定中です。しばらくお待ちください...",
+        );
+
+        // Eventの代わりにReact.FormEventを使用
+        const fakeEvent = { preventDefault: () => {} } as React.FormEvent;
+        const success = await handleSubmit(fakeEvent);
+
+        if (!success) {
+          setIsLoading(false); // エラーの場合はローディング状態を解除
+        }
+      }
+    } else {
+      setCurrentStep((prev) => Math.max(1, prev - 1));
+    }
+  };
+
+  // Make sure the loading overlay is enhanced to be more visible
+  const LoadingOverlay = ({ message }: { message: string }) => (
+    <div className="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50">
+      <div className="bg-white p-6 rounded-lg shadow-xl flex flex-col items-center max-w-md w-full">
         <svg
-          className="animate-spin h-10 w-10 text-amber-600 mb-4"
+          className="animate-spin h-12 w-12 text-amber-600 mb-4"
           xmlns="http://www.w3.org/2000/svg"
           fill="none"
           viewBox="0 0 24 24"
@@ -918,114 +996,53 @@ const PasswordReset = () => {
             d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
           ></path>
         </svg>
-        <h3 className="text-lg font-semibold text-amber-800">{message}</h3>
-        <p className="text-sm text-gray-600 mt-2">しばらくお待ちください</p>
+        <p className="text-lg font-medium text-gray-800 text-center">
+          {message}
+        </p>
+        <p className="mt-2 text-sm text-gray-600 text-center">
+          処理が完了するまでお待ちください...
+        </p>
+
+        {isProcessingTimeout && (
+          <div className="mt-4 text-sm text-amber-600 p-3 bg-amber-50 rounded-md border border-amber-200">
+            <p>{processingStatus}</p>
+            <button
+              onClick={() => {
+                setIsLoading(false);
+                setIsProcessingTimeout(false);
+                setProcessingStatus("");
+              }}
+              className="mt-2 px-3 py-1 bg-white border border-amber-300 rounded text-amber-700 hover:bg-amber-50"
+            >
+              キャンセル
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
 
-  // 登録ボタンクリック時のハンドラー
-  const handleRegisterClick = () => {
-    if (isLoading) return;
-
-    // 即座にローディング状態に設定
-    setIsLoading(true);
-    setApiError("");
-
-    // 登録処理を実行 (ローディング状態はLoadingOverlayで表示するためトーストは表示しない)
-    handleSubmit();
+  // ログインページに移動する関数
+  const goToLoginPage = () => {
+    router.push("/login");
   };
 
-  // Add the missing handleSubmit function
-  const handleSubmit = async () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    setApiError("");
-
-    try {
-      // Use validateAllFields for the final step
-      if (currentStep === 3) {
-        if (!validateAllFields()) {
-          setSubmitAttempted(true);
-          setIsLoading(false);
-          return;
-        }
-      } else {
-        // Validate depending on current step
-        if (currentStep === 1 && !validateUsernameAndDisplayName()) {
-          setSubmitAttempted(true);
-          setIsLoading(false);
-          return;
-        }
-
-        if (currentStep === 2 && !validateEmailAndCode()) {
-          setSubmitAttempted(true);
-          setIsLoading(false);
-          return;
-        }
-
-        // If not on the final step, just go to next step
-        nextStep();
-        setIsLoading(false);
-        return;
-      }
-
-      // Only on the last step we actually submit the form
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/password-reset`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            Username: username,
-            Email: email,
-            Password: password,
-          }),
-        },
-      );
-
-      // Handle both JSON and non-JSON responses safely
-      let data: APIResponse = {};
-      let responseText = "";
-
-      try {
-        responseText = await response.text();
-        console.log("Raw API response:", responseText);
-
-        // Only try to parse as JSON if there's content and it looks like JSON
-        if (responseText && responseText.trim().startsWith("{")) {
-          data = JSON.parse(responseText);
-        }
-      } catch (parseError) {
-        console.error("JSON parse error:", parseError);
-        // We'll continue even with parse errors
-      }
-
-      if (!response.ok) {
-        throw new Error(
-          data.Error || data.message || "パスワード再設定に失敗しました",
-        );
-      }
-
-      // Success - show message and immediately redirect to login page
-      showToast("パスワードが正常に再設定されました", "success");
-
-      // Immediate redirect to login page
-      router.push("/login");
-    } catch (error: unknown) {
-      let errorMessage = "処理中にエラーが発生しました";
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      }
-      console.error("Submit error:", error);
-      setApiError(errorMessage);
-      showToast("エラーが発生しました", "error");
-    } finally {
-      setIsLoading(false);
+  // カウントダウンタイマー
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+    if (resendCountdown > 0) {
+      timer = setTimeout(() => {
+        setResendCountdown(resendCountdown - 1);
+      }, 1000);
     }
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [resendCountdown]);
+
+  // 認証コード入力ハンドラを追加
+  const handleVerificationCode = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setVerificationCode(e.target.value);
   };
 
   return (
@@ -1034,7 +1051,10 @@ const PasswordReset = () => {
       {isLoading && (
         <LoadingOverlay
           message={
-            currentStep === 3 ? "登録処理中..." : "認証コードを送信中..."
+            processingStatus ||
+            (currentStep === 2
+              ? "パスワード再設定中..."
+              : "認証コードを送信中...")
           }
         />
       )}
@@ -1089,7 +1109,7 @@ const PasswordReset = () => {
             }}
           >
             <h1 className="text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-              入学受付フォーム
+              パスワード再設定
             </h1>
           </button>
         </div>
@@ -1120,274 +1140,32 @@ const PasswordReset = () => {
 
         {/* フォームコンテンツ - ステップに応じて表示を切り替え */}
         <div className="space-y-6">
-          {/* ステップ1: ユーザー情報 */}
-          {currentStep === 1 && (
-            <>
-              <div className="mb-6 bg-white bg-opacity-90 p-4 rounded-lg border-2 border-amber-200 shadow-md">
-                <h2 className="text-lg font-bold text-amber-800 mb-2">
-                  基本情報の入力
-                </h2>
-                <p className="text-sm text-gray-700">
-                  アカウント作成に必要な基本情報を入力してください。
-                </p>
-              </div>
+          {/* ステップ1: メールアドレス入力と認証コード送信/検証 */}
+          {currentStep === 1 && renderStep1()}
 
-              {/* ユーザー名フィールド */}
-              <div className="mb-6">
-                <div className="relative">
-                  <WoodenSign width="w-full">
-                    <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                      ユーザー名
-                    </label>
-                  </WoodenSign>
-                </div>
-                <div className="relative mt-2">
-                  <input
-                    type="text"
-                    value={username}
-                    onChange={handleUsername}
-                    onKeyDown={handleKeyDown}
-                    className={getInputStyle("username")}
-                    placeholder="例）taro"
-                  />
-                </div>
-                {errors.username && submitAttempted && (
-                  <BookmarkError message="ユーザー名を入力してね！" />
-                )}
-              </div>
-
-              {/* 表示名フィールド */}
-              <div className="mb-6">
-                <div className="relative">
-                  <WoodenSign width="w-full">
-                    <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                      ニックネーム
-                    </label>
-                  </WoodenSign>
-                </div>
-                <div className="relative mt-2">
-                  <input
-                    type="text"
-                    value={displayName}
-                    onChange={handleDisplayName}
-                    onKeyDown={handleKeyDown}
-                    className={getInputStyle("displayName")}
-                    placeholder="例）たっちゃん"
-                  />
-                </div>
-                {errors.displayName && submitAttempted && (
-                  <BookmarkError message="ニックネームを入力してね！" />
-                )}
-              </div>
-            </>
-          )}
-
-          {/* ステップ2: メールとOTP認証 */}
+          {/* ステップ2: パスワード設定 (旧ステップ3) */}
           {currentStep === 2 && (
             <>
-              <div className="mb-6 bg-white bg-opacity-90 p-4 rounded-lg border-2 border-amber-200 shadow-md">
-                <h2 className="text-lg font-bold text-amber-800 mb-2">
-                  メール認証
-                </h2>
-                <p className="text-sm text-gray-700">
-                  メールアドレスを入力し、送信される認証コードを確認してください。
-                </p>
-              </div>
-
-              {/* メールアドレスフィールド */}
-              <div className="mb-6">
-                <div className="relative">
-                  <WoodenSign width="w-full" rotation="-rotate-1">
-                    <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                      メールアドレス
-                    </label>
-                  </WoodenSign>
-                </div>
-                <div className="relative mt-2">
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={handleEmail}
-                    onKeyDown={handleKeyDown}
-                    className={getInputStyle("email")}
-                    placeholder="例）taro@example.com"
-                  />
-                </div>
-                {errors.email && submitAttempted && (
-                  <BookmarkError message="メールアドレスを入力してね！" />
-                )}
-
-                <div className="mt-2">
-                  <button
-                    type="button"
-                    ref={sendCodeButtonRef}
-                    onClick={handleSendCode}
-                    disabled={isLoading || resendCountdown > 0 || !email}
-                    className={`relative w-full py-2 px-4 flex items-center justify-center ${
-                      codeSent
-                        ? "bg-green-600 hover:bg-green-700"
-                        : "bg-amber-600 hover:bg-amber-700"
-                    } text-white font-medium rounded-md transform transition-all focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-md ${
-                      isLoading || resendCountdown > 0 || !email
-                        ? "opacity-70 cursor-not-allowed"
-                        : "hover:scale-[1.02]"
-                    }`}
-                    style={{
-                      textShadow: "0 1px 1px rgba(0,0,0,0.3)",
-                      boxShadow:
-                        "0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.2)",
-                    }}
+              <div className="mb-6 bg-amber-50 bg-opacity-90 p-4 rounded-lg border-2 border-amber-200 shadow-md">
+                <h2 className="text-lg font-bold text-amber-800 mb-2 flex items-center">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5 mr-2 text-amber-700"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
                   >
-                    {isLoading ? (
-                      <span className="flex items-center">
-                        <svg
-                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          ></circle>
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          ></path>
-                        </svg>
-                        送信中...
-                      </span>
-                    ) : resendCountdown > 0 ? (
-                      <span className="flex items-center">
-                        <Mail className="mr-2 h-4 w-4" />
-                        {resendCountdown}秒後に再送信可能
-                      </span>
-                    ) : codeSent ? (
-                      <span className="flex items-center">
-                        <Shield className="mr-2 h-4 w-4" />
-                        認証コード送信済み（再送信する）
-                      </span>
-                    ) : (
-                      <span className="flex items-center">
-                        <Mail className="mr-2 h-4 w-4" />
-                        メールに認証コードを送信
-                      </span>
-                    )}
-                  </button>
-                </div>
-
-                <InfoMessage>
-                  登録を完了するには、メールアドレスの確認が必要です。
-                  「メールに認証コードを送信」ボタンをクリックして、
-                  メールに届いた認証コードを確認してください。
-                </InfoMessage>
-              </div>
-
-              {/* 認証コード入力フィールド */}
-              {codeSent && (
-                <div className="mt-4">
-                  <div className="relative">
-                    <WoodenSign width="w-full" rotation="rotate-1">
-                      <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                        認証コード
-                      </label>
-                    </WoodenSign>
-                  </div>
-                  <div className="relative mt-2">
-                    <input
-                      type="text"
-                      value={verificationCode}
-                      onChange={handleVerificationCode}
-                      onKeyDown={handleKeyDown}
-                      className={`w-full px-4 py-3 bg-white bg-opacity-70 rounded-lg border-2 ${
-                        isVerified ? "border-green-500" : "border-amber-800"
-                      } shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500`}
-                      placeholder="例）123456"
-                      disabled={isVerified}
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
                     />
-                    {isVerified && (
-                      <div className="absolute right-3 top-3 text-green-500">
-                        <Shield className="h-6 w-6" />
-                      </div>
-                    )}
-                  </div>
-                  {!isVerified && (
-                    <button
-                      type="button"
-                      onClick={handleVerifyCode}
-                      disabled={isVerifying || !verificationCode.trim()}
-                      className={`relative mt-2 py-2 px-4 flex items-center justify-center ${
-                        isVerifying
-                          ? "bg-gray-400"
-                          : "bg-blue-600 hover:bg-blue-700"
-                      } text-white font-medium rounded-md transform transition-all focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-md ${
-                        isVerifying || !verificationCode.trim()
-                          ? "opacity-70 cursor-not-allowed"
-                          : "hover:scale-[1.02]"
-                      }`}
-                      style={{
-                        textShadow: "0 1px 1px rgba(0,0,0,0.3)",
-                        boxShadow:
-                          "0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.2)",
-                      }}
-                    >
-                      {isVerifying ? (
-                        <span className="flex items-center">
-                          <svg
-                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                            xmlns="http://www.w3.org/2000/svg"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                          >
-                            <circle
-                              className="opacity-25"
-                              cx="12"
-                              cy="12"
-                              r="10"
-                              stroke="currentColor"
-                              strokeWidth="4"
-                            ></circle>
-                            <path
-                              className="opacity-75"
-                              fill="currentColor"
-                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                            ></path>
-                          </svg>
-                          検証中...
-                        </span>
-                      ) : (
-                        <span className="flex items-center">
-                          <Shield className="mr-2 h-4 w-4" />
-                          認証コードを検証
-                        </span>
-                      )}
-                    </button>
-                  )}
-                  {isVerified && (
-                    <div className="mt-2 text-green-600 font-medium flex items-center">
-                      <Shield className="mr-2 h-4 w-4" />
-                      認証が完了しました
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* ステップ3: パスワード設定 */}
-          {currentStep === 3 && (
-            <>
-              <div className="mb-6 bg-white bg-opacity-90 p-4 rounded-lg border-2 border-amber-200 shadow-md">
-                <h2 className="text-lg font-bold text-amber-800 mb-2">
-                  パスワード設定
+                  </svg>
+                  新しいパスワードの設定
                 </h2>
                 <p className="text-sm text-gray-700">
-                  安全なパスワードを設定し、確認のために同じパスワードを再入力してください。
+                  新しいパスワードを設定し、確認のために同じパスワードを再入力してください。
                 </p>
               </div>
 
@@ -1395,22 +1173,31 @@ const PasswordReset = () => {
               <div className="mb-6">
                 <div className="relative">
                   <WoodenSign width="w-full" rotation="rotate-1">
-                    <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                      パスワード
-                    </label>
+                    <div className="flex items-center">
+                      <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                        パスワード
+                      </label>
+                      <RequiredTag />
+                    </div>
                   </WoodenSign>
                 </div>
                 <div className="relative mt-2">
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={handlePassword}
-                    className="w-full px-4 py-3 pr-12 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      validatePassword();
+                    }}
+                    className={getInputStyle("password")}
                     placeholder="8文字以上の安全なパスワード"
                   />
                   <button
                     type="button"
-                    onClick={togglePasswordVisibility}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowPassword(!showPassword);
+                    }}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-amber-800 focus:outline-none"
                     aria-label={
                       showPassword ? "パスワードを隠す" : "パスワードを表示"
@@ -1423,8 +1210,8 @@ const PasswordReset = () => {
                     )}
                   </button>
                 </div>
-                {errors.password && (
-                  <div className="mt-2 text-red-500">{errors.password}</div>
+                {errors.password && submitAttempted && (
+                  <BookmarkError message={errors.password} />
                 )}
               </div>
 
@@ -1432,22 +1219,31 @@ const PasswordReset = () => {
               <div className="mb-6">
                 <div className="relative">
                   <WoodenSign width="w-full" rotation="-rotate-1">
-                    <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                      パスワード（確認）
-                    </label>
+                    <div className="flex items-center">
+                      <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                        パスワード（確認）
+                      </label>
+                      <RequiredTag />
+                    </div>
                   </WoodenSign>
                 </div>
                 <div className="relative mt-2">
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
-                    onChange={handleConfirmPassword}
-                    className="w-full px-4 py-3 pr-12 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
+                    onChange={(e) => {
+                      setConfirmPassword(e.target.value);
+                      validateConfirmPassword();
+                    }}
+                    className={getInputStyle("confirmPassword")}
                     placeholder="同じパスワードを再入力"
                   />
                   <button
                     type="button"
-                    onClick={toggleConfirmPasswordVisibility}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setShowConfirmPassword(!showConfirmPassword);
+                    }}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-amber-800 focus:outline-none"
                     aria-label={
                       showConfirmPassword
@@ -1462,10 +1258,8 @@ const PasswordReset = () => {
                     )}
                   </button>
                 </div>
-                {errors.confirmPassword && (
-                  <div className="mt-2 text-red-500">
-                    {errors.confirmPassword}
-                  </div>
+                {errors.confirmPassword && submitAttempted && (
+                  <BookmarkError message={errors.confirmPassword} />
                 )}
               </div>
 
@@ -1494,8 +1288,17 @@ const PasswordReset = () => {
             {currentStep > 1 ? (
               <button
                 type="button"
-                onClick={prevStep}
-                className="px-6 py-2 bg-gray-500 text-white font-medium rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleChangeStep(-1);
+                  setSubmitAttempted(false);
+                }}
+                className="px-6 py-3 bg-gray-500 text-white font-bold rounded-lg hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 shadow-md transition-colors"
+                style={{
+                  textShadow: "0 1px 1px rgba(0,0,0,0.5)",
+                  boxShadow:
+                    "0 4px 6px rgba(0,0,0,0.1), inset 0 -2px 5px rgba(0,0,0,0.1), inset 0 2px 5px rgba(255,255,255,0.1)",
+                }}
               >
                 戻る
               </button>
@@ -1505,29 +1308,68 @@ const PasswordReset = () => {
 
             {currentStep < 3 ? (
               <button
-                type="button"
-                onClick={nextStep}
+                type="submit"
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleChangeStep(1);
+                }}
                 disabled={
-                  (currentStep === 1 &&
-                    (!username.trim() || !displayName.trim())) ||
-                  (currentStep === 2 && (!isVerified || !codeSent))
+                  (currentStep === 1 && (!isVerified || !codeSent)) || isLoading
                 }
-                className={`px-6 py-2 text-white font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-amber-500 ${
-                  (currentStep === 1 &&
-                    (!username.trim() || !displayName.trim())) ||
-                  (currentStep === 2 && (!isVerified || !codeSent))
+                className={`px-6 py-3 text-white font-bold rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 transition-transform transform shadow-lg ${
+                  (currentStep === 1 && (!isVerified || !codeSent)) || isLoading
                     ? "bg-gray-400 cursor-not-allowed opacity-60"
-                    : "bg-amber-600 hover:bg-amber-700"
+                    : "bg-rose-900 hover:bg-rose-800 hover:scale-105"
                 }`}
+                style={{
+                  textShadow: "0 2px 2px rgba(0,0,0,0.5)",
+                  boxShadow:
+                    "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
+                }}
               >
-                次へ
+                {isLoading && currentStep === 2 ? (
+                  <span className="flex items-center justify-center">
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-5 w-5 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    再設定中...
+                  </span>
+                ) : currentStep === 2 ? (
+                  "パスワードを再設定"
+                ) : (
+                  "次へ"
+                )}
               </button>
             ) : (
               <button
-                onClick={handleRegisterClick}
-                disabled={isLoading || !arePasswordFieldsValid()}
+                onClick={() => {
+                  setResetSuccess(false);
+                  handleChangeStep(-1);
+                  setSubmitAttempted(false);
+                  setIsVerified(false);
+                  setCodeSent(false);
+                  setVerificationCode("");
+                }}
+                disabled={isLoading || resetSuccess}
                 className={`relative px-8 py-3 bg-rose-900 text-white font-bold rounded-lg transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg ${
-                  isLoading || !arePasswordFieldsValid()
+                  isLoading || resetSuccess
                     ? "opacity-70 cursor-not-allowed"
                     : "hover:scale-105 hover:bg-amber-700"
                 }`}
@@ -1559,19 +1401,19 @@ const PasswordReset = () => {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    登録中...
+                    送信中...
                   </span>
                 ) : (
-                  <span>登録する</span>
+                  <span>パスワードを再設定</span>
                 )}
               </button>
             )}
           </div>
 
           {/* ログインリンク */}
-          <div className="text-center mt-4">
+          <div className="text-center mt-6">
             <p className="text-gray-700">
-              すでにアカウントをお持ちの方は
+              {!resetSuccess && "パスワードの再設定が完了したら"}
               <Link
                 href="/login"
                 className="text-amber-800 hover:underline ml-1 font-medium"
@@ -1582,6 +1424,45 @@ const PasswordReset = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Dialog */}
+      {resetSuccess && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+          <div className="bg-white rounded-lg p-8 max-w-md w-full m-4 relative transform transition-all shadow-xl">
+            <div className="absolute top-0 right-0 pt-4 pr-4">
+              <button
+                onClick={goToLoginPage}
+                className="bg-white rounded-md text-gray-400 hover:text-gray-500 focus:outline-none"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            <div className="flex flex-col items-center text-center">
+              <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-5">
+                <CheckCircle className="h-10 w-10 text-green-600" />
+              </div>
+
+              <h3 className="text-2xl leading-6 font-bold text-gray-900 mb-3">
+                パスワードが再設定されました
+              </h3>
+
+              <div className="mt-2">
+                <p className="text-gray-600 mb-6">
+                  パスワードが正常に変更されました。ログインページに移動して、新しいパスワードでログインしてください。
+                </p>
+              </div>
+
+              <button
+                onClick={goToLoginPage}
+                className="w-full inline-flex justify-center rounded-md border border-transparent px-6 py-3 bg-rose-900 text-base font-medium text-white shadow-sm hover:bg-rose-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-rose-500"
+              >
+                ログインページへ
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
