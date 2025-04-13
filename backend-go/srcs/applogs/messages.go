@@ -17,6 +17,8 @@ const (
 	FriendRequestAcceptSuccess         = 12
 	GetFriendsSuccess                  = 13
 	DeleteFriendshipSuccess            = 14
+	HandleForgotPassword               = 15
+	ResetPasswordSuccess               = 16
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -27,6 +29,7 @@ const (
 	LackOfLoginData                = 106
 	UserNotFound                   = 107
 	NotHaveAdministratorPrivileges = 108
+	ForgotEmailOTPPairsNotFound    = 109
 	// 200~ フロントエンドレベル
 	InvalidJSONInput            = 200
 	UserDoesNotOwnBuilding      = 201
@@ -50,6 +53,7 @@ const (
 	FailedToGetFriendship        = 406
 	FailedToCreateFriendship     = 407
 	FailedToDeleteFriendship     = 408
+	FailedToUpdateUser           = 409
 )
 
 var Message = map[int]string{}
@@ -71,6 +75,8 @@ func init() {
 	Message[FriendRequestAcceptSuccess] = "フレンドになりました。"
 	Message[GetFriendsSuccess] = "フレンド一覧の取得に成功しました。"
 	Message[DeleteFriendshipSuccess] = "フレンドの削除に成功しました。"
+	Message[HandleForgotPassword] = "パスワード忘れに対応するメールを送信しました。"
+	Message[ResetPasswordSuccess] = "パスワードのリセットに成功しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -81,6 +87,7 @@ func init() {
 	Message[LackOfLoginData] = "ログインのために必要なデータが入力されていません。"
 	Message[UserNotFound] = "ユーザーが見つかりませんでした。ログインし直してください。"
 	Message[NotHaveAdministratorPrivileges] = "管理者権限がありません。"
+	Message[ForgotEmailOTPPairsNotFound] = "入力されたメールアドレスにパスワード忘れ用のワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	// 200~ フロントエンドレベル
 	Message[InvalidJSONInput] = "JSONデータの形式にエラーがあります。"
 	Message[UserDoesNotOwnBuilding] = "ユーザーは建物を所有していません。"
@@ -103,4 +110,5 @@ func init() {
 	Message[FailedToCreateUserBuilding] = "データベースにユーザー建物情報を保存できませんでした。"
 	Message[FailedToGetFriendship] = "データベースからフレンド関係の取得に失敗しました。"
 	Message[FailedToCreateFriendship] = "データベースにフレンド関係を保存できませんでした。"
+	Message[FailedToUpdateUser] = "データベースへのユーザーの情報の更新に失敗しました。"
 }
