@@ -12,6 +12,11 @@ const (
 	GetOwnBuildingsSuccess             = 7
 	GetNonOwnedBuildingsInStoreSuccess = 8
 	GetTownBuildingsSuccess            = 9
+	FriendRequestAlreadySent           = 10
+	SendFriendRequestSuccess           = 11
+	FriendRequestAcceptSuccess         = 12
+	GetFriendsSuccess                  = 13
+	DeleteFriendshipSuccess            = 14
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound = 100
 	OTPNotMatch           = 101
@@ -22,8 +27,9 @@ const (
 	LackOfLoginData       = 106
 	UserNotFound          = 107
 	// 200~ フロントエンドレベル
-	InvalidJSONInput       = 200
-	UserDoesNotOwnBuilding = 201
+	InvalidJSONInput            = 200
+	UserDoesNotOwnBuilding      = 201
+	CannotFriendRequestYourself = 202
 	// 300~ バックエンドレベル
 	FailedToLoadTimeZone       = 301
 	FailedToSendEmail          = 302
@@ -39,6 +45,9 @@ const (
 	FailedToGetBuildings         = 403
 	FailedToDeleteBuilding       = 404
 	FailedToCreateUserBuilding   = 405
+	FailedToGetFriendship        = 406
+	FailedToCreateFriendship     = 407
+	FailedToDeleteFriendship     = 408
 )
 
 var Message = map[int]string{}
@@ -55,6 +64,11 @@ func init() {
 	Message[GetOwnBuildingsSuccess] = "所有している建物の取得に成功しました。"
 	Message[GetNonOwnedBuildingsInStoreSuccess] = "ストアにある建物のうち所有していない建物の取得に成功しました。"
 	Message[GetTownBuildingsSuccess] = "町にある建物の取得に成功しました。"
+	Message[FriendRequestAlreadySent] = "すでにフレンドリクエストを送っています。"
+	Message[SendFriendRequestSuccess] = "フレンド申請に成功しました。"
+	Message[FriendRequestAcceptSuccess] = "フレンドになりました。"
+	Message[GetFriendsSuccess] = "フレンド一覧の取得に成功しました。"
+	Message[DeleteFriendshipSuccess] = "フレンドの削除に成功しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -67,6 +81,7 @@ func init() {
 	// 200~ フロントエンドレベル
 	Message[InvalidJSONInput] = "JSONデータの形式にエラーがあります。"
 	Message[UserDoesNotOwnBuilding] = "ユーザーは建物を所有していません。"
+	Message[CannotFriendRequestYourself] = "自分自身にフレンド申請はできません。"
 	// 300~ バックエンドレベル
 	Message[FailedToLoadTimeZone] = "タイムゾーンの取得に失敗しました。"
 	Message[FailedToSendEmail] = "メールの送信に失敗しました。"
@@ -82,4 +97,6 @@ func init() {
 	Message[FailedToGetBuildings] = "データベースから建物の取得に失敗しました。"
 	Message[FailedToDeleteBuilding] = "データベースから建物の削除に失敗しました。"
 	Message[FailedToCreateUserBuilding] = "データベースにユーザー建物情報を保存できませんでした。"
+	Message[FailedToGetFriendship] = "データベースからフレンド関係の取得に失敗しました。"
+	Message[FailedToCreateFriendship] = "データベースにフレンド関係を保存できませんでした。"
 }

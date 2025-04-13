@@ -49,25 +49,11 @@ type TBuilding struct {
 
 func (TBuilding) TableName() string { return "t_buildings" }
 
-func (building TBuilding) GetID() int {
-	return building.ID
-}
-
-func (building TBuilding) GetExteriorImageURL() string {
-	return building.ExteriorImageURL
-}
-
-func (building TBuilding) GetInteriorImageURL() string {
-	return building.InteriorImageURL
-}
-
-func (building TBuilding) GetDefaultName() string {
-	return building.DefaultName
-}
-
-func (building TBuilding) GetCustomName() string {
-	return building.CustomName
-}
+func (building TBuilding) GetID() int                  { return building.ID }
+func (building TBuilding) GetExteriorImageURL() string { return building.ExteriorImageURL }
+func (building TBuilding) GetInteriorImageURL() string { return building.InteriorImageURL }
+func (building TBuilding) GetDefaultName() string      { return building.DefaultName }
+func (building TBuilding) GetCustomName() string       { return building.CustomName }
 
 func ConvertToBuildingInfos(buildings []TBuilding) []applogs.BuildingInfo {
 	buildingInfos := make([]applogs.BuildingInfo, len(buildings))

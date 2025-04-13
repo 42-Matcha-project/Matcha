@@ -37,7 +37,7 @@ type TUser struct {
 	FriendshipsReceived []TFriendship `gorm:"foreignKey:ReceiverID;references:ID" json:"-"`
 }
 
-func (*TUser) TableName() string {
+func (TUser) TableName() string {
 	/*
 		テーブル名を明示的に指定する関数。
 		AutoMigrateの際に自動で参照される。
@@ -45,7 +45,21 @@ func (*TUser) TableName() string {
 	return "t_users"
 }
 
-func (user *TUser) DeductCoins(requiredCoinCount int) error {
+func (user TUser) GetID() int              { return user.ID }
+func (user TUser) GetUsername() string     { return user.Username }
+func (user TUser) GetDisplayName() string  { return user.DisplayName }
+func (user TUser) GetIconImageURL() string { return user.IconImageURL }
+func (user TUser) GetIntroduction() string { return user.Introduction }
+
+func ConvertToOtherUsersInfos(users []TUser) []applogs.OtherUserInfo {
+	otherUserInfos := make([]applogs.OtherUserInfo, len(users))
+	for i, user := range users {
+		otherUserInfos[i] = user
+	}
+	return otherUserInfos
+}
+
+func (user TUser) DeductCoins(requiredCoinCount int) error {
 	if user.CoinCount < requiredCoinCount {
 		return errors.New("Not enough coins")
 	}
@@ -54,7 +68,7 @@ func (user *TUser) DeductCoins(requiredCoinCount int) error {
 	return err
 }
 
-func (user *TUser) IsBuildingIDOwned(buildingID int) (bool, error) {
+func (user TUser) IsBuildingIDOwned(buildingID int) (bool, error) {
 	err := DB.Where("t_building_id = ? AND t_user_id = ?", buildingID, user.ID).First(&TUserBuilding{}).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil
@@ -64,13 +78,13 @@ func (user *TUser) IsBuildingIDOwned(buildingID int) (bool, error) {
 	return true, nil
 }
 
-func (user *TUser) CreateUser() (*TUser, error, int) {
+func (user TUser) CreateUser() (TUser, error, int) {
 	/*
 		DBに新規ユーザーを保存する関数。
 	*/
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err, applogs.FailedToHashPassword
+		return user, err, applogs.FailedToHashPassword
 	}
 
 	user.Password = string(hashedPassword)
@@ -78,7 +92,7 @@ func (user *TUser) CreateUser() (*TUser, error, int) {
 	timeZone := os.Getenv("TIME_ZONE")
 	location, err := time.LoadLocation(timeZone)
 	if err != nil {
-		return nil, err, applogs.FailedToLoadTimeZone
+		return user, err, applogs.FailedToLoadTimeZone
 	}
 	if user.CreatedAt.IsZero() {
 		user.CreatedAt = time.Now().In(location)
@@ -90,12 +104,12 @@ func (user *TUser) CreateUser() (*TUser, error, int) {
 
 	err = DB.Create(user).Error
 	if err != nil {
-		return nil, err, applogs.FailedToCreateUser
+		return user, err, applogs.FailedToCreateUser
 	}
 	return user, nil, applogs.CreateUserSuccess
 }
 
-func (user *TUser) PrepareOutput() *TUser {
+func (user TUser) PrepareOutput() TUser {
 	/*
 		ユーザーデータを返すor出力する前の準備をする関数。
 		アウトプットの際はpasswordを非表示に。

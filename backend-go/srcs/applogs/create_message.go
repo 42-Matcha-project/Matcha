@@ -17,6 +17,20 @@ type UserBuildingInfo interface {
 	GetBuilding() BuildingInfo
 }
 
+type FriendshipInfo interface {
+	GetRequesterID() int
+	GetReceiverID() int
+	GetIsPending() bool
+}
+
+type OtherUserInfo interface {
+	GetID() int
+	GetUsername() string
+	GetDisplayName() string
+	GetIconImageURL() string
+	GetIntroduction() string
+}
+
 type ResponseOptions struct {
 	OTP           string
 	Token         string
@@ -24,6 +38,8 @@ type ResponseOptions struct {
 	Buildings     []BuildingInfo
 	UserBuilding  UserBuildingInfo
 	UserBuildings []UserBuildingInfo
+	Friendship    FriendshipInfo
+	Friends       []OtherUserInfo
 }
 
 func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions) gin.H {
@@ -90,6 +106,28 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			})
 		}
 		JSONResponse["BuildingsWithPlaceIndex"] = buildingsWithPlaceIndex
+	}
+
+	if options.Friendship != nil {
+		JSONResponse["Friendship"] = gin.H{
+			"RequesterID": options.Friendship.GetRequesterID(),
+			"ReceiverID":  options.Friendship.GetReceiverID(),
+			"IsPending":   options.Friendship.GetIsPending(),
+		}
+	}
+
+	if options.Friends != nil {
+		friends := make([]gin.H, 0, len(options.Friends))
+		for _, friend := range options.Friends {
+			friends = append(friends, gin.H{
+				"ID":           friend.GetID(),
+				"Username":     friend.GetUsername(),
+				"DisplayName":  friend.GetDisplayName(),
+				"IconImageURL": friend.GetIconImageURL(),
+				"Introduction": friend.GetIntroduction(),
+			})
+		}
+		JSONResponse["Friends"] = friends
 	}
 
 	return JSONResponse

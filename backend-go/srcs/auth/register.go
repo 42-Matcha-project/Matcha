@@ -20,13 +20,13 @@ type RegisterInput struct {
 	IconImageUrl string `json:"IconImageUrl"`
 }
 
-func registerUser(registerInput RegisterInput) (*models.TUser, error, int) {
+func registerUser(registerInput RegisterInput) (models.TUser, error, int) {
 	/*
 		UserをDBに保存する関数。
 	*/
 	var err error
 
-	registerUser := &models.TUser{
+	registerUser := models.TUser{
 		Username:     registerInput.Username,
 		Email:        registerInput.Email,
 		Password:     registerInput.Password,
@@ -67,7 +67,7 @@ func Register(reqContext *gin.Context) {
 		return
 	}
 
-	err = buildings.BuildDefaultBuilding(*user)
+	err = buildings.BuildDefaultBuilding(user)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToBuildDefaultBuilding, applogs.ResponseOptions{}))
 		reqContext.Error(err)
