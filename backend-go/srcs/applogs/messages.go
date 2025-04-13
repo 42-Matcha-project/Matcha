@@ -18,18 +18,20 @@ const (
 	GetFriendsSuccess                  = 13
 	DeleteFriendshipSuccess            = 14
 	// 100~ ユーザーレベル
-	EmailOTPPairsNotFound = 100
-	OTPNotMatch           = 101
-	OTPAlreadyExpired     = 102
-	EmailAlreadyVerified  = 103
-	EmailNotFound         = 104
-	EmailNotVerified      = 105
-	LackOfLoginData       = 106
-	UserNotFound          = 107
+	EmailOTPPairsNotFound          = 100
+	OTPNotMatch                    = 101
+	OTPAlreadyExpired              = 102
+	EmailAlreadyVerified           = 103
+	EmailNotFound                  = 104
+	EmailNotVerified               = 105
+	LackOfLoginData                = 106
+	UserNotFound                   = 107
+	NotHaveAdministratorPrivileges = 108
 	// 200~ フロントエンドレベル
 	InvalidJSONInput            = 200
 	UserDoesNotOwnBuilding      = 201
 	CannotFriendRequestYourself = 202
+	InvalidJWTToken             = 203
 	// 300~ バックエンドレベル
 	FailedToLoadTimeZone       = 301
 	FailedToSendEmail          = 302
@@ -77,11 +79,13 @@ func init() {
 	Message[EmailNotFound] = "入力されたメールアドレスは見つかりません。ユーザー登録の前にこのメールアドレスを使用してワンタイムパスワード認証を行なってください。"
 	Message[EmailNotVerified] = "入力されたメールアドレスは認証されていません。送信されているメールを確認してワンタイムパスワードの認証を行なってください。"
 	Message[LackOfLoginData] = "ログインのために必要なデータが入力されていません。"
-	Message[UserNotFound] = "ユーザーが見つかりませんでした。"
+	Message[UserNotFound] = "ユーザーが見つかりませんでした。ログインし直してください。"
+	Message[NotHaveAdministratorPrivileges] = "管理者権限がありません。"
 	// 200~ フロントエンドレベル
 	Message[InvalidJSONInput] = "JSONデータの形式にエラーがあります。"
 	Message[UserDoesNotOwnBuilding] = "ユーザーは建物を所有していません。"
 	Message[CannotFriendRequestYourself] = "自分自身にフレンド申請はできません。"
+	Message[InvalidJWTToken] = "JWTトークンが無効です。ログインし直してください。"
 	// 300~ バックエンドレベル
 	Message[FailedToLoadTimeZone] = "タイムゾーンの取得に失敗しました。"
 	Message[FailedToSendEmail] = "メールの送信に失敗しました。"
