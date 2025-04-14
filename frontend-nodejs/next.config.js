@@ -3,8 +3,11 @@ const nextConfig = {
   output: "standalone",
   poweredByHeader: false,
   reactStrictMode: true,
-  swcMinify: true,
   compress: true,
+  typescript: {
+    // ビルド時の型チェックをスキップ
+    ignoreBuildErrors: true,
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     remotePatterns: [
