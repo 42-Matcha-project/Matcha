@@ -6,7 +6,7 @@ import Image from "next/image";
 import { motion } from "framer-motion";
 import { Building, UserStats } from "../../../types/settlement";
 import { buildings } from "../../../data/buildings";
-import { initialUserStats } from "../../../data/initialUserStats"; // Import initialUserStats
+import { initialUserStats } from "../../../data/initialUserStats";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, Home, Info, Coins } from "lucide-react";
 import {
@@ -20,11 +20,11 @@ export default function BuildingSelectionPage() {
   const [availableBuildings, setAvailableBuildings] = useState<Building[]>([]);
   const [showDetails, setShowDetails] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isCreating, setIsCreating] = useState(false); // 部屋作成中の状態
-  const [error, setError] = useState<string | null>(null); // エラーメッセージ
+  const [isCreating, setIsCreating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const userStats = useState<UserStats>(initialUserStats)[0];
-  const [roomName, setRoomName] = useState<string>(""); // ルーム名
-  const [currentStep, setCurrentStep] = useState<1 | 2>(1); // 現在のステップ
+  const [roomName, setRoomName] = useState<string>("");
+  const [currentStep, setCurrentStep] = useState<1 | 2>(1);
 
   // 利用可能な建物をフィルタリング
   useEffect(() => {

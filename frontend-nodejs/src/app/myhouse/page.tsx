@@ -73,8 +73,13 @@ export default function CozyRoomPage() {
 
       {/* メインコンテンツ */}
       <main className="container mx-auto px-4 py-6 flex flex-col min-h-[calc(100vh-56px)] relative">
-        {/* 参加者の表示領域 */}
-        <div className="flex-1 relative min-h-[60vh] mb-20">
+        {/* 参加者の表示領域 - 固定位置に */}
+        <div
+          className={cn(
+            "flex-1 relative min-h-[60vh] mb-20",
+            "transition-all duration-500 ease-in-out",
+          )}
+        >
           {/* 参加者アバター - 背景に合わせた配置 */}
           {participants.map((user, index) => {
             // より自然な位置に配置 - 部屋の背景に合わせて調整
@@ -193,7 +198,7 @@ export default function CozyRoomPage() {
         </div>
 
         {/* メモ・チャット・学習状態エリア - 画面最下部に固定 */}
-        <div className="fixed bottom-0 left-0 right-0 z-20">
+        <div className="fixed bottom-0 left-0 right-0 z-30">
           <div className="container mx-auto px-4">
             {/* 開閉ボタン - タブの外に移動 */}
             <div className="absolute -top-10 left-0 right-0 flex justify-center">
@@ -201,7 +206,7 @@ export default function CozyRoomPage() {
                 onClick={togglePanel}
                 className={cn(
                   "px-6 py-1 rounded-full flex items-center justify-center text-xs font-medium",
-                  "transform transition-all duration-300 hover:scale-105",
+                  "transform transition-all duration-500 ease-in-out hover:scale-110",
                   "border shadow-md",
                   isDarkMode
                     ? "bg-amber-700/90 text-amber-50 hover:bg-amber-600 border-amber-600"
@@ -224,7 +229,9 @@ export default function CozyRoomPage() {
 
             <div
               className={cn(
-                "rounded-t-xl overflow-hidden border transition-all duration-300",
+                "rounded-t-xl overflow-hidden border transform origin-bottom",
+                "transition-colors duration-500 ease-in-out",
+                isPanelExpanded ? "scale-y-100" : "scale-y-95",
                 isDarkMode
                   ? "bg-amber-900/90 border-amber-800 shadow-lg"
                   : "bg-amber-50/95 border-amber-200 shadow-md",
@@ -254,13 +261,13 @@ export default function CozyRoomPage() {
                   </TabsList>
                 </div>
 
-                {/* パネルの内容 - 開閉可能 */}
+                {/* パネルの内容 - 開閉可能（トランジションなし） */}
                 <div
                   className={cn(
-                    "transition-all duration-300 overflow-hidden",
+                    "w-full",
                     isPanelExpanded
-                      ? "h-[40vh] min-h-[500px] max-h-[600px]"
-                      : "h-0",
+                      ? "h-[70vh] min-h-[600px] max-h-[800px] opacity-100 visible"
+                      : "h-0 opacity-0 invisible",
                   )}
                 >
                   <TabsContent value="chat" className="h-full overflow-hidden">
@@ -275,8 +282,8 @@ export default function CozyRoomPage() {
                     value="stats"
                     className="h-full overflow-auto py-4"
                   >
-                    <div className="h-full flex items-center justify-center">
-                      <div className="w-full max-w-2xl px-4 py-4 transform transition-all duration-300 hover:scale-[1.01]">
+                    <div className="h-full flex flex-col justify-start">
+                      <div className="w-full max-w-4xl mx-auto px-4 py-4 transform transition-all duration-300 hover:scale-[1.005]">
                         <StudyStats isDarkMode={isDarkMode} />
                       </div>
                     </div>

@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { CirclePlus } from "lucide-react";
+import { SubjectRegistrationForm } from "./SubjectRegistrationForm";
+import { SubjectList } from "./SubjectList";
 
 // 学習目標の型定義
 interface StudyGoal {
@@ -25,6 +27,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const [goals, setGoals] = useState<StudyGoal[]>(initialGoals);
   const [newGoalText, setNewGoalText] = useState("");
   const [isAddingGoal, setIsAddingGoal] = useState(false);
+  const [refreshSubjectsTrigger, setRefreshSubjectsTrigger] = useState(0);
 
   // 目標達成率を計算
   const completionRate = Math.round(
@@ -55,6 +58,11 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     );
   };
 
+  // 科目が追加されたときに科目リストを更新
+  const handleSubjectAdded = () => {
+    setRefreshSubjectsTrigger((prev) => prev + 1);
+  };
+
   return (
     <div
       className={cn(
@@ -65,6 +73,18 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
       )}
     >
       <h2 className="text-xl font-bold mb-4">あなたの学習状態</h2>
+
+      {/* 科目登録セクション */}
+      <div className="mb-8">
+        <SubjectRegistrationForm
+          isDarkMode={isDarkMode}
+          onSubjectAdded={handleSubjectAdded}
+        />
+        <SubjectList
+          isDarkMode={isDarkMode}
+          refreshTrigger={refreshSubjectsTrigger}
+        />
+      </div>
 
       {/* 目標達成度 */}
       <div className="mb-4">
