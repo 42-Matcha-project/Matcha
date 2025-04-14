@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/contexts/theme-context";
+import { AuthProvider } from "@/contexts/auth-context";
 import ClientInitializer from "./components/ClientInitializer";
 
 // 必要なフォントのみを保持し、display: swapで最適化
@@ -31,10 +32,12 @@ export default function RootLayout({
         `}
       >
         <ThemeProvider>
-          <ClientInitializer />
-          <div className="absolute inset-0 bg-[url('/images/Welcome-background.png')] bg-cover bg-center bg-no-repeat dark:opacity-80" />
-          <div className="absolute inset-0 bg-white bg-opacity-40 dark:bg-gray-900 dark:bg-opacity-70" />
-          <div className="relative z-10">{children}</div>
+          <AuthProvider>
+            <ClientInitializer />
+            <div className="absolute inset-0 bg-[url('/images/Welcome-background.png')] bg-cover bg-center bg-no-repeat dark:opacity-80" />
+            <div className="absolute inset-0 bg-white bg-opacity-40 dark:bg-gray-900 dark:bg-opacity-70" />
+            <div className="relative z-10">{children}</div>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>
