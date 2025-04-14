@@ -31,6 +31,17 @@ type OtherUserInfo interface {
 	GetIntroduction() string
 }
 
+type SelfUserInfo interface {
+	GetID() int
+	GetUsername() string
+	GetEmail() string
+	GetDisplayName() string
+	GetIconImageURL() string
+	GetIntroduction() string
+	GetTownName() string
+	GetCoinCount() int
+}
+
 type ResponseOptions struct {
 	OTP           string
 	Token         string
@@ -40,6 +51,7 @@ type ResponseOptions struct {
 	UserBuildings []UserBuildingInfo
 	Friendship    FriendshipInfo
 	Friends       []OtherUserInfo
+	Me            SelfUserInfo
 }
 
 func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions) gin.H {
@@ -128,6 +140,19 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			})
 		}
 		JSONResponse["Friends"] = friends
+	}
+
+	if options.Me != nil {
+		JSONResponse["Me"] = gin.H{
+			"ID":           options.Me.GetID(),
+			"Username":     options.Me.GetUsername(),
+			"Email":        options.Me.GetEmail(),
+			"DisplayName":  options.Me.GetDisplayName(),
+			"IconImageURL": options.Me.GetIconImageURL(),
+			"Introduction": options.Me.GetIntroduction(),
+			"TownName":     options.Me.GetTownName(),
+			"CoinCount":    options.Me.GetCoinCount(),
+		}
 	}
 
 	return JSONResponse

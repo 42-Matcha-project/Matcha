@@ -47,9 +47,12 @@ func (TUser) TableName() string {
 
 func (user TUser) GetID() int              { return user.ID }
 func (user TUser) GetUsername() string     { return user.Username }
+func (user TUser) GetEmail() string        { return user.Email }
 func (user TUser) GetDisplayName() string  { return user.DisplayName }
 func (user TUser) GetIconImageURL() string { return user.IconImageURL }
 func (user TUser) GetIntroduction() string { return user.Introduction }
+func (user TUser) GetTownName() string     { return user.TownName }
+func (user TUser) GetCoinCount() int       { return user.CoinCount }
 
 func ConvertToOtherUsersInfos(users []TUser) []applogs.OtherUserInfo {
 	otherUserInfos := make([]applogs.OtherUserInfo, len(users))

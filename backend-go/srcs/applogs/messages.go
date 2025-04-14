@@ -19,6 +19,8 @@ const (
 	DeleteFriendshipSuccess            = 14
 	HandleForgotPassword               = 15
 	ResetPasswordSuccess               = 16
+	GetProfileSuccess                  = 17
+	UpdateProfileSuccess               = 18
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -54,6 +56,7 @@ const (
 	FailedToCreateFriendship     = 407
 	FailedToDeleteFriendship     = 408
 	FailedToUpdateUser           = 409
+	FailedToUpdateProfile        = 410
 )
 
 var Message = map[int]string{}
@@ -77,6 +80,8 @@ func init() {
 	Message[DeleteFriendshipSuccess] = "フレンドの削除に成功しました。"
 	Message[HandleForgotPassword] = "パスワード忘れに対応するメールを送信しました。"
 	Message[ResetPasswordSuccess] = "パスワードのリセットに成功しました。"
+	Message[GetProfileSuccess] = "プロフィールの取得に成功しました。"
+	Message[UpdateProfileSuccess] = "プロフィールの更新に成功しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -111,4 +116,5 @@ func init() {
 	Message[FailedToGetFriendship] = "データベースからフレンド関係の取得に失敗しました。"
 	Message[FailedToCreateFriendship] = "データベースにフレンド関係を保存できませんでした。"
 	Message[FailedToUpdateUser] = "データベースへのユーザーの情報の更新に失敗しました。"
+	Message[FailedToUpdateProfile] = "データベースへのプロフィールの更新に失敗しました。"
 }
