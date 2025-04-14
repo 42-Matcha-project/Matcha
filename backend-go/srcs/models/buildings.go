@@ -17,13 +17,8 @@ type TUserBuilding struct {
 
 func (TUserBuilding) TableName() string { return "t_user_buildings" }
 
-func (userBuilding TUserBuilding) GetPlaceIndex() int {
-	return userBuilding.PlaceIndex
-}
-
-func (userBuilding TUserBuilding) GetBuilding() applogs.BuildingInfo {
-	return userBuilding.Building
-}
+func (userBuilding TUserBuilding) GetPlaceIndex() int                { return userBuilding.PlaceIndex }
+func (userBuilding TUserBuilding) GetBuilding() applogs.BuildingInfo { return userBuilding.Building }
 
 func ConvertToUserBuildingInfos(userBuildings []TUserBuilding) []applogs.UserBuildingInfo {
 	buildingInfos := make([]applogs.UserBuildingInfo, len(userBuildings))

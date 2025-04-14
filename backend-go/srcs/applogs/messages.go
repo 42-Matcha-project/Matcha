@@ -22,6 +22,7 @@ const (
 	GetProfileSuccess                  = 17
 	UpdateProfileSuccess               = 18
 	SubmitReportSuccess                = 19
+	BuyBuildingSuccess                 = 20
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -39,6 +40,7 @@ const (
 	CannotFriendRequestYourself = 202
 	InvalidJWTToken             = 203
 	UnknownReportType           = 204
+	BuildingAlreadyOwned        = 205
 	// 300~ バックエンドレベル
 	FailedToLoadTimeZone       = 301
 	FailedToSendEmail          = 302
@@ -85,6 +87,7 @@ func init() {
 	Message[GetProfileSuccess] = "プロフィールの取得に成功しました。"
 	Message[UpdateProfileSuccess] = "プロフィールの更新に成功しました。"
 	Message[SubmitReportSuccess] = "報告を受け取りました。"
+	Message[BuyBuildingSuccess] = "建物の購入が完了しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -102,6 +105,7 @@ func init() {
 	Message[CannotFriendRequestYourself] = "自分自身にフレンド申請はできません。"
 	Message[InvalidJWTToken] = "JWTトークンが無効です。ログインし直してください。"
 	Message[UnknownReportType] = "報告タイプが認識できません。"
+	Message[BuildingAlreadyOwned] = "すでに所有している建物です。"
 	// 300~ バックエンドレベル
 	Message[FailedToLoadTimeZone] = "タイムゾーンの取得に失敗しました。"
 	Message[FailedToSendEmail] = "メールの送信に失敗しました。"
