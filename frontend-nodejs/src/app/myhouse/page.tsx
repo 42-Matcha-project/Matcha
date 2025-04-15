@@ -22,7 +22,13 @@ export default function CozyRoomPage() {
   const [isPanelExpanded, setIsPanelExpanded] = useState(false);
 
   // 参加者データ
-  const [participants] = useState(initialParticipants);
+  const [participants, setParticipants] = useState(initialParticipants);
+
+  // 最後に参加したゲストの情報
+  const [guestInfo, setGuestInfo] = useState<{
+    name: string;
+    joinTime: Date;
+  } | null>(null);
 
   // チャットメッセージ
   const [messages, setMessages] = useState(initialMessages);
@@ -38,6 +44,61 @@ export default function CozyRoomPage() {
 
     return () => clearInterval(timer);
   }, []);
+
+  // ゲスト参加を検知して参加者リストを更新
+  useEffect(() => {
+    // クライアントサイドでのみ実行
+    if (typeof window !== "undefined") {
+      // 最後に参加したコードを確認
+      const lastJoinedCode = localStorage.getItem("lastJoinedCode");
+      const myRoomCode = localStorage.getItem("myRoomCode");
+
+      // 最後に参加したコードがマイルームコードと一致し、かつゲスト情報がまだない場合
+      if (
+        lastJoinedCode &&
+        myRoomCode &&
+        lastJoinedCode === myRoomCode &&
+        !guestInfo
+      ) {
+        // ゲスト名（実際には認証情報から取得すべき）
+        const guestName = "ゲスト" + Math.floor(Math.random() * 1000);
+
+        // ゲスト情報を設定
+        setGuestInfo({
+          name: guestName,
+          joinTime: new Date(),
+        });
+
+        // ゲストを参加者リストに追加
+        const newGuest = {
+          id: participants.length + 1,
+          name: guestName,
+          avatar: "/placeholder.svg?height=80&width=80",
+          status: "studying" as "studying" | "break" | "away",
+          position: { x: Math.random() * 80 + 10, y: Math.random() * 80 + 10 },
+        };
+
+        setParticipants([...participants, newGuest]);
+
+        // 入室メッセージをチャットに追加
+        const newMessage = {
+          id: messages.length + 1,
+          sender: "システム",
+          content: `${guestName} さんが入室しました。`,
+          time: new Date().toLocaleTimeString([], {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+        };
+
+        setMessages([...messages, newMessage]);
+
+        // パネルを自動的に開く
+        setIsPanelExpanded(true);
+        setActiveTab("chat");
+      }
+    }
+  }, [guestInfo, messages, participants]);
 
   // ダークモードの切り替え
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);

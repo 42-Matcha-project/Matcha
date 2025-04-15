@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/auth-context";
 import StudyRoomBase, {
@@ -9,6 +9,9 @@ import StudyRoomBase, {
   Event,
   ThemeSettings,
 } from "@/app/components/study-room-base";
+import { useRoomWebSocket } from "../../../hooks/useRoomWebSocket";
+import { RoomParticipant } from "@/utils/websocketUtils";
+import toast from "react-hot-toast";
 
 // デフォルトのテーマ設定
 const defaultTheme: ThemeSettings = {
@@ -28,31 +31,6 @@ const defaultTheme: ThemeSettings = {
     headerBg: "bg-white dark:bg-slate-800",
   },
 };
-
-// デフォルトの参加者データ
-const defaultParticipants: Participant[] = [
-  {
-    id: 1,
-    name: "あなた",
-    avatar: "/placeholder.svg",
-    status: "集中モード",
-    studyTime: 120, // 2時間（分単位）
-    totalTime: "2:00:00",
-    streak: 5,
-    streakText: "5日連続達成中",
-    level: 3,
-  },
-  {
-    id: 2,
-    name: "ユーザー2",
-    avatar: "/placeholder.svg",
-    status: "勉強中",
-    studyTime: 45,
-    totalTime: "0:45:00",
-    remainingTime: "00:15:00",
-    level: 2,
-  },
-];
 
 // デフォルトの達成項目
 const defaultAchievements: Achievement[] = [
@@ -86,14 +64,75 @@ const defaultEvents: Event[] = [
   },
 ];
 
+// WebSocketの参加者情報をStudyRoomBaseのParticipant形式に変換
+function convertParticipants(wsParticipants: RoomParticipant[]): Participant[] {
+  return wsParticipants.map((p) => ({
+    id: p.id,
+    name: p.name,
+    avatar: p.avatar || "/placeholder.svg",
+    status: p.status as "集中モード" | "勉強中" | "休憩中",
+    studyTime: 0, // 必要に応じて設定
+    totalTime: "0:00:00", // 必要に応じて設定
+    level: 1, // 必要に応じて設定
+  }));
+}
+
 // クライアントコンポーネントのprops
 interface RoomClientProps {
   roomCode: string;
 }
 
 export default function RoomClient({ roomCode }: RoomClientProps) {
-  const { user } = useAuth();
+  const { isAuthenticated, token } = useAuth();
   const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [ready, setReady] = useState(false);
+
+  // ルームコードのバリデーション
+  useEffect(() => {
+    console.log("Received room code:", roomCode);
+
+    if (!roomCode || roomCode === "MYUSER") {
+      console.error("Invalid room code:", roomCode);
+      setError(
+        "有効なルームコードが指定されていません。正しいルームコードを使用してください。",
+      );
+      setLoading(false);
+    }
+  }, [roomCode]);
+
+  // WebSocket接続の状態管理
+  const {
+    isConnected,
+    participants: wsParticipants,
+    lastError,
+    disconnect,
+    connect,
+  } = useRoomWebSocket({
+    roomCode,
+    token: token || "", // トークンをuseAuthから取得
+    onConnectionChange: (connected) => {
+      console.log(
+        "WebSocket connection changed:",
+        connected ? "connected" : "disconnected",
+      );
+      if (connected) {
+        setError(null);
+        toast.success(`ルーム ${roomCode} に接続しました！`);
+      } else {
+        // 切断時の処理
+        toast.error("ルームから切断されました");
+      }
+    },
+    onError: (errorMsg) => {
+      console.error("WebSocket error:", errorMsg);
+      setError(errorMsg);
+      toast.error(errorMsg);
+    },
+  });
+
+  // ルームデータ状態
   const [roomData, setRoomData] = useState<{
     theme: ThemeSettings;
     participants: Participant[];
@@ -102,70 +141,69 @@ export default function RoomClient({ roomCode }: RoomClientProps) {
     goal: string;
     todayStudyTime: number;
   } | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
+  // WebSocketの参加者情報が更新されたらルームデータも更新
   useEffect(() => {
-    const fetchRoomData = async () => {
-      try {
-        setIsLoading(true);
-        setError(null);
+    if (wsParticipants.length > 0 && isConnected) {
+      setRoomData({
+        theme: defaultTheme,
+        participants: convertParticipants(wsParticipants),
+        achievements: defaultAchievements,
+        events: defaultEvents,
+        goal: "毎日3時間の勉強を継続する",
+        todayStudyTime: 120, // 分単位
+      });
+      setLoading(false);
+      setReady(true);
+    }
+  }, [wsParticipants, isConnected]);
 
-        // APIが実装されるまでは、テストデータを使用
-        // 実際のAPIが実装されたら、以下のコメントを解除
-        /*
-        const token = localStorage.getItem("token");
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/study-room/${roomCode}`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
+  // 認証状態に応じた初期化
+  useEffect(() => {
+    // クライアントサイドでのみ実行
+    if (typeof window === "undefined") return;
 
-        if (!response.ok) {
-          throw new Error("自習室データの取得に失敗しました");
-        }
+    // 認証が完了していなければ早期リターン
+    if (!isAuthenticated || !token) {
+      console.error(
+        "Authentication failed. Token:",
+        token ? "exists" : "missing",
+      );
+      setError("認証情報がありません。ログインしてください。");
+      setLoading(false);
+      return;
+    }
 
-        const data = await response.json();
-        setRoomData(data);
-        */
+    // トークンがある場合は有効なルームコードでのみ接続を試みる
+    if (token && roomCode && roomCode !== "MYUSER") {
+      console.log("Attempting to connect to room:", roomCode);
+      connect();
+    } else {
+      console.warn("Not connecting due to invalid room code or missing token");
+    }
 
-        // テスト用データ
-        // APIが実装されるまでの仮実装
-        setTimeout(() => {
-          setRoomData({
-            theme: defaultTheme,
-            participants: user
-              ? [
-                  {
-                    ...defaultParticipants[0],
-                    name: user.displayName || user.username || "ユーザー",
-                  },
-                  ...defaultParticipants.slice(1),
-                ]
-              : defaultParticipants,
-            achievements: defaultAchievements,
-            events: defaultEvents,
-            goal: "毎日3時間の勉強を継続する",
-            todayStudyTime: 120, // 分単位
-          });
-          setIsLoading(false);
-        }, 1000);
-      } catch (err) {
-        console.error("Room data fetch error:", err);
-        setError(
-          err instanceof Error ? err.message : "データの取得に失敗しました",
-        );
-        setIsLoading(false);
-      }
+    // WebSocketが接続していない場合はロード中
+    if (!isConnected) {
+      setLoading(true);
+    }
+
+    // WebSocketエラーがある場合はエラー表示
+    if (lastError) {
+      console.error("WebSocket last error:", lastError);
+      setError(lastError);
+      setLoading(false);
+    }
+  }, [isAuthenticated, token, roomCode, isConnected, lastError, connect]);
+
+  // コンポーネントのアンマウント時に切断
+  useEffect(() => {
+    return () => {
+      disconnect();
     };
+  }, [disconnect]);
 
-    fetchRoomData();
-  }, [roomCode, user]);
-
-  if (isLoading) {
+  // ローディング状態
+  if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
@@ -173,16 +211,15 @@ export default function RoomClient({ roomCode }: RoomClientProps) {
     );
   }
 
-  if (error || !roomData) {
+  // エラー状態
+  if (error) {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen p-4">
         <div className="bg-red-100 border-l-4 border-red-500 p-4 mb-4 rounded-md">
           <div className="flex">
             <div className="flex-shrink-0">⚠️</div>
             <div className="ml-3">
-              <p className="text-sm text-red-700">
-                {error || "データの取得に失敗しました。再度お試しください。"}
-              </p>
+              <p className="text-sm text-red-700">{error}</p>
             </div>
           </div>
         </div>
@@ -196,13 +233,24 @@ export default function RoomClient({ roomCode }: RoomClientProps) {
     );
   }
 
+  // ルームデータがまだ準備できていない
+  if (!roomData || !ready) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-emerald-500"></div>
+      </div>
+    );
+  }
+
+  // Study Room Baseコンポーネントに必要なプロパティだけを渡す
+  // StudyRoomBaseコンポーネントの実際のプロパティ定義に合わせて調整
   return (
     <StudyRoomBase
+      roomCode={roomCode}
       theme={roomData.theme}
       participants={roomData.participants}
       achievements={roomData.achievements}
       events={roomData.events}
-      roomCode={roomCode}
       goal={roomData.goal}
       todayStudyTime={roomData.todayStudyTime}
     />

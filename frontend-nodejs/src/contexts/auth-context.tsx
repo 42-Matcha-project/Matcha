@@ -15,6 +15,7 @@ type AuthContextType = {
   user: User | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  token: string | null; // JWTトークンをコンテキストで利用可能にする
   login: (tokenValue: string) => void;
   logout: () => void;
   checkAuth: () => Promise<boolean>;
@@ -27,34 +28,57 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
 
   // 認証状態を確認する関数（シンプル化）
   const checkAuth = async (): Promise<boolean> => {
-    setIsLoading(true);
+    // すでにユーザーが設定されている場合は認証済みとみなす
+    if (user && token) {
+      return true;
+    }
+
+    // 読み込み中でなければ読み込み状態に設定
+    if (!isLoading) {
+      setIsLoading(true);
+    }
 
     try {
-      const token = localStorage.getItem("token");
+      // クライアントサイドでのみlocalStorageにアクセス
+      if (typeof window !== "undefined") {
+        const storedToken = localStorage.getItem("token");
 
-      if (!token) {
+        if (!storedToken) {
+          setUser(null);
+          setToken(null);
+          setIsLoading(false);
+          return false;
+        }
+
+        // トークンをコンテキストに保存
+        setToken(storedToken);
+
+        // トークンがある場合は認証されているとみなす
+        // 実際のユーザー情報はダミーデータで代用
+        setUser({
+          id: 1,
+          username: "user",
+          displayName: "ユーザー",
+          email: "user@example.com",
+        });
+        setIsLoading(false);
+        return true;
+      } else {
+        // サーバーサイドでの実行時は認証なしとする
         setUser(null);
+        setToken(null);
         setIsLoading(false);
         return false;
       }
-
-      // トークンがある場合は認証されているとみなす
-      // 実際のユーザー情報はダミーデータで代用
-      setUser({
-        id: 1,
-        username: "user",
-        displayName: "ユーザー",
-        email: "user@example.com",
-      });
-      setIsLoading(false);
-      return true;
     } catch (error) {
       console.error("Authentication check failed:", error);
       setUser(null);
+      setToken(null);
       setIsLoading(false);
       return false;
     }
@@ -62,28 +86,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // ログイン時の処理
   const login = (tokenValue: string) => {
-    localStorage.setItem("token", tokenValue);
-    checkAuth();
+    if (typeof window !== "undefined") {
+      localStorage.setItem("token", tokenValue);
+      setToken(tokenValue);
+      checkAuth();
+    }
   };
 
   // ログアウト時の処理
   const logout = async () => {
     try {
       // バックエンドのログアウトAPIがある場合はここで呼び出し
-      // const token = localStorage.getItem("token");
+      // const currentToken = token || localStorage.getItem("token");
       // await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/logout`, {
       //   method: "POST",
       //   headers: {
-      //     Authorization: `Bearer ${token}`,
+      //     Authorization: `Bearer ${currentToken}`,
       //   },
       //   credentials: "include",
       // });
 
-      // ローカルストレージからトークンを削除
-      localStorage.removeItem("token");
+      if (typeof window !== "undefined") {
+        // ローカルストレージからトークンを削除
+        localStorage.removeItem("token");
+      }
 
-      // ユーザー情報をクリア
+      // ユーザー情報とトークンをクリア
       setUser(null);
+      setToken(null);
 
       // ホームページにリダイレクト
       router.push("/");
@@ -94,7 +124,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 初回マウント時に認証状態を確認
   useEffect(() => {
-    checkAuth();
+    // クライアントサイドでのみ実行
+    if (typeof window !== "undefined") {
+      checkAuth();
+    }
   }, []);
 
   // コンテキスト値
@@ -102,6 +135,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     isLoading,
     isAuthenticated: !!user,
+    token,
     login,
     logout,
     checkAuth,

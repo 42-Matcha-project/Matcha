@@ -9,12 +9,27 @@ type ProtectedRouteProps = {
 };
 
 export default function ProtectedRoute({ children }: ProtectedRouteProps) {
-  const { isLoading, checkAuth } = useAuth();
+  const { isLoading, isAuthenticated, user, checkAuth } = useAuth();
   const router = useRouter();
   const [isChecking, setIsChecking] = useState(true);
 
   useEffect(() => {
+    // 既に認証チェックが完了していれば早期リターン
+    if (!isLoading && isAuthenticated && user) {
+      setIsChecking(false);
+      return;
+    }
+
     const verifyAuth = async () => {
+      // まだローディング中であれば早期リターン
+      if (isLoading) return;
+
+      // すでに認証されていれば早期リターン
+      if (isAuthenticated && user) {
+        setIsChecking(false);
+        return;
+      }
+
       // 認証状態を確認
       const authenticated = await checkAuth();
 
@@ -27,7 +42,9 @@ export default function ProtectedRoute({ children }: ProtectedRouteProps) {
     };
 
     verifyAuth();
-  }, [checkAuth, router]);
+    // checkAuthを依存配列から削除して無限ループを防ぐ
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isLoading, isAuthenticated, user, router]);
 
   // ローディング中は何も表示しない（またはローディングインジケータを表示）
   if (isLoading || isChecking) {
