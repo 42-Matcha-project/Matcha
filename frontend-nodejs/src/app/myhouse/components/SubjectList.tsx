@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { BookOpen, RefreshCw } from "lucide-react";
+import { SmilePlusIcon, TrashIcon } from "lucide-react";
 
 // 科目（Work）の型定義
 interface Subject {

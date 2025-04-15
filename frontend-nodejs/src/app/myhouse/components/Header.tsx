@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, Settings, LogOut, Moon, Sun } from "lucide-react";
@@ -20,6 +20,17 @@ export function Header({
 }: HeaderProps) {
   const router = useRouter();
   const [showInviteTooltip, setShowInviteTooltip] = useState(false);
+  const [roomCode, setRoomCode] = useState<string>("");
+
+  // コンポーネントマウント時にルームコードを読み取る
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedRoomCode = localStorage.getItem("roomCode");
+      if (savedRoomCode) {
+        setRoomCode(savedRoomCode);
+      }
+    }
+  }, []);
 
   // Format time with safety check for null
   const formattedTime = currentTime
@@ -29,8 +40,11 @@ export function Header({
   // 招待リンクをコピー
   const copyInviteLink = () => {
     if (typeof window !== "undefined" && navigator.clipboard) {
+      // ルームコードのみをコピー
+      const codeToShare = roomCode || "ルームコードがありません";
+
       navigator.clipboard
-        .writeText("https://study-room-app.com/invite/12345")
+        .writeText(codeToShare)
         .then(() => {
           setShowInviteTooltip(true);
           setTimeout(() => setShowInviteTooltip(false), 2000);
@@ -42,7 +56,9 @@ export function Header({
       // フォールバック: テキストエリアを使用してコピーを試みる
       try {
         const textArea = document.createElement("textarea");
-        textArea.value = "https://study-room-app.com/invite/12345";
+        // ルームコードのみをコピー
+        const codeToShare = roomCode || "ルームコードがありません";
+        textArea.value = codeToShare;
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
@@ -102,7 +118,7 @@ export function Header({
                   isDarkMode ? "bg-amber-700" : "bg-amber-300",
                 )}
               >
-                招待リンクをコピーしました
+                ルームコードをコピーしました
               </motion.div>
             )}
           </AnimatePresence>
