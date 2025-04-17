@@ -568,13 +568,56 @@ const Register = () => {
         );
       }
 
-      // 登録成功 - UIのために少し遅延を設ける
-      alert("アカウントが作成されました。ログインしてください。");
+      // 登録成功したことをコンソールに記録
+      console.log("アカウント登録が完了しました。");
 
-      // 少し遅延してからリダイレクト（ローディング表示は維持）
-      setTimeout(() => {
-        router.push("/login");
-      }, 1500);
+      try {
+        // 自動ログインを試みる
+        console.log("自動ログインを試行中...");
+        const loginResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              Email: email,
+              Password: password,
+            }),
+            credentials: "include",
+          },
+        );
+
+        // レスポンスを取得
+        const loginResponseText = await loginResponse.text();
+        console.log("自動ログインレスポンス:", loginResponseText);
+
+        if (loginResponse.ok && loginResponseText) {
+          try {
+            const loginData = JSON.parse(loginResponseText);
+            if (loginData.Token) {
+              // トークンをローカルストレージに保存
+              localStorage.setItem("token", loginData.Token);
+
+              // ホームページにリダイレクト
+              console.log(
+                "自動ログインに成功しました。ホームページにリダイレクトします。",
+              );
+              router.push("/settlement");
+              return;
+            }
+          } catch (parseError) {
+            console.error("ログインレスポンスのJSONパースに失敗:", parseError);
+          }
+        }
+      } catch (loginError) {
+        console.error("自動ログイン中にエラーが発生:", loginError);
+      }
+
+      // 自動ログインに失敗した場合、ログインページに入力済みの情報を渡す
+      // URLパラメータ経由でemailを渡す
+      router.push(`/login?email=${encodeURIComponent(email)}`);
     } catch (error: unknown) {
       let errorMessage = "登録に失敗しました。もう一度お試しください。";
       if (error instanceof Error) {

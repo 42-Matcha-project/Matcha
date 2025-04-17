@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, ReactNode } from "react";
+import React, { useState, ReactNode, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
@@ -101,6 +101,20 @@ const Login = () => {
     usernameOrEmail: boolean;
     password: boolean;
   }>({ usernameOrEmail: false, password: false });
+
+  // URLパラメータからメールアドレスを取得して入力欄に設定
+  useEffect(() => {
+    // クライアントサイドでのみ実行
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      const emailParam = params.get("email");
+
+      if (emailParam) {
+        console.log("URLパラメータからメールアドレスを取得:", emailParam);
+        setUsernameOrEmail(emailParam);
+      }
+    }
+  }, []);
 
   const handleUsernameOrEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
     setUsernameOrEmail(e.target.value);

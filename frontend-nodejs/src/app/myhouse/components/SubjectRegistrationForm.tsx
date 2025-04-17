@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { PlusCircle, X, Loader2 } from "lucide-react";
+import { PlusCircle, X, Loader2, UploadCloud } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 
 interface SubjectRegistrationFormProps {
   isDarkMode: boolean;
@@ -16,14 +17,80 @@ export function SubjectRegistrationForm({
 }: SubjectRegistrationFormProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subjectName, setSubjectName] = useState("");
-  const [iconUrl, setIconUrl] = useState("");
+  const [iconDataUrl, setIconDataUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // フォームをリセットする
   const resetForm = () => {
     setSubjectName("");
-    setIconUrl("");
+    setIconDataUrl(null);
     setIsFormOpen(false);
+    setIsDragging(false);
+  };
+
+  // 画像ファイルを処理する
+  const processImageFile = (file: File) => {
+    // バリデーション
+    if (!file.type.startsWith("image/")) {
+      toast.error("画像ファイルのみアップロードできます");
+      return;
+    }
+
+    // ファイルサイズのチェック (5MB制限)
+    const maxSize = 5 * 1024 * 1024; // 5MB
+    if (file.size > maxSize) {
+      toast.error("ファイルサイズは5MB以下にしてください");
+      return;
+    }
+
+    // 画像をData URLに変換
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      setIconDataUrl(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // ドラッグ＆ドロップのイベントハンドラ
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      processImageFile(file);
+    }
+  };
+
+  // ファイル選択のイベントハンドラ
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      processImageFile(file);
+      e.target.value = ""; // リセット
+    }
+  };
+
+  // 「画像選択」ボタンのクリックハンドラ
+  const handleSelectImageClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // 選択された画像を削除する
+  const handleRemoveImage = () => {
+    setIconDataUrl(null);
   };
 
   // 科目を登録する
@@ -53,7 +120,7 @@ export function SubjectRegistrationForm({
           },
           body: JSON.stringify({
             WorkName: subjectName,
-            IconImageURL: iconUrl || null, // アイコンURLがなければnull
+            IconImageURL: iconDataUrl || null, // アイコンのデータURLがなければnull
           }),
         },
       );
@@ -62,8 +129,6 @@ export function SubjectRegistrationForm({
         const errorData = await response.json();
         throw new Error(errorData.Error || "科目登録に失敗しました");
       }
-
-      const data = await response.json();
 
       toast.success("科目を登録しました");
       resetForm();
@@ -84,6 +149,15 @@ export function SubjectRegistrationForm({
 
   return (
     <div className="mb-6">
+      {/* 非表示のファイル入力 */}
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        accept="image/*"
+        className="hidden"
+      />
+
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-lg font-bold">科目登録</h3>
         <button
@@ -132,21 +206,59 @@ export function SubjectRegistrationForm({
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              アイコンURL（任意）
+              アイコン画像（任意）
             </label>
-            <input
-              type="text"
-              value={iconUrl}
-              onChange={(e) => setIconUrl(e.target.value)}
+
+            {/* アイコンのプレビューまたはドロップエリア */}
+            <div
               className={cn(
-                "w-full p-2 rounded-lg text-sm",
+                "w-full h-24 rounded-lg border-2 border-dashed transition-colors flex items-center justify-center",
                 isDarkMode
-                  ? "bg-amber-800 border-amber-700 text-amber-50"
-                  : "bg-white border border-amber-200 text-amber-950",
+                  ? "bg-amber-800/30 hover:bg-amber-800/50 border-amber-700"
+                  : "bg-amber-50 hover:bg-amber-100 border-amber-200",
+                isDragging && "border-amber-400 bg-amber-100",
+                "cursor-pointer",
               )}
-              placeholder="https://example.com/icon.png"
-              disabled={isSubmitting}
-            />
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+              onDrop={handleDrop}
+              onClick={handleSelectImageClick}
+            >
+              {iconDataUrl ? (
+                <div className="relative w-full h-full flex items-center justify-center">
+                  <div className="relative w-16 h-16 rounded-full overflow-hidden">
+                    <Image
+                      src={iconDataUrl}
+                      alt="アイコンプレビュー"
+                      fill
+                      className="object-cover"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleRemoveImage();
+                    }}
+                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="text-center">
+                  <UploadCloud
+                    className={cn(
+                      "w-8 h-8 mx-auto mb-1",
+                      isDarkMode ? "text-amber-400" : "text-amber-500",
+                    )}
+                  />
+                  <p className="text-xs">
+                    クリックするか画像をドロップしてアイコンを設定
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex justify-end space-x-2">

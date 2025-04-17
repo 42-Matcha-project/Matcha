@@ -69,17 +69,18 @@ export function createRoomWebSocket(
     return null;
   }
 
+  // バックエンドの直接URLを常に使用する
   const baseUrl = process.env.NEXT_PUBLIC_BACKEND_BASE_URL || "";
   console.log("バックエンドURL:", baseUrl);
 
   // バックエンドURLがhttpsで始まる場合は必ずwssを使用する
-  // 変更: window.location.protocolではなくバックエンドURLに基づいて判断
   const wsProtocol = baseUrl.startsWith("https") ? "wss" : "ws";
   console.log("使用するWebSocketプロトコル:", wsProtocol);
 
   // HTTP URLからWebSocket URLに変換
   const wsBaseUrl = baseUrl.replace(/^http(s?):\/\//, `${wsProtocol}://`);
   const wsUrl = `${wsBaseUrl}/study-room/join/${roomCode}`;
+
   console.log("WebSocket接続URL:", wsUrl);
 
   try {

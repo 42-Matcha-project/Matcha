@@ -13,18 +13,12 @@ interface StudyGoal {
   completed: boolean;
   color: "green" | "orange" | "gray";
 }
-
-// 初期目標データ
-const initialGoals: StudyGoal[] = [
-  { id: 1, text: "例）数学の問題集 p.25-30", completed: true, color: "green" },
-];
-
 interface StudyStatsProps {
   isDarkMode: boolean;
 }
 
 export function StudyStats({ isDarkMode }: StudyStatsProps) {
-  const [goals, setGoals] = useState<StudyGoal[]>(initialGoals);
+  const [goals, setGoals] = useState<StudyGoal[]>([]);
   const [newGoalText, setNewGoalText] = useState("");
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [refreshSubjectsTrigger, setRefreshSubjectsTrigger] = useState(0);
@@ -72,8 +66,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
           : "bg-amber-50/95 border border-amber-200",
       )}
     >
-      <h2 className="text-xl font-bold mb-4">あなたの学習状態</h2>
-
       {/* 科目登録セクション */}
       <div className="mb-8">
         <SubjectRegistrationForm
