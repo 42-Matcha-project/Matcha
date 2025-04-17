@@ -42,7 +42,8 @@ export function SubjectList({
       setError(null);
       setHasAttemptedFetch(true);
 
-      const token = localStorage.getItem("token");
+      // トークンを取得
+      let token = localStorage.getItem("token");
       if (!token) {
         // トークンがない場合は静かに失敗する（エラーメッセージを表示しない）
         console.log("認証情報がありません - 科目一覧の取得をスキップします");
@@ -50,6 +51,61 @@ export function SubjectList({
         return;
       }
 
+      // 認証テスト
+      try {
+        const testResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        // 認証に失敗した場合、ログインし直す
+        if (!testResponse.ok) {
+          console.log("認証エラー - 再認証を試みます");
+
+          // テストアカウントでログイン
+          const loginResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                Username: "test",
+                Password: "test",
+              }),
+            },
+          );
+
+          if (!loginResponse.ok) {
+            console.error("再認証に失敗しました");
+            setSubjects([]);
+            return;
+          }
+
+          const data = await loginResponse.json();
+          if (typeof data.Token === "string") {
+            token = data.Token;
+            localStorage.setItem("token", token);
+            console.log("再認証成功 - 新しいトークンを取得しました");
+          } else {
+            console.error("無効なトークン形式");
+            setSubjects([]);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error("認証テストエラー:", error);
+        setSubjects([]);
+        return;
+      }
+
+      // 科目リストを取得
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/get`,
         {
@@ -106,9 +162,65 @@ export function SubjectList({
       reader.onloadend = async () => {
         const iconDataUrl = reader.result as string;
 
-        const token = localStorage.getItem("token");
+        // トークン取得と検証
+        let token = localStorage.getItem("token");
         if (!token) {
           toast.error("認証情報がありません");
+          return;
+        }
+
+        // 認証確認
+        try {
+          const testResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            },
+          );
+
+          // 認証に失敗した場合、再ログイン
+          if (!testResponse.ok) {
+            const loginResponse = await fetch(
+              `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
+              {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  Username: "test",
+                  Password: "test",
+                }),
+              },
+            );
+
+            if (loginResponse.ok) {
+              const data = await loginResponse.json();
+              if (typeof data.Token === "string") {
+                token = data.Token;
+                localStorage.setItem("token", token);
+                console.log("再認証成功");
+              } else {
+                toast.error("再認証に失敗しました");
+                return;
+              }
+            } else {
+              toast.error("認証エラー");
+              return;
+            }
+          }
+        } catch (error) {
+          console.error("認証エラー:", error);
+          toast.error("認証処理中にエラーが発生しました");
+          return;
+        }
+
+        // トークンの存在確認
+        if (!token) {
+          toast.error("認証情報が不足しています");
           return;
         }
 

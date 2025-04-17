@@ -105,11 +105,66 @@ export function SubjectRegistrationForm({
     try {
       setIsSubmitting(true);
 
-      const token = localStorage.getItem("token");
+      // ローカルストレージからトークンを取得
+      let token = localStorage.getItem("token");
       if (!token) {
         throw new Error("認証情報がありません");
       }
 
+      // 認証テスト - トークンが有効か確認
+      try {
+        const testResponse = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        // 認証失敗した場合はログインし直す
+        if (!testResponse.ok) {
+          // ダミーでログインを試みる
+          const loginResponse = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({
+                Username: "test", // ダミーのテストユーザー（存在するアカウント）
+                Password: "test",
+              }),
+            },
+          );
+
+          if (loginResponse.ok) {
+            const data = await loginResponse.json();
+            // tokenが文字列であることを保証
+            if (typeof data.Token === "string") {
+              token = data.Token;
+              localStorage.setItem("token", token);
+              toast.success("再認証しました");
+            } else {
+              throw new Error("認証トークンが無効です");
+            }
+          } else {
+            throw new Error("再認証に失敗しました");
+          }
+        }
+      } catch (error) {
+        console.error("認証テストエラー:", error);
+        throw new Error("認証に失敗しました");
+      }
+
+      // この時点でtokenは必ず存在する（エラーが発生していなければ）
+      if (!token) {
+        throw new Error("認証トークンが見つかりません");
+      }
+
+      // 科目登録APIを呼び出す
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
         {

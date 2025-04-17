@@ -137,7 +137,7 @@ export default function SettlementPage() {
           )}
         </AnimatePresence>
 
-        {/* ヘッダー */}
+        {/* SettlementHeaderコンポーネントを配置 */}
         <SettlementHeader
           currentTime={currentTime}
           userStats={userStats}
