@@ -23,6 +23,11 @@ const (
 	UpdateProfileSuccess               = 18
 	SubmitReportSuccess                = 19
 	BuyBuildingSuccess                 = 20
+	CreateStudyRoomSuccess             = 21
+	DeleteStudyRoomSuccess             = 22
+	AddWorkSuccess                     = 23
+	GetWorksSuccess                    = 24
+	GetWorkLogsSuccess                 = 25
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -34,6 +39,7 @@ const (
 	UserNotFound                   = 107
 	NotHaveAdministratorPrivileges = 108
 	ForgotEmailOTPPairsNotFound    = 109
+	RoomCodeNotFound               = 110
 	// 200~ フロントエンドレベル
 	InvalidJSONInput            = 200
 	UserDoesNotOwnBuilding      = 201
@@ -42,14 +48,15 @@ const (
 	UnknownReportType           = 204
 	BuildingAlreadyOwned        = 205
 	// 300~ バックエンドレベル
-	FailedToLoadTimeZone       = 301
-	FailedToSendEmail          = 302
-	FailedToGenerateRand       = 303
-	FailedToSaveOTP            = 304
-	FailedToCleanUpExpiredOTPs = 305
-	FailedToConvertType        = 306
-	FailedToHashPassword       = 307
-	FailedToGenerateJWTToken   = 308
+	FailedToLoadTimeZone          = 301
+	FailedToSendEmail             = 302
+	FailedToGenerateRand          = 303
+	FailedToSaveOTP               = 304
+	FailedToCleanUpExpiredOTPs    = 305
+	FailedToConvertType           = 306
+	FailedToHashPassword          = 307
+	FailedToGenerateJWTToken      = 308
+	FailedToUpgradeConnectionToWS = 309
 	// 400~ データベースレベル
 	FailedToCreateUser           = 401
 	FailedToBuildDefaultBuilding = 402
@@ -61,6 +68,9 @@ const (
 	FailedToDeleteFriendship     = 408
 	FailedToUpdateUser           = 409
 	FailedToUpdateProfile        = 410
+	FailedToCreateWork           = 411
+	FailedToGetWork              = 412
+	FailedToGetWorkLog           = 413
 )
 
 var Message = map[int]string{}
@@ -88,6 +98,11 @@ func init() {
 	Message[UpdateProfileSuccess] = "プロフィールの更新に成功しました。"
 	Message[SubmitReportSuccess] = "報告を受け取りました。"
 	Message[BuyBuildingSuccess] = "建物の購入が完了しました。"
+	Message[CreateStudyRoomSuccess] = "作業部屋の作成に成功しました。"
+	Message[DeleteStudyRoomSuccess] = "作業部屋の削除に成功しました。"
+	Message[AddWorkSuccess] = "タスクの追加に成功しました。"
+	Message[GetWorksSuccess] = "タスク一覧の取得に成功しました。"
+	Message[GetWorkLogsSuccess] = "タスクログ一覧の取得に成功しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -99,6 +114,7 @@ func init() {
 	Message[UserNotFound] = "ユーザーが見つかりませんでした。ログインし直してください。"
 	Message[NotHaveAdministratorPrivileges] = "管理者権限がありません。"
 	Message[ForgotEmailOTPPairsNotFound] = "入力されたメールアドレスにパスワード忘れ用のワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
+	Message[RoomCodeNotFound] = "入力されたルームコードは見つかりませんでした。正しいルームコードであることを確認してください。"
 	// 200~ フロントエンドレベル
 	Message[InvalidJSONInput] = "JSONデータの形式にエラーがあります。"
 	Message[UserDoesNotOwnBuilding] = "ユーザーは建物を所有していません。"
@@ -115,6 +131,7 @@ func init() {
 	Message[FailedToConvertType] = "型変換に失敗しました。"
 	Message[FailedToHashPassword] = "パスワードのハッシュ化に失敗しました。"
 	Message[FailedToGenerateJWTToken] = "JWTトークンの生成に失敗しました。"
+	Message[FailedToUpgradeConnectionToWS] = "接続をWebSocketにアップグレードできませんでした。"
 	// 400~ データベースレベル
 	Message[FailedToCreateUser] = "データベースにユーザーを保存できませんでした。"
 	Message[FailedToBuildDefaultBuilding] = "初期建物を設定できませんでした。"
@@ -125,4 +142,7 @@ func init() {
 	Message[FailedToCreateFriendship] = "データベースにフレンド関係を保存できませんでした。"
 	Message[FailedToUpdateUser] = "データベースへのユーザーの情報の更新に失敗しました。"
 	Message[FailedToUpdateProfile] = "データベースへのプロフィールの更新に失敗しました。"
+	Message[FailedToCreateWork] = "データベースにタスクを保存できませんでした。"
+	Message[FailedToGetWork] = "データベースからタスクの取得に失敗しました。"
+	Message[FailedToGetWorkLog] = "データベースからタスクログの取得に失敗しました。"
 }

@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 	"sync"
@@ -82,21 +83,21 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	var createStudyRoomInput CreateStudyRoomInput
 	if err := reqContext.ShouldBindJSON(&createStudyRoomInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	roomCode, err := generateRoomCode()
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Status": "Failed to generate room code"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGenerateRand, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
@@ -104,5 +105,5 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 	StudyRoomsMutex.Lock()
 	StudyRooms[roomCode] = createStudyRoom(createStudyRoomInput, *user)
 	StudyRoomsMutex.Unlock()
-	reqContext.JSON(http.StatusOK, gin.H{"RoomCode": roomCode})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.CreateStudyRoomSuccess, applogs.ResponseOptions{RoomCode: roomCode}))
 }

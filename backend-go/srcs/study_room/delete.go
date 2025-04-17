@@ -3,6 +3,7 @@ package study_room
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"srcs/applogs"
 	"srcs/token"
 )
 
@@ -29,7 +30,7 @@ func DeleteStudyRoomHandler(reqContext *gin.Context) {
 	*/
 	userId, err := token.ExtractUserIdFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusUnauthorized, gin.H{"Error": "Failed to extract user id"})
+		reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
@@ -37,5 +38,5 @@ func DeleteStudyRoomHandler(reqContext *gin.Context) {
 	StudyRoomsMutex.Lock()
 	deleteStudyRoomByHostId(int(userId))
 	StudyRoomsMutex.Unlock()
-	reqContext.Status(http.StatusOK)
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.DeleteStudyRoomSuccess, applogs.ResponseOptions{}))
 }

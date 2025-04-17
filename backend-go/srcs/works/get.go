@@ -3,6 +3,7 @@ package works
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
@@ -22,17 +23,17 @@ func GetWorksHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	works, err := getWorks(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetWork, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"Works": works})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetWorksSuccess, applogs.ResponseOptions{Works: models.ConvertToWorkInfos(works)}))
 }

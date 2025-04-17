@@ -2,6 +2,7 @@ package applogs
 
 import (
 	"github.com/gin-gonic/gin"
+	"time"
 )
 
 type BuildingInfo interface {
@@ -42,6 +43,19 @@ type SelfUserInfo interface {
 	GetCoinCount() int
 }
 
+type WorkInfo interface {
+	GetID() int
+	GetWorkName() string
+	GetIconImageURL() string
+}
+
+type WorkLogInfo interface {
+	GetWorkID() int
+	GetWorkName() string
+	GetStartAt() time.Time
+	GetMinutes() int64
+}
+
 type ResponseOptions struct {
 	OTP           string
 	Token         string
@@ -52,6 +66,10 @@ type ResponseOptions struct {
 	Friendship    FriendshipInfo
 	Friends       []OtherUserInfo
 	Me            SelfUserInfo
+	RoomCode      string
+	Work          WorkInfo
+	Works         []WorkInfo
+	WorkLogs      []WorkLogInfo
 }
 
 func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions) gin.H {
@@ -152,6 +170,42 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			"Introduction": options.Me.GetIntroduction(),
 			"TownName":     options.Me.GetTownName(),
 			"CoinCount":    options.Me.GetCoinCount(),
+		}
+	}
+
+	if options.RoomCode != "" {
+		JSONResponse["RoomCode"] = options.RoomCode
+	}
+
+	if options.Work != nil {
+		JSONResponse["Work"] = gin.H{
+			"ID":           options.Work.GetID(),
+			"WorkName":     options.Work.GetWorkName(),
+			"IconImageURL": options.Work.GetIconImageURL(),
+		}
+	}
+
+	if options.Works != nil {
+		works := make([]gin.H, 0, len(options.Works))
+		for _, work := range options.Works {
+			works = append(works, gin.H{
+				"ID":           work.GetID(),
+				"WorkName":     work.GetWorkName(),
+				"IconImageURL": work.GetIconImageURL(),
+			})
+		}
+		JSONResponse["Works"] = works
+	}
+
+	if options.WorkLogs != nil {
+		workLogs := make([]gin.H, 0, len(options.WorkLogs))
+		for _, workLog := range options.WorkLogs {
+			workLogs = append(workLogs, gin.H{
+				"ID":       workLog.GetWorkID(),
+				"WorkName": workLog.GetWorkName(),
+				"StartAt":  workLog.GetStartAt(),
+				"Minutes":  workLog.GetMinutes(),
+			})
 		}
 	}
 
