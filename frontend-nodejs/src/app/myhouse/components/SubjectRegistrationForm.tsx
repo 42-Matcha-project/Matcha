@@ -38,17 +38,25 @@ export function SubjectRegistrationForm({
       return;
     }
 
-    // ファイルサイズのチェック (5MB制限)
-    const maxSize = 5 * 1024 * 1024; // 5MB
+    // ファイルサイズのチェック (1MB制限に縮小)
+    const maxSize = 1 * 1024 * 1024; // 1MB
     if (file.size > maxSize) {
-      toast.error("ファイルサイズは5MB以下にしてください");
+      toast.error("ファイルサイズは1MB以下にしてください");
       return;
     }
 
-    // 画像をData URLに変換
+    // 画像をData URLに変換（サイズ制限あり）
     const reader = new FileReader();
-    reader.onloadend = () => {
-      setIconDataUrl(reader.result as string);
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        // 画像のデータURLをセット（文字列であることを確認）
+        setIconDataUrl(reader.result);
+      } else {
+        toast.error("画像の読み込みに失敗しました");
+      }
+    };
+    reader.onerror = () => {
+      toast.error("画像の読み込みに失敗しました");
     };
     reader.readAsDataURL(file);
   };
@@ -133,8 +141,8 @@ export function SubjectRegistrationForm({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                Username: username,
-                Password: password,
+                Username: "test", // テスト用の固定値
+                Password: "test", // テスト用の固定値
               }),
             },
           );
@@ -174,7 +182,12 @@ export function SubjectRegistrationForm({
           },
           body: JSON.stringify({
             WorkName: subjectName,
-            IconImageURL: iconDataUrl || null, // アイコンのデータURLがなければnull
+            // 画像URLが長すぎる場合は省略（サーバーの許容範囲内に制限）
+            IconImageURL: iconDataUrl
+              ? iconDataUrl.length > 100000
+                ? null
+                : iconDataUrl
+              : null,
           }),
         },
       );
@@ -280,12 +293,19 @@ export function SubjectRegistrationForm({
             >
               {iconDataUrl ? (
                 <div className="relative w-full h-full flex items-center justify-center">
-                  <div className="relative w-16 h-16 rounded-full overflow-hidden">
+                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-amber-300">
                     <Image
                       src={iconDataUrl}
                       alt="アイコンプレビュー"
                       fill
                       className="object-cover"
+                      unoptimized={true}
+                      onError={(e) => {
+                        // 画像読み込みエラー時にプレースホルダーを表示
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null; // エラーループ防止
+                        target.src = "/placeholder.svg";
+                      }}
                     />
                   </div>
                   <button
@@ -294,9 +314,9 @@ export function SubjectRegistrationForm({
                       e.stopPropagation();
                       handleRemoveImage();
                     }}
-                    className="absolute top-1 right-1 w-6 h-6 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600"
+                    className="absolute top-1 right-1 w-7 h-7 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 shadow-md"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
               ) : (

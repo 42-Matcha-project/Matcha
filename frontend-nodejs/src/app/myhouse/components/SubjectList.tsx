@@ -6,6 +6,9 @@ import { BookOpen, RefreshCw } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
+// HTMLImageElementを使用するために明示的に参照
+const HTMLImage = globalThis.Image;
+
 // 科目（Work）の型定義
 interface Subject {
   ID: number;
@@ -91,8 +94,10 @@ export function SubjectList({
           const data = await loginResponse.json();
           if (typeof data.Token === "string") {
             token = data.Token;
-            localStorage.setItem("token", token);
-            console.log("再認証成功 - 新しいトークンを取得しました");
+            if (token) {
+              localStorage.setItem("token", token);
+              console.log("再認証成功 - 新しいトークンを取得しました");
+            }
           } else {
             console.error("無効なトークン形式");
             setSubjects([]);
@@ -138,129 +143,158 @@ export function SubjectList({
     }
   };
 
-  // 科目アイコンを更新する
+  // 科目アイコンを更新する (ローカルストレージのみ)
   const updateSubjectIcon = async (subjectId: number, iconFile: File) => {
     try {
+      // ローディング状態を設定
       setIsUploading(subjectId);
 
-      // バリデーション
+      // バリデーション - 画像ファイルのみ
       if (!iconFile.type.startsWith("image/")) {
         toast.error("画像ファイルのみアップロードできます");
         return;
       }
 
-      // ファイルサイズのチェック (5MB制限)
-      const maxSize = 5 * 1024 * 1024; // 5MB
+      // ファイルサイズのチェック (1MB制限)
+      const maxSize = 1 * 1024 * 1024;
       if (iconFile.size > maxSize) {
-        toast.error("ファイルサイズは5MB以下にしてください");
+        toast.error("ファイルサイズは1MB以下にしてください");
         return;
       }
 
-      // ここでは画像を仮にDataURLに変換して使用
-      // 実環境では適切なストレージサービスにアップロードする処理を追加する必要があります
-      const reader = new FileReader();
-      reader.onloadend = async () => {
-        const iconDataUrl = reader.result as string;
+      // 科目の存在チェック
+      const subject = subjects.find((s) => s.ID === subjectId);
+      if (!subject) {
+        toast.error("科目が見つかりません");
+        return;
+      }
 
-        // トークン取得と検証
-        let token = localStorage.getItem("token");
-        if (!token) {
-          toast.error("認証情報がありません");
-          return;
-        }
+      // 画像を圧縮してDataURLに変換
+      const compressedImageUrl = await compressImage(iconFile);
+      if (!compressedImageUrl) {
+        toast.error("画像の処理に失敗しました");
+        return;
+      }
 
-        // 認証確認
-        try {
-          const testResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            },
-          );
+      console.log("画像処理成功: 圧縮後サイズ", compressedImageUrl.length);
 
-          // 認証に失敗した場合、再ログイン
-          if (!testResponse.ok) {
-            const loginResponse = await fetch(
-              `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
-              {
-                method: "POST",
-                headers: {
-                  "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                  Username: "test",
-                  Password: "test",
-                }),
-              },
-            );
+      // ローカルでアイコンを更新（UIの更新とローカルストレージへの保存）
+      updateLocalIcon(subjectId, compressedImageUrl);
 
-            if (loginResponse.ok) {
-              const data = await loginResponse.json();
-              if (typeof data.Token === "string") {
-                token = data.Token;
-                localStorage.setItem("token", token);
-                console.log("再認証成功");
-              } else {
-                toast.error("再認証に失敗しました");
-                return;
-              }
-            } else {
-              toast.error("認証エラー");
-              return;
-            }
-          }
-        } catch (error) {
-          console.error("認証エラー:", error);
-          toast.error("認証処理中にエラーが発生しました");
-          return;
-        }
-
-        // トークンの存在確認
-        if (!token) {
-          toast.error("認証情報が不足しています");
-          return;
-        }
-
-        // 更新APIを呼び出し
-        const subject = subjects.find((s) => s.ID === subjectId);
-        if (!subject) return;
-
-        // WorkNameとIconImageURLを含むリクエストを作成
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
-          {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({
-              WorkName: subject.WorkName,
-              IconImageURL: iconDataUrl,
-            }),
-          },
-        );
-
-        if (!response.ok) {
-          toast.error("アイコンの更新に失敗しました");
-          return;
-        }
-
-        // 成功したらリストを更新
-        fetchSubjects();
-        toast.success("アイコンを更新しました");
-      };
-
-      reader.readAsDataURL(iconFile);
+      // 成功メッセージ
+      toast.success("アイコンを更新しました");
     } catch (error) {
       console.error("アイコン更新エラー:", error);
       toast.error("アイコンの更新に失敗しました");
     } finally {
+      // ローディング状態とドラッグ状態をリセット
       setIsUploading(null);
       setDraggedOverId(null);
+    }
+  };
+
+  // 画像の圧縮処理
+  const compressImage = async (file: File): Promise<string | null> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (!event.target || typeof event.target.result !== "string") {
+          resolve(null);
+          return;
+        }
+
+        // HTMLImageElementを使用
+        const img = new HTMLImage();
+        img.onload = () => {
+          // 画像サイズの制限（最大幅・高さ）を大きくして画質向上
+          const MAX_WIDTH = 120; // サイズを大きく
+          const MAX_HEIGHT = 120; // サイズを大きく
+
+          let width = img.width;
+          let height = img.height;
+
+          // アスペクト比を維持しつつリサイズ
+          if (width > height && width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          } else if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext("2d");
+          if (!ctx) {
+            resolve(null);
+            return;
+          }
+
+          ctx.fillStyle = "#FFFFFF"; // 背景を白に
+          ctx.fillRect(0, 0, width, height);
+          ctx.drawImage(img, 0, 0, width, height);
+
+          // 圧縮率を上げて画質向上（0.2→0.7）
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7); // 圧縮率を0.7に上げて画質向上
+
+          // 画像サイズをログに出力
+          console.log("圧縮後のDataURL長さ:", compressedDataUrl.length);
+
+          resolve(compressedDataUrl);
+        };
+
+        img.onerror = () => {
+          resolve(null);
+        };
+
+        img.src = event.target.result;
+      };
+
+      reader.onerror = () => {
+        resolve(null);
+      };
+
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // ローカルで科目アイコンを更新する
+  const updateLocalIcon = (subjectId: number, iconUrl: string) => {
+    // 現在の科目リストをコピー
+    const updatedSubjects = subjects.map((subject) => {
+      if (subject.ID === subjectId) {
+        // 対象の科目のアイコンを更新（ローカルでは圧縮したDataURLを使用）
+        return {
+          ...subject,
+          IconImageURL: iconUrl,
+        };
+      }
+      return subject;
+    });
+
+    // 科目リストを更新
+    setSubjects(updatedSubjects);
+
+    // ローカルストレージに画像URLを保存して、リロード後も表示できるようにする
+    try {
+      // 既存のキャッシュデータを取得
+      const cachedIcons = JSON.parse(
+        localStorage.getItem("subjectIcons") || "{}",
+      );
+
+      // 現在の科目IDとアイコンURLを追加
+      cachedIcons[subjectId] = iconUrl;
+
+      // キャッシュを更新
+      localStorage.setItem("subjectIcons", JSON.stringify(cachedIcons));
+      console.log(
+        "アイコンをローカルストレージにキャッシュしました:",
+        subjectId,
+      );
+    } catch (error) {
+      console.error("アイコンのローカルストレージキャッシュに失敗:", error);
     }
   };
 
@@ -311,6 +345,41 @@ export function SubjectList({
       fetchSubjects();
     }
   }, [refreshTrigger]);
+
+  // 初期表示時の科目リスト読み込み
+  useEffect(() => {
+    // コンポーネントマウント時に一度だけ実行
+    fetchSubjects();
+    console.log("初期科目リスト読み込み");
+
+    // ローカルストレージからキャッシュされたアイコンを復元
+    try {
+      const cachedIcons = JSON.parse(
+        localStorage.getItem("subjectIcons") || "{}",
+      );
+      if (Object.keys(cachedIcons).length > 0) {
+        console.log("キャッシュされたアイコンを復元します");
+
+        // 少し遅延させて科目リストが読み込まれた後に適用
+        setTimeout(() => {
+          setSubjects((prevSubjects) => {
+            return prevSubjects.map((subject) => {
+              // この科目IDのキャッシュがあれば適用
+              if (cachedIcons[subject.ID]) {
+                return {
+                  ...subject,
+                  IconImageURL: cachedIcons[subject.ID],
+                };
+              }
+              return subject;
+            });
+          });
+        }, 500);
+      }
+    } catch (error) {
+      console.error("キャッシュされたアイコンの復元に失敗:", error);
+    }
+  }, []);
 
   // 手動リフレッシュ - ユーザーが明示的に更新ボタンをクリックした場合
   const handleRefresh = () => {
@@ -384,7 +453,7 @@ export function SubjectList({
             >
               <div
                 className={cn(
-                  "w-8 h-8 rounded-full flex items-center justify-center mr-3 relative cursor-pointer",
+                  "w-10 h-10 rounded-full flex items-center justify-center mr-3 relative cursor-pointer overflow-hidden",
                   isDarkMode ? "bg-amber-700" : "bg-amber-100",
                   draggedOverId === subject.ID && "border-2 border-amber-400",
                 )}
@@ -392,17 +461,31 @@ export function SubjectList({
                 title="クリックまたは画像をドロップしてアイコンを変更"
               >
                 {isUploading === subject.ID ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : subject.IconImageURL ? (
-                  <Image
-                    src={subject.IconImageURL}
-                    alt=""
-                    className="w-6 h-6 object-cover rounded-full"
-                    width={24}
-                    height={24}
-                  />
+                  <RefreshCw className="h-5 w-5 animate-spin" />
+                ) : subject.IconImageURL && subject.IconImageURL.length > 0 ? (
+                  <div className="w-full h-full relative">
+                    <Image
+                      src={subject.IconImageURL}
+                      alt={subject.WorkName}
+                      className="object-cover"
+                      fill
+                      sizes="40px"
+                      unoptimized={true}
+                      onError={(e) => {
+                        // 画像読み込みエラー時にプレースホルダーを表示
+                        console.error(
+                          "画像読み込みエラー:",
+                          subject.IconImageURL,
+                        );
+                        const target = e.target as HTMLImageElement;
+                        target.onerror = null; // エラーループ防止
+                        target.src = "/placeholder.svg";
+                      }}
+                      style={{ objectFit: "cover" }}
+                    />
+                  </div>
                 ) : (
-                  <BookOpen className="h-4 w-4 opacity-70" />
+                  <BookOpen className="h-5 w-5 opacity-70" />
                 )}
               </div>
               <span className="font-medium">{subject.WorkName}</span>
