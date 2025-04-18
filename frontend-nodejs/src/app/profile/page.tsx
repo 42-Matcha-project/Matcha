@@ -86,7 +86,6 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
-  // どうぶつの森風のクエストカード設定
   const questCards = [
     {
       title: "建物たんけん",
@@ -169,12 +168,11 @@ export default function ProfilePage() {
   ];
 
   const handleBackClick = () => {
-    router.back();
+    router.push("/settlement");
   };
 
   return (
     <div className="min-h-screen bg-[#e8f3d8] p-6 text-[#6a6359]">
-      {/* どうぶつの森風ヘッダー */}
       <div className="flex items-center mb-8">
         <button
           onClick={handleBackClick}
@@ -204,7 +202,7 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* プレイヤー情報 どうぶつの森風 */}
+      {/* プレイヤー情報 */}
       <div className="mb-8 p-4 bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-md">
         <div className="flex items-center">
           <div className="w-16 h-16 bg-[#8cc750] rounded-full flex items-center justify-center border-2 border-[#7ab145] shadow-md">
@@ -215,8 +213,7 @@ export default function ProfilePage() {
               {profile?.DisplayName || profile?.Username || "むらびと"}
             </h2>
             <p className="text-[#9b8e7e]">
-              <span className="inline-block mr-1">🏝️</span>{" "}
-              {profile?.TownName || "どうぶつの森"} の住人
+              <span className="inline-block mr-1">🏝️</span> {profile?.TownName}
             </p>
           </div>
         </div>
@@ -243,7 +240,7 @@ export default function ProfilePage() {
         </div>
       ) : (
         <div>
-          {/* クエストカードグリッド どうぶつの森風 */}
+          {/* クエストカードグリッド */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
             {questCards.map((quest, index) => (
               <div
