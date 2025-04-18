@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -75,12 +75,26 @@ export default function BuildingsPage() {
   );
   const [showDeleteDialog, setShowDeleteDialog] = useState<boolean>(false);
 
-  useEffect(() => {
-    // First try to fetch buildings from API, then fall back to local storage
-    fetchBuildingsFromAPI();
+  const loadBuildingsFromLocalStorage = useCallback(() => {
+    try {
+      // Try to get buildings from local storage
+      const storedBuildings = localStorage.getItem("userBuildings");
+
+      if (storedBuildings) {
+        setBuildings(JSON.parse(storedBuildings));
+        toast.info("ローカルに保存された建物データを読み込みました");
+      } else {
+        // If no buildings found, initialize with empty array
+        setBuildings([]);
+      }
+    } catch (error) {
+      console.error("Error loading buildings from local storage:", error);
+      toast.error("建物データの読み込みに失敗しました");
+      setBuildings([]);
+    }
   }, []);
 
-  const fetchBuildingsFromAPI = async () => {
+  const fetchBuildingsFromAPI = useCallback(async () => {
     setIsLoading(true);
     setIsError(false);
 
@@ -150,26 +164,12 @@ export default function BuildingsPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [loadBuildingsFromLocalStorage]);
 
-  const loadBuildingsFromLocalStorage = () => {
-    try {
-      // Try to get buildings from local storage
-      const storedBuildings = localStorage.getItem("userBuildings");
-
-      if (storedBuildings) {
-        setBuildings(JSON.parse(storedBuildings));
-        toast.info("ローカルに保存された建物データを読み込みました");
-      } else {
-        // If no buildings found, initialize with empty array
-        setBuildings([]);
-      }
-    } catch (error) {
-      console.error("Error loading buildings from local storage:", error);
-      toast.error("建物データの読み込みに失敗しました");
-      setBuildings([]);
-    }
-  };
+  useEffect(() => {
+    // First try to fetch buildings from API, then fall back to local storage
+    fetchBuildingsFromAPI();
+  }, [fetchBuildingsFromAPI]);
 
   // 画像の圧縮処理
   const compressImage = async (file: File): Promise<string | null> => {

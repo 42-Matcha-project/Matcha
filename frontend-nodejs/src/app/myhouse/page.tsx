@@ -7,10 +7,7 @@ import {
   MessageSquare,
   ChevronUp,
   ChevronDown,
-  Clock,
   LogOut,
-  X,
-  Save,
   Moon,
   Sun,
   Settings,
@@ -51,7 +48,6 @@ export default function CozyRoomPage() {
   } | null>(null);
   const [messages, setMessages] = useState<Message[]>(initialMessages);
   const [isLoggingWork, setIsLoggingWork] = useState(false);
-  const [workLogText, setWorkLogText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
   const [showRoomCode, setShowRoomCode] = useState(false);
@@ -199,54 +195,6 @@ export default function CozyRoomPage() {
 
   // パネルの展開・収納を切り替え
   const togglePanel = () => setIsPanelExpanded(!isPanelExpanded);
-
-  // Add work log function
-  const addWorkLog = async () => {
-    if (!workLogText.trim()) {
-      toast.error("作業内容を入力してください");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("認証情報がありません。再ログインしてください。");
-        return;
-      }
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/log`,
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-          body: JSON.stringify({
-            Description: workLogText,
-          }),
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error(`作業ログの追加に失敗しました (${response.status})`);
-      }
-
-      toast.success("作業ログを追加しました");
-      setWorkLogText("");
-      setIsLoggingWork(false);
-    } catch (error) {
-      console.error("作業ログの追加エラー:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "作業ログの追加中にエラーが発生しました",
-      );
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   // End study session function
   const endStudySession = async () => {
