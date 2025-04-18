@@ -49,7 +49,6 @@ export function SubjectList({
       let token = localStorage.getItem("token");
       if (!token) {
         // トークンがない場合は静かに失敗する（エラーメッセージを表示しない）
-        console.log("認証情報がありません - 科目一覧の取得をスキップします");
         setSubjects([]);
         return;
       }
@@ -68,8 +67,6 @@ export function SubjectList({
 
         // 認証に失敗した場合、ログインし直す
         if (!testResponse.ok) {
-          console.log("認証エラー - 再認証を試みます");
-
           // テストアカウントでログイン
           const loginResponse = await fetch(
             `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
@@ -96,7 +93,6 @@ export function SubjectList({
             token = data.Token;
             if (token) {
               localStorage.setItem("token", token);
-              console.log("再認証成功 - 新しいトークンを取得しました");
             }
           } else {
             console.error("無効なトークン形式");
@@ -176,8 +172,6 @@ export function SubjectList({
         return;
       }
 
-      console.log("画像処理成功: 圧縮後サイズ", compressedImageUrl.length);
-
       // ローカルでアイコンを更新（UIの更新とローカルストレージへの保存）
       updateLocalIcon(subjectId, compressedImageUrl);
 
@@ -206,9 +200,9 @@ export function SubjectList({
         // HTMLImageElementを使用
         const img = new HTMLImage();
         img.onload = () => {
-          // 画像サイズの制限（最大幅・高さ）を大きくして画質向上
-          const MAX_WIDTH = 120; // サイズを大きく
-          const MAX_HEIGHT = 120; // サイズを大きく
+          // 画像サイズの制限（最大幅・高さ）
+          const MAX_WIDTH = 120;
+          const MAX_HEIGHT = 120;
 
           let width = img.width;
           let height = img.height;
@@ -236,12 +230,8 @@ export function SubjectList({
           ctx.fillRect(0, 0, width, height);
           ctx.drawImage(img, 0, 0, width, height);
 
-          // 圧縮率を上げて画質向上（0.2→0.7）
-          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7); // 圧縮率を0.7に上げて画質向上
-
-          // 画像サイズをログに出力
-          console.log("圧縮後のDataURL長さ:", compressedDataUrl.length);
-
+          // 画質向上のため圧縮率0.7で保存
+          const compressedDataUrl = canvas.toDataURL("image/jpeg", 0.7);
           resolve(compressedDataUrl);
         };
 
@@ -258,6 +248,48 @@ export function SubjectList({
 
       reader.readAsDataURL(file);
     });
+  };
+
+  // 初期表示時の科目リスト読み込み
+  useEffect(() => {
+    // コンポーネントマウント時に一度だけ実行
+    fetchSubjects().then(() => {
+      // fetchSubjects完了後にキャッシュ復元処理を行う
+      restoreIconsFromCache();
+    });
+  }, []);
+
+  // ローカルストレージからアイコンを復元する関数
+  const restoreIconsFromCache = () => {
+    try {
+      const cachedIcons = JSON.parse(
+        localStorage.getItem("subjectIcons") || "{}",
+      );
+
+      if (Object.keys(cachedIcons).length > 0) {
+        setSubjects((prevSubjects) => {
+          const updatedSubjects = prevSubjects.map((subject) => {
+            // キャッシュのキーは文字列化されているので、文字列比較も行う
+            const cacheKey = subject.ID.toString();
+            const hasCache = cachedIcons[subject.ID] || cachedIcons[cacheKey];
+
+            if (hasCache) {
+              // キャッシュデータを使用
+              const iconData = cachedIcons[subject.ID] || cachedIcons[cacheKey];
+              return {
+                ...subject,
+                IconImageURL: iconData,
+              };
+            }
+            return subject;
+          });
+
+          return updatedSubjects;
+        });
+      }
+    } catch (error) {
+      console.error("キャッシュされたアイコンの復元に失敗:", error);
+    }
   };
 
   // ローカルで科目アイコンを更新する
@@ -284,15 +316,12 @@ export function SubjectList({
         localStorage.getItem("subjectIcons") || "{}",
       );
 
-      // 現在の科目IDとアイコンURLを追加
-      cachedIcons[subjectId] = iconUrl;
+      // 現在の科目IDとアイコンURLを追加（IDを文字列化して保存）
+      const cacheKey = subjectId.toString();
+      cachedIcons[cacheKey] = iconUrl;
 
       // キャッシュを更新
       localStorage.setItem("subjectIcons", JSON.stringify(cachedIcons));
-      console.log(
-        "アイコンをローカルストレージにキャッシュしました:",
-        subjectId,
-      );
     } catch (error) {
       console.error("アイコンのローカルストレージキャッシュに失敗:", error);
     }
@@ -345,41 +374,6 @@ export function SubjectList({
       fetchSubjects();
     }
   }, [refreshTrigger]);
-
-  // 初期表示時の科目リスト読み込み
-  useEffect(() => {
-    // コンポーネントマウント時に一度だけ実行
-    fetchSubjects();
-    console.log("初期科目リスト読み込み");
-
-    // ローカルストレージからキャッシュされたアイコンを復元
-    try {
-      const cachedIcons = JSON.parse(
-        localStorage.getItem("subjectIcons") || "{}",
-      );
-      if (Object.keys(cachedIcons).length > 0) {
-        console.log("キャッシュされたアイコンを復元します");
-
-        // 少し遅延させて科目リストが読み込まれた後に適用
-        setTimeout(() => {
-          setSubjects((prevSubjects) => {
-            return prevSubjects.map((subject) => {
-              // この科目IDのキャッシュがあれば適用
-              if (cachedIcons[subject.ID]) {
-                return {
-                  ...subject,
-                  IconImageURL: cachedIcons[subject.ID],
-                };
-              }
-              return subject;
-            });
-          });
-        }, 500);
-      }
-    } catch (error) {
-      console.error("キャッシュされたアイコンの復元に失敗:", error);
-    }
-  }, []);
 
   // 手動リフレッシュ - ユーザーが明示的に更新ボタンをクリックした場合
   const handleRefresh = () => {
