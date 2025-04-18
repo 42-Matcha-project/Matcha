@@ -2,9 +2,19 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { CirclePlus } from "lucide-react";
+import { CirclePlus, LogOut } from "lucide-react";
 import { SubjectRegistrationForm } from "./SubjectRegistrationForm";
 import { SubjectList } from "./SubjectList";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 // 学習目標の型定義
 interface StudyGoal {
@@ -18,10 +28,13 @@ interface StudyStatsProps {
 }
 
 export function StudyStats({ isDarkMode }: StudyStatsProps) {
+  const router = useRouter();
   const [goals, setGoals] = useState<StudyGoal[]>([]);
   const [newGoalText, setNewGoalText] = useState("");
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [refreshSubjectsTrigger, setRefreshSubjectsTrigger] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
 
   // 目標達成率を計算
   const completionRate = Math.round(
@@ -57,6 +70,46 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     setRefreshSubjectsTrigger((prev) => prev + 1);
   };
 
+  // 自習を終了する
+  const endStudySession = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("認証情報がありません。再ログインしてください。");
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/study-room/delete`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`自習の終了に失敗しました (${response.status})`);
+      }
+
+      toast.success("自習を終了しました");
+      // settlementページへリダイレクト
+      router.push("/settlement");
+    } catch (error) {
+      console.error("自習終了エラー:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "自習の終了中にエラーが発生しました",
+      );
+    } finally {
+      setIsLoading(false);
+      setShowEndSessionDialog(false);
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -77,6 +130,91 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
           refreshTrigger={refreshSubjectsTrigger}
         />
       </div>
+
+      {/* 自習終了ボタン */}
+      <div className="mb-6 flex flex-col gap-4">
+        <h3 className="text-lg font-bold mb-2">学習管理</h3>
+
+        {/* 自習終了ボタン */}
+        <button
+          className={cn(
+            "py-3.5 px-6 rounded-lg text-base font-medium flex items-center justify-center transition-all duration-200 shadow-md",
+            isDarkMode
+              ? "bg-red-900/80 hover:bg-red-800 text-red-50 border-2 border-red-700"
+              : "bg-red-50 hover:bg-red-100 text-red-700 border-2 border-red-200",
+            isLoading && "opacity-70 cursor-not-allowed",
+          )}
+          onClick={() => setShowEndSessionDialog(true)}
+          disabled={isLoading}
+        >
+          <LogOut className="h-5 w-5 mr-2.5" />
+          自習を終了する
+        </button>
+      </div>
+
+      {/* End Study Session Dialog */}
+      <Dialog
+        open={showEndSessionDialog}
+        onOpenChange={setShowEndSessionDialog}
+      >
+        <DialogContent
+          className={cn(
+            "sm:max-w-xl w-[90%]",
+            isDarkMode
+              ? "bg-amber-900 border-amber-800 text-amber-50"
+              : "bg-amber-50 border-amber-200 text-amber-950",
+          )}
+        >
+          <DialogHeader className="p-2">
+            <DialogTitle className="flex items-center gap-3 text-xl mb-2">
+              <LogOut className="h-6 w-6" />
+              自習を終了しますか？
+            </DialogTitle>
+            <DialogDescription
+              className={cn(
+                "text-base",
+                isDarkMode ? "text-amber-300" : "text-amber-700",
+              )}
+            >
+              自習を終了すると、現在の学習タイマーがリセットされます。タイマーの進捗はプロフィールに記録されます。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="sm:justify-between flex-row gap-3 mt-6 mb-2">
+            <button
+              onClick={() => setShowEndSessionDialog(false)}
+              disabled={isLoading}
+              className={cn(
+                "flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors",
+                isDarkMode
+                  ? "bg-amber-800 hover:bg-amber-700"
+                  : "bg-amber-100 hover:bg-amber-200",
+              )}
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={endStudySession}
+              disabled={isLoading}
+              className={cn(
+                "flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors flex justify-center items-center",
+                isDarkMode
+                  ? "bg-red-800 hover:bg-red-700 text-red-50"
+                  : "bg-red-100 hover:bg-red-200 text-red-800",
+                isLoading && "opacity-70 cursor-not-allowed",
+              )}
+            >
+              {isLoading ? (
+                "処理中..."
+              ) : (
+                <>
+                  <LogOut className="h-5 w-5 mr-2" />
+                  終了する
+                </>
+              )}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* 目標達成度 */}
       <div className="mb-4">

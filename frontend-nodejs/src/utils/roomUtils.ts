@@ -23,15 +23,6 @@ export function isValidRoomCode(code: string): boolean {
   // 部屋コードのフォーマット
   const formatted = formatRoomCode(code);
 
-  // 無効な予約コードをチェック
-  const invalidTestCodes = ["MYUSER", "ABCDEF", "123456", "TEST12"];
-  if (invalidTestCodes.includes(formatted)) {
-    console.warn(
-      `予約済みまたはテスト用のルームコードが使用されました: ${formatted}`,
-    );
-    return false;
-  }
-
   // 部屋コードのバリデーションルール
   // 6桁の英数字
   return /^[A-Z0-9]{6}$/.test(formatted);

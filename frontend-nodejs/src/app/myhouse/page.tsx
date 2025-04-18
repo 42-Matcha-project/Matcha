@@ -3,47 +3,88 @@
 import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
-import { MessageSquare, ChevronUp, ChevronDown } from "lucide-react";
+import {
+  MessageSquare,
+  ChevronUp,
+  ChevronDown,
+  Clock,
+  LogOut,
+  X,
+  Save,
+  Moon,
+  Sun,
+  Settings,
+} from "lucide-react";
 import Image from "next/image";
+import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 // コンポーネントをインポート
-import { Header } from "./components/Header";
 import { ChatPanel } from "./components/ChatPanel";
 import { StudyStats } from "./components/StudyStats";
+import { initialParticipants } from "./data";
+import { Participant, Message } from "./types";
 
 // 初期データをインポート
-import { initialParticipants, initialMessages } from "./data";
+import { initialMessages } from "./data";
 
 export default function CozyRoomPage() {
-  // Initialize currentTime as null to avoid hydration mismatch
-  const [currentTime, setCurrentTime] = useState<Date | null>(null);
+  const router = useRouter();
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [activeTab, setActiveTab] = useState("chat");
-  const [isPanelExpanded, setIsPanelExpanded] = useState(false);
-
-  // 参加者データ
-  const [participants, setParticipants] = useState(initialParticipants);
-
-  // 最後に参加したゲストの情報
+  const [isPanelExpanded, setIsPanelExpanded] = useState(true);
+  const [participants, setParticipants] =
+    useState<Participant[]>(initialParticipants);
   const [guestInfo, setGuestInfo] = useState<{
     name: string;
-    joinTime: Date;
+    avatar: string;
+    status: "studying" | "break" | "away";
+    position: { x: number; y: number };
   } | null>(null);
+  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  const [isLoggingWork, setIsLoggingWork] = useState(false);
+  const [workLogText, setWorkLogText] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
+  const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
+  const [showRoomCode, setShowRoomCode] = useState(false);
+  const [roomCode, setRoomCode] = useState("");
 
-  // チャットメッセージ
-  const [messages, setMessages] = useState(initialMessages);
-
-  // 時計の更新 - クライアントサイドでのみ実行
+  // キーボードショートカットを登録
   useEffect(() => {
-    // Set initial time immediately once we're on the client
-    setCurrentTime(new Date());
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Alt+L: 作業ログダイアログを表示 (MacではOption+L)
+      if (
+        e.altKey &&
+        e.key === "l" &&
+        !isLoggingWork &&
+        !showEndSessionDialog
+      ) {
+        e.preventDefault(); // デフォルトの挙動を防止
+        setIsLoggingWork(true);
+      }
 
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 1000);
+      // Escape: 各種ダイアログを閉じる
+      if (e.key === "Escape") {
+        if (isLoggingWork) {
+          setIsLoggingWork(false);
+        }
+        if (showEndSessionDialog) {
+          setShowEndSessionDialog(false);
+        }
+      }
+    };
 
-    return () => clearInterval(timer);
-  }, []);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isLoggingWork, showEndSessionDialog]);
 
   // ゲスト参加を検知して参加者リストを更新
   useEffect(() => {
@@ -66,7 +107,9 @@ export default function CozyRoomPage() {
         // ゲスト情報を設定
         setGuestInfo({
           name: guestName,
-          joinTime: new Date(),
+          avatar: "/placeholder.svg?height=80&width=80",
+          status: "studying" as "studying" | "break" | "away",
+          position: { x: Math.random() * 80 + 10, y: Math.random() * 80 + 10 },
         });
 
         // ゲストを参加者リストに追加
@@ -100,19 +143,158 @@ export default function CozyRoomPage() {
     }
   }, [guestInfo, messages, participants]);
 
+  // コンポーネントマウント時にルームコードを読み取る
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedRoomCode = localStorage.getItem("myRoomCode");
+      if (savedRoomCode) {
+        setRoomCode(savedRoomCode);
+      } else {
+        // 初回訪問時は新しいコードを生成して保存
+        const newCode = generateRandomCode();
+        setRoomCode(newCode);
+        localStorage.setItem("myRoomCode", newCode);
+      }
+    }
+  }, []);
+
+  // 新しいルームコードを生成する
+  const regenerateRoomCode = () => {
+    const newCode = generateRandomCode();
+    setRoomCode(newCode);
+    localStorage.setItem("myRoomCode", newCode);
+    setShowRoomCode(true);
+  };
+
+  // ルームコードを生成する関数
+  function generateRandomCode(length: number = 6): string {
+    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+    let result = "";
+    for (let i = 0; i < length; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  }
+
+  // 招待リンクをコピー
+  const copyInviteLink = () => {
+    if (typeof window !== "undefined" && navigator.clipboard) {
+      // ルームコードのみをコピー
+      const codeToShare = roomCode || "ルームコードがありません";
+
+      navigator.clipboard
+        .writeText(codeToShare)
+        .then(() => {
+          toast.success("招待コードをコピーしました");
+          setShowRoomCode(true);
+        })
+        .catch((err) => {
+          console.error("クリップボードへのコピーに失敗しました:", err);
+        });
+    }
+  };
+
   // ダークモードの切り替え
   const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   // パネルの展開・収納を切り替え
   const togglePanel = () => setIsPanelExpanded(!isPanelExpanded);
 
+  // Add work log function
+  const addWorkLog = async () => {
+    if (!workLogText.trim()) {
+      toast.error("作業内容を入力してください");
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("認証情報がありません。再ログインしてください。");
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/log`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            Description: workLogText,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`作業ログの追加に失敗しました (${response.status})`);
+      }
+
+      toast.success("作業ログを追加しました");
+      setWorkLogText("");
+      setIsLoggingWork(false);
+    } catch (error) {
+      console.error("作業ログの追加エラー:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "作業ログの追加中にエラーが発生しました",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // End study session function
+  const endStudySession = async () => {
+    setIsLoading(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("認証情報がありません。再ログインしてください。");
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/study-room/delete`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`自習の終了に失敗しました (${response.status})`);
+      }
+
+      toast.success("自習を終了しました");
+      // リダイレクトをsettlementページに
+      router.push("/settlement");
+    } catch (error) {
+      console.error("自習終了エラー:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "自習の終了中にエラーが発生しました",
+      );
+    } finally {
+      setIsLoading(false);
+      setShowEndSessionDialog(false);
+    }
+  };
+
   return (
     <div
       className={cn(
-        "min-h-screen transition-colors duration-300 relative overflow-auto",
+        "min-h-screen overflow-hidden",
         isDarkMode
           ? "bg-amber-950 text-amber-50"
-          : "bg-amber-50 text-amber-950",
+          : "bg-amber-100 text-amber-950",
       )}
       style={{
         backgroundImage: `url('/images/new-house.png')`,
@@ -125,15 +307,120 @@ export default function CozyRoomPage() {
         backgroundBlendMode: isDarkMode ? "overlay" : "soft-light",
       }}
     >
-      {/* ヘッダー */}
-      <Header
-        isDarkMode={isDarkMode}
-        toggleDarkMode={toggleDarkMode}
-        currentTime={currentTime}
-      />
+      <header
+        className={cn(
+          "px-4 py-2 flex items-center justify-between border-b backdrop-blur-sm",
+          isDarkMode
+            ? "bg-amber-900/90 border-amber-800"
+            : "bg-amber-100/90 border-amber-200",
+        )}
+      >
+        <div className="flex items-center space-x-2">
+          <h1 className="font-bold text-lg">マイハウス</h1>
+          <span
+            className={cn(
+              "px-2 py-0.5 text-xs rounded-md",
+              isDarkMode ? "bg-amber-800" : "bg-amber-200",
+            )}
+          >
+            マイルーム
+          </span>
+        </div>
 
-      {/* メインコンテンツ */}
-      <main className="container mx-auto px-4 py-6 flex flex-col min-h-[calc(100vh-56px)] relative">
+        <div className="flex items-center space-x-3">
+          {showRoomCode && (
+            <div
+              className={cn(
+                "px-3 py-1 rounded-md text-sm font-mono flex items-center gap-2",
+                isDarkMode ? "bg-amber-800" : "bg-amber-200",
+              )}
+            >
+              <span>招待コード: {roomCode}</span>
+              <button
+                onClick={regenerateRoomCode}
+                className="h-5 w-5 rounded-full flex items-center justify-center hover:bg-amber-700/20"
+                title="新しいコードを生成"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="lucide lucide-refresh-cw"
+                >
+                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
+                  <path d="M21 3v5h-5" />
+                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
+                  <path d="M3 21v-5h5" />
+                </svg>
+              </button>
+            </div>
+          )}
+
+          <button
+            className={cn(
+              "text-sm py-1.5 px-3 rounded-md flex items-center",
+              isDarkMode
+                ? "bg-amber-800 border-amber-700 hover:bg-amber-700"
+                : "bg-amber-200 border-amber-300 hover:bg-amber-300",
+            )}
+            onClick={copyInviteLink}
+          >
+            招待する
+          </button>
+
+          {/* End Study Session Button */}
+          <button
+            onClick={() => setShowEndSessionDialog(true)}
+            disabled={isLoading}
+            className={cn(
+              "flex items-center text-sm rounded-md py-1.5 px-3 transition-all",
+              isDarkMode
+                ? "bg-amber-800 hover:bg-amber-700 text-amber-50"
+                : "bg-amber-200 hover:bg-amber-300 text-amber-950",
+              isLoading && "opacity-70 cursor-not-allowed",
+            )}
+          >
+            <LogOut className="h-4 w-4 mr-1.5" />
+            自習終了
+          </button>
+
+          {/* Custom theme toggle button */}
+          <button
+            onClick={toggleDarkMode}
+            className={cn(
+              "flex items-center justify-center rounded-full p-2 transition-colors",
+              isDarkMode
+                ? "bg-amber-800 hover:bg-amber-700 text-amber-50"
+                : "bg-amber-200 hover:bg-amber-300 text-amber-950",
+            )}
+          >
+            {isDarkMode ? (
+              <Sun className="h-4 w-4" />
+            ) : (
+              <Moon className="h-4 w-4" />
+            )}
+          </button>
+
+          <button
+            className={cn(
+              "flex items-center justify-center rounded-full p-2 transition-colors",
+              isDarkMode
+                ? "bg-amber-800 hover:bg-amber-700 text-amber-50"
+                : "bg-amber-200 hover:bg-amber-300 text-amber-950",
+            )}
+          >
+            <Settings className="h-4 w-4" />
+          </button>
+        </div>
+      </header>
+
+      <main className="relative h-[calc(100vh-3rem)] overflow-hidden">
         {/* 参加者の表示領域 - 固定位置に */}
         <div
           className={cn(
@@ -257,6 +544,197 @@ export default function CozyRoomPage() {
             );
           })}
         </div>
+
+        {/* End Study Session Dialog */}
+        <Dialog
+          open={showEndSessionDialog}
+          onOpenChange={setShowEndSessionDialog}
+        >
+          <DialogContent
+            className={cn(
+              "sm:max-w-xl w-[90%] p-6",
+              isDarkMode
+                ? "bg-amber-900 border-amber-800 text-amber-50 border-2"
+                : "bg-amber-50 border-amber-200 text-amber-950 border-2",
+            )}
+          >
+            <DialogHeader className="p-2">
+              <DialogTitle className="flex items-center gap-3 text-xl mb-2">
+                <LogOut className="h-6 w-6" />
+                自習を終了しますか？
+              </DialogTitle>
+              <DialogDescription
+                className={cn(
+                  "text-base",
+                  isDarkMode ? "text-amber-300" : "text-amber-700",
+                )}
+              >
+                自習を終了すると、現在の学習タイマーがリセットされます。タイマーの進捗はプロフィールに記録されます。
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter className="sm:justify-between flex-row gap-3 mt-6 mb-2">
+              <button
+                onClick={() => setShowEndSessionDialog(false)}
+                disabled={isLoading}
+                className={cn(
+                  "flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors",
+                  isDarkMode
+                    ? "bg-amber-800 hover:bg-amber-700"
+                    : "bg-amber-100 hover:bg-amber-200",
+                )}
+              >
+                キャンセル
+              </button>
+              <button
+                onClick={endStudySession}
+                disabled={isLoading}
+                className={cn(
+                  "flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors flex justify-center items-center",
+                  isDarkMode
+                    ? "bg-red-800 hover:bg-red-700 text-red-50"
+                    : "bg-red-100 hover:bg-red-200 text-red-800",
+                  isLoading && "opacity-70 cursor-not-allowed",
+                )}
+              >
+                {isLoading ? (
+                  "処理中..."
+                ) : (
+                  <>
+                    <LogOut className="h-5 w-5 mr-2" />
+                    終了する
+                  </>
+                )}
+              </button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Work Log Dialog */}
+        {isLoggingWork && (
+          <div className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 flex items-center justify-center p-4">
+            <div
+              className={cn(
+                "w-full max-w-md p-6 rounded-xl shadow-lg transform transition-all",
+                "animate-in fade-in-0 zoom-in-95 duration-300",
+                isDarkMode
+                  ? "bg-amber-900 border border-amber-800"
+                  : "bg-amber-50 border border-amber-200",
+              )}
+            >
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <Clock className="h-5 w-5 mr-2" />
+                  作業ログを記録
+                </h3>
+                <button
+                  onClick={() => setIsLoggingWork(false)}
+                  className={cn(
+                    "p-1.5 rounded-full transition-colors",
+                    isDarkMode
+                      ? "hover:bg-amber-800/70"
+                      : "hover:bg-amber-100/70",
+                  )}
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <textarea
+                className={cn(
+                  "w-full p-3 rounded-lg text-sm mb-4 resize-none focus:ring-2 focus:ring-offset-2 focus:outline-none",
+                  isDarkMode
+                    ? "bg-amber-800 border-amber-700 text-amber-50 focus:ring-amber-600 focus:ring-offset-amber-900"
+                    : "bg-white border border-amber-200 text-amber-950 focus:ring-amber-400 focus:ring-offset-amber-50",
+                )}
+                placeholder="作業内容の詳細を入力してください..."
+                rows={4}
+                value={workLogText}
+                onChange={(e) => setWorkLogText(e.target.value)}
+                onKeyDown={(e) => {
+                  // Enterで送信 (Ctrl+Enterや⌘+Enterも同様)
+                  if (e.key === "Enter" && !isLoading && !e.shiftKey) {
+                    e.preventDefault();
+                    addWorkLog();
+                  }
+                }}
+                disabled={isLoading}
+              ></textarea>
+
+              <div className="flex flex-col gap-2">
+                <p className="text-xs opacity-70 mb-1">
+                  <kbd className="px-1.5 py-0.5 rounded border text-xs">
+                    Enter
+                  </kbd>{" "}
+                  で保存 /{" "}
+                  <kbd className="px-1.5 py-0.5 rounded border text-xs">
+                    Shift
+                  </kbd>{" "}
+                  +{" "}
+                  <kbd className="px-1.5 py-0.5 rounded border text-xs">
+                    Enter
+                  </kbd>{" "}
+                  で改行
+                </p>
+                <div className="flex justify-end space-x-3">
+                  <button
+                    className={cn(
+                      "px-3 py-1.5 rounded-lg text-sm font-medium transition-colors",
+                      isDarkMode
+                        ? "bg-amber-800 hover:bg-amber-700 text-amber-50"
+                        : "bg-amber-100 hover:bg-amber-200 text-amber-950",
+                    )}
+                    onClick={() => setIsLoggingWork(false)}
+                    disabled={isLoading}
+                  >
+                    キャンセル
+                  </button>
+                  <button
+                    className={cn(
+                      "px-4 py-1.5 rounded-lg text-sm font-medium flex items-center justify-center min-w-[5rem]",
+                      isDarkMode
+                        ? "bg-amber-600 hover:bg-amber-500 text-amber-50"
+                        : "bg-amber-400 hover:bg-amber-500 text-amber-950",
+                      isLoading && "opacity-70 cursor-not-allowed",
+                    )}
+                    onClick={addWorkLog}
+                    disabled={isLoading}
+                  >
+                    {isLoading ? (
+                      <>処理中...</>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4 mr-1" />
+                        保存
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Floating Add Work Log Button */}
+        <button
+          onClick={() => setIsLoggingWork(true)}
+          className={cn(
+            "fixed z-30 bottom-20 right-6 p-3.5 rounded-full shadow-lg transform transition-all duration-300 group",
+            "hover:scale-110 hover:shadow-xl active:scale-95",
+            isDarkMode
+              ? "bg-amber-600 hover:bg-amber-500 text-amber-50"
+              : "bg-amber-400 hover:bg-amber-500 text-amber-950",
+            "border",
+            isDarkMode ? "border-amber-500/50" : "border-amber-500/30",
+          )}
+          title="作業ログを追加 (Alt+L)"
+          aria-label="作業ログを追加 (Alt+L)"
+        >
+          <Clock className="h-5 w-5" />
+          <span className="sr-only">作業ログを追加</span>
+          <div className="absolute right-full mr-2 px-2 py-1 bg-black/75 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity">
+            Alt+L
+          </div>
+        </button>
 
         {/* メモ・チャット・学習状態エリア - 画面最下部に固定 */}
         <div className="fixed bottom-0 left-0 right-0 z-30">

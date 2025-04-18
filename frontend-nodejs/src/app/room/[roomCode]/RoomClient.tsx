@@ -93,7 +93,7 @@ export default function RoomClient({ roomCode }: RoomClientProps) {
   useEffect(() => {
     console.log("Received room code:", roomCode);
 
-    if (!roomCode || roomCode === "MYUSER") {
+    if (!roomCode) {
       console.error("Invalid room code:", roomCode);
       setError(
         "有効なルームコードが指定されていません。正しいルームコードを使用してください。",
@@ -175,7 +175,7 @@ export default function RoomClient({ roomCode }: RoomClientProps) {
     }
 
     // トークンがある場合は有効なルームコードでのみ接続を試みる
-    if (token && roomCode && roomCode !== "MYUSER") {
+    if (token && roomCode) {
       console.log("Attempting to connect to room:", roomCode);
       connect();
     } else {

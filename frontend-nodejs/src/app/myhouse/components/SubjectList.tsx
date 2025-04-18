@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { BookOpen, RefreshCw } from "lucide-react";
+import { BookOpen, RefreshCw, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 
@@ -14,6 +14,7 @@ interface Subject {
   ID: number;
   WorkName: string;
   IconImageURL: string;
+  notes?: string; // 科目ごとのメモ
 }
 
 interface SubjectListProps {
@@ -37,6 +38,15 @@ export function SubjectList({
   const [selectedSubjectId, setSelectedSubjectId] = useState<number | null>(
     null,
   );
+  const [editingNoteId, setEditingNoteId] = useState<number | null>(null);
+  const [noteText, setNoteText] = useState<string>("");
+  const [showNotesMap, setShowNotesMap] = useState<Record<number, boolean>>({});
+  const [deleteConfirmSubjectId, setDeleteConfirmSubjectId] = useState<
+    number | null
+  >(null);
+  const [deleteNoteConfirmSubjectId, setDeleteNoteConfirmSubjectId] = useState<
+    number | null
+  >(null);
 
   // 科目リストを取得する
   const fetchSubjects = async () => {
@@ -259,36 +269,53 @@ export function SubjectList({
     });
   }, []);
 
-  // ローカルストレージからアイコンを復元する関数
+  // ローカルストレージからアイコンとノートを復元する関数
   const restoreIconsFromCache = () => {
     try {
       const cachedIcons = JSON.parse(
         localStorage.getItem("subjectIcons") || "{}",
       );
 
-      if (Object.keys(cachedIcons).length > 0) {
+      // ノートの復元
+      const cachedNotes = JSON.parse(
+        localStorage.getItem("subjectNotes") || "{}",
+      );
+
+      if (
+        Object.keys(cachedIcons).length > 0 ||
+        Object.keys(cachedNotes).length > 0
+      ) {
         setSubjects((prevSubjects) => {
           const updatedSubjects = prevSubjects.map((subject) => {
             // キャッシュのキーは文字列化されているので、文字列比較も行う
             const cacheKey = subject.ID.toString();
-            const hasCache = cachedIcons[subject.ID] || cachedIcons[cacheKey];
+            const hasIconCache =
+              cachedIcons[subject.ID] || cachedIcons[cacheKey];
+            const hasNoteCache =
+              cachedNotes[subject.ID] || cachedNotes[cacheKey];
 
-            if (hasCache) {
-              // キャッシュデータを使用
+            const updatedSubject = { ...subject };
+
+            if (hasIconCache) {
+              // アイコンキャッシュデータを使用
               const iconData = cachedIcons[subject.ID] || cachedIcons[cacheKey];
-              return {
-                ...subject,
-                IconImageURL: iconData,
-              };
+              updatedSubject.IconImageURL = iconData;
             }
-            return subject;
+
+            if (hasNoteCache) {
+              // ノートキャッシュデータを使用
+              const noteData = cachedNotes[subject.ID] || cachedNotes[cacheKey];
+              updatedSubject.notes = noteData;
+            }
+
+            return updatedSubject;
           });
 
           return updatedSubjects;
         });
       }
     } catch (error) {
-      console.error("キャッシュされたアイコンの復元に失敗:", error);
+      console.error("キャッシュされたデータの復元に失敗:", error);
     }
   };
 
@@ -380,6 +407,174 @@ export function SubjectList({
     fetchSubjects();
   };
 
+  // ノートを保存する
+  const saveNote = (subjectId: number) => {
+    if (noteText.trim() === "") return;
+
+    // 科目リストを更新
+    const updatedSubjects = subjects.map((subject) => {
+      if (subject.ID === subjectId) {
+        return {
+          ...subject,
+          notes: noteText.trim(),
+        };
+      }
+      return subject;
+    });
+
+    setSubjects(updatedSubjects);
+
+    // ローカルストレージに保存
+    try {
+      const cachedNotes = JSON.parse(
+        localStorage.getItem("subjectNotes") || "{}",
+      );
+
+      cachedNotes[subjectId.toString()] = noteText.trim();
+
+      localStorage.setItem("subjectNotes", JSON.stringify(cachedNotes));
+      toast.success("メモを保存しました");
+    } catch (error) {
+      console.error("ノートの保存に失敗:", error);
+      toast.error("メモの保存に失敗しました");
+    }
+
+    // 編集モードを終了
+    setEditingNoteId(null);
+    setNoteText("");
+  };
+
+  // ノートを削除する
+  const deleteNote = (subjectId: number) => {
+    // 確認ダイアログを閉じる
+    setDeleteNoteConfirmSubjectId(null);
+
+    // 科目リストを更新
+    const updatedSubjects = subjects.map((subject) => {
+      if (subject.ID === subjectId) {
+        // notesプロパティを削除（スプレッド演算子を使って残りのプロパティを新しいオブジェクトにコピー）
+        const subjectCopy = { ...subject };
+        delete subjectCopy.notes;
+        return subjectCopy;
+      }
+      return subject;
+    });
+
+    setSubjects(updatedSubjects);
+
+    // ローカルストレージから削除
+    try {
+      const cachedNotes = JSON.parse(
+        localStorage.getItem("subjectNotes") || "{}",
+      );
+
+      delete cachedNotes[subjectId.toString()];
+
+      localStorage.setItem("subjectNotes", JSON.stringify(cachedNotes));
+      toast.success("メモを削除しました");
+    } catch (error) {
+      console.error("ノートの削除に失敗:", error);
+      toast.error("メモの削除に失敗しました");
+    }
+
+    // 編集モードを終了して、メモ表示も閉じる
+    setEditingNoteId(null);
+    setNoteText("");
+    setShowNotesMap((prev) => ({
+      ...prev,
+      [subjectId]: false,
+    }));
+  };
+
+  // 科目を削除する
+  const deleteSubject = async (subjectId: number) => {
+    // 確認ダイアログを閉じる
+    setDeleteConfirmSubjectId(null);
+
+    try {
+      setIsLoading(true);
+
+      // トークンを取得
+      const token = localStorage.getItem("token");
+      if (!token) {
+        toast.error("認証情報がありません。再ログインしてください。");
+        return;
+      }
+
+      // APIで科目を削除
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/delete`,
+        {
+          method: "DELETE",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            WorkID: subjectId,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`科目の削除に失敗しました (${response.status})`);
+      }
+
+      // 科目リストから対象の科目を削除
+      setSubjects(subjects.filter((subject) => subject.ID !== subjectId));
+
+      // ローカルストレージからアイコンとノートを削除
+      const cachedIcons = JSON.parse(
+        localStorage.getItem("subjectIcons") || "{}",
+      );
+      const cachedNotes = JSON.parse(
+        localStorage.getItem("subjectNotes") || "{}",
+      );
+
+      delete cachedIcons[subjectId.toString()];
+      delete cachedNotes[subjectId.toString()];
+
+      localStorage.setItem("subjectIcons", JSON.stringify(cachedIcons));
+      localStorage.setItem("subjectNotes", JSON.stringify(cachedNotes));
+
+      toast.success("科目を削除しました");
+    } catch (error) {
+      console.error("科目削除エラー:", error);
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "科目の削除中にエラーが発生しました",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // ノート表示を切り替え
+  const toggleShowNotes = (subjectId: number) => {
+    // すでに開いている場合は閉じる
+    if (showNotesMap[subjectId]) {
+      setShowNotesMap((prev) => ({
+        ...prev,
+        [subjectId]: false,
+      }));
+      // 編集モードも解除
+      if (editingNoteId === subjectId) {
+        setEditingNoteId(null);
+      }
+    } else {
+      // 閉じている場合は開いて、同時に編集モードにする
+      setShowNotesMap((prev) => ({
+        ...prev,
+        [subjectId]: true,
+      }));
+      // 編集モードに設定し、既存のメモをセット
+      const subject = subjects.find((s) => s.ID === subjectId);
+      setEditingNoteId(subjectId);
+      setNoteText(subject?.notes || "");
+    }
+  };
+
   return (
     <div className="mb-6">
       {/* 非表示のファイル入力 */}
@@ -429,7 +624,7 @@ export function SubjectList({
             <li
               key={subject.ID}
               className={cn(
-                "p-3 rounded-lg flex items-center transition-all ease-in-out duration-300",
+                "rounded-lg transition-all ease-in-out duration-300 cursor-pointer",
                 "animate-fadeIn",
                 isDarkMode
                   ? "bg-amber-800/60 hover:bg-amber-800/80"
@@ -441,48 +636,293 @@ export function SubjectList({
                 transform: `translateY(${isPanelExpanded ? "0" : "10px"})`,
                 opacity: isPanelExpanded ? 1 : 0,
               }}
-              onDragOver={(e) => handleDragOver(e, subject.ID)}
-              onDragLeave={handleDragLeave}
-              onDrop={(e) => handleDrop(e, subject.ID)}
+              onClick={() => toggleShowNotes(subject.ID)}
             >
               <div
-                className={cn(
-                  "w-10 h-10 rounded-full flex items-center justify-center mr-3 relative cursor-pointer overflow-hidden",
-                  isDarkMode ? "bg-amber-700" : "bg-amber-100",
-                  draggedOverId === subject.ID && "border-2 border-amber-400",
-                )}
-                onClick={() => openFileSelector(subject.ID)}
-                title="クリックまたは画像をドロップしてアイコンを変更"
+                className="p-3 flex items-center"
+                onDragOver={(e) => {
+                  e.stopPropagation();
+                  handleDragOver(e, subject.ID);
+                }}
+                onDragLeave={(e) => {
+                  e.stopPropagation();
+                  handleDragLeave(e);
+                }}
+                onDrop={(e) => {
+                  e.stopPropagation();
+                  handleDrop(e, subject.ID);
+                }}
               >
-                {isUploading === subject.ID ? (
-                  <RefreshCw className="h-5 w-5 animate-spin" />
-                ) : subject.IconImageURL && subject.IconImageURL.length > 0 ? (
-                  <div className="w-full h-full relative">
-                    <Image
-                      src={subject.IconImageURL}
-                      alt={subject.WorkName}
-                      className="object-cover"
-                      fill
-                      sizes="40px"
-                      unoptimized={true}
-                      onError={(e) => {
-                        // 画像読み込みエラー時にプレースホルダーを表示
-                        console.error(
-                          "画像読み込みエラー:",
-                          subject.IconImageURL,
-                        );
-                        const target = e.target as HTMLImageElement;
-                        target.onerror = null; // エラーループ防止
-                        target.src = "/placeholder.svg";
-                      }}
-                      style={{ objectFit: "cover" }}
-                    />
-                  </div>
-                ) : (
-                  <BookOpen className="h-5 w-5 opacity-70" />
-                )}
+                <div
+                  className={cn(
+                    "w-10 h-10 rounded-full flex items-center justify-center mr-3 relative cursor-pointer overflow-hidden",
+                    isDarkMode ? "bg-amber-700" : "bg-amber-100",
+                    draggedOverId === subject.ID && "border-2 border-amber-400",
+                  )}
+                  onClick={(e) => {
+                    e.stopPropagation(); // カード全体のクリックイベントに伝播しないようにする
+                    openFileSelector(subject.ID);
+                  }}
+                  title="クリックまたは画像をドロップしてアイコンを変更"
+                >
+                  {isUploading === subject.ID ? (
+                    <RefreshCw className="h-5 w-5 animate-spin" />
+                  ) : subject.IconImageURL &&
+                    subject.IconImageURL.length > 0 ? (
+                    <div className="w-full h-full relative">
+                      <Image
+                        src={subject.IconImageURL}
+                        alt={subject.WorkName}
+                        className="object-cover"
+                        fill
+                        sizes="40px"
+                        unoptimized={true}
+                        onError={(e) => {
+                          // 画像読み込みエラー時にプレースホルダーを表示
+                          console.error(
+                            "画像読み込みエラー:",
+                            subject.IconImageURL,
+                          );
+                          const target = e.target as HTMLImageElement;
+                          target.onerror = null; // エラーループ防止
+                          target.src = "/placeholder.svg";
+                        }}
+                        style={{ objectFit: "cover" }}
+                      />
+                    </div>
+                  ) : (
+                    <BookOpen className="h-5 w-5 opacity-70" />
+                  )}
+                </div>
+                <div className="flex-grow">
+                  <span className="font-medium">{subject.WorkName}</span>
+
+                  {/* Notes indicator */}
+                  {subject.notes && (
+                    <div className="text-xs mt-0.5 opacity-70">メモあり</div>
+                  )}
+                </div>
+
+                {/* Note and Delete Buttons */}
+                <div className="flex items-center">
+                  {/* Show/Hide Notes Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // カード全体のクリックイベントに伝播しないようにする
+                      toggleShowNotes(subject.ID);
+                    }}
+                    className={cn(
+                      "ml-2 text-xs px-2 py-1 rounded",
+                      isDarkMode
+                        ? "bg-amber-700 hover:bg-amber-600"
+                        : "bg-amber-50 hover:bg-amber-100 border border-amber-200",
+                    )}
+                  >
+                    {showNotesMap[subject.ID] ? "閉じる" : "メモ"}
+                  </button>
+
+                  {/* Subject Delete Button */}
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation(); // カード全体のクリックイベントに伝播しないようにする
+                      setDeleteConfirmSubjectId(subject.ID);
+                    }}
+                    className={cn(
+                      "ml-2 p-1 rounded-full",
+                      isDarkMode
+                        ? "hover:bg-red-800/50 text-red-300"
+                        : "hover:bg-red-100 text-red-500",
+                    )}
+                    title="科目を削除"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
-              <span className="font-medium">{subject.WorkName}</span>
+
+              {/* Notes Section */}
+              {showNotesMap[subject.ID] && (
+                <div
+                  className={cn(
+                    "px-4 pb-4 mt-0 border-t",
+                    isDarkMode ? "border-amber-700" : "border-amber-200",
+                  )}
+                  onClick={(e) => e.stopPropagation()} // メモエリア内のクリックがカード全体のクリックとして扱われないようにする
+                >
+                  <div className="mt-3">
+                    <textarea
+                      className={cn(
+                        "w-full p-2 rounded-lg text-sm resize-none min-h-[80px]",
+                        isDarkMode
+                          ? "bg-amber-700 border-amber-600 text-amber-50"
+                          : "bg-amber-50 border border-amber-200 text-amber-950",
+                      )}
+                      placeholder="詰まっていること、わからないことなどをメモしておきましょう..."
+                      value={noteText}
+                      onChange={(e) => setNoteText(e.target.value)}
+                      onKeyDown={(e) => {
+                        // Enterを押した場合（Shiftキーを押していない場合）は保存
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault(); // デフォルトの改行を防止
+                          if (noteText.trim()) {
+                            saveNote(subject.ID);
+                          }
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <div className="flex justify-between mt-2">
+                      <div className="text-xs opacity-70">
+                        Enter: 保存　Shift+Enter: 改行
+                      </div>
+                      <div className="flex space-x-2">
+                        {subject.notes && (
+                          <button
+                            className={cn(
+                              "px-3 py-1 rounded-lg text-xs flex items-center",
+                              isDarkMode
+                                ? "bg-red-800 hover:bg-red-700 text-red-100"
+                                : "bg-red-100 hover:bg-red-200 text-red-700",
+                            )}
+                            onClick={() =>
+                              setDeleteNoteConfirmSubjectId(subject.ID)
+                            }
+                          >
+                            <Trash2 className="h-3 w-3 mr-1" />
+                            削除
+                          </button>
+                        )}
+                        <button
+                          className={cn(
+                            "px-3 py-1 rounded-lg text-xs",
+                            isDarkMode
+                              ? "bg-amber-700 hover:bg-amber-600"
+                              : "bg-amber-100 hover:bg-amber-200",
+                          )}
+                          onClick={() => {
+                            // メモが空なら閉じる、そうでなければ表示モードに切り替え
+                            if (!noteText.trim()) {
+                              setShowNotesMap((prev) => ({
+                                ...prev,
+                                [subject.ID]: false,
+                              }));
+                            }
+                            setEditingNoteId(null);
+                          }}
+                        >
+                          キャンセル
+                        </button>
+                        <button
+                          className={cn(
+                            "px-3 py-1 rounded-lg text-xs",
+                            isDarkMode
+                              ? "bg-amber-600 hover:bg-amber-500"
+                              : "bg-amber-300 hover:bg-amber-400",
+                          )}
+                          onClick={() => saveNote(subject.ID)}
+                        >
+                          保存
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Subject Delete Confirmation */}
+              {deleteConfirmSubjectId === subject.ID && (
+                <div
+                  className={cn(
+                    "px-4 py-4 mt-0 border-t",
+                    isDarkMode
+                      ? "border-red-700 bg-red-900/30"
+                      : "border-red-200 bg-red-50",
+                  )}
+                  onClick={(e) => e.stopPropagation()} // 確認ダイアログ内のクリックがカード全体のクリックとして扱われないようにする
+                >
+                  <p
+                    className={cn(
+                      "text-sm mb-2",
+                      isDarkMode ? "text-red-200" : "text-red-700",
+                    )}
+                  >
+                    <strong>警告:</strong>{" "}
+                    この科目と関連するメモをすべて削除します。この操作は元に戻せません。
+                  </p>
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      className={cn(
+                        "px-3 py-1 rounded-lg text-xs",
+                        isDarkMode
+                          ? "bg-amber-700 hover:bg-amber-600"
+                          : "bg-amber-100 hover:bg-amber-200",
+                      )}
+                      onClick={() => setDeleteConfirmSubjectId(null)}
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      className={cn(
+                        "px-3 py-1 rounded-lg text-xs flex items-center",
+                        isDarkMode
+                          ? "bg-red-800 hover:bg-red-700 text-red-100"
+                          : "bg-red-600 hover:bg-red-700 text-white",
+                      )}
+                      onClick={() => deleteSubject(subject.ID)}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      削除する
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* Note Delete Confirmation */}
+              {deleteNoteConfirmSubjectId === subject.ID && (
+                <div
+                  className={cn(
+                    "px-4 py-4 mt-2 border rounded-lg",
+                    isDarkMode
+                      ? "border-red-700 bg-red-900/30"
+                      : "border-red-200 bg-red-50",
+                  )}
+                  onClick={(e) => e.stopPropagation()} // 確認ダイアログ内のクリックがカード全体のクリックとして扱われないようにする
+                >
+                  <p
+                    className={cn(
+                      "text-sm mb-2",
+                      isDarkMode ? "text-red-200" : "text-red-700",
+                    )}
+                  >
+                    このメモを削除しますか？この操作は元に戻せません。
+                  </p>
+                  <div className="flex justify-end space-x-2">
+                    <button
+                      className={cn(
+                        "px-3 py-1 rounded-lg text-xs",
+                        isDarkMode
+                          ? "bg-amber-700 hover:bg-amber-600"
+                          : "bg-amber-100 hover:bg-amber-200",
+                      )}
+                      onClick={() => setDeleteNoteConfirmSubjectId(null)}
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      className={cn(
+                        "px-3 py-1 rounded-lg text-xs flex items-center",
+                        isDarkMode
+                          ? "bg-red-800 hover:bg-red-700 text-red-100"
+                          : "bg-red-600 hover:bg-red-700 text-white",
+                      )}
+                      onClick={() => deleteNote(subject.ID)}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      削除する
+                    </button>
+                  </div>
+                </div>
+              )}
             </li>
           ))}
         </ul>

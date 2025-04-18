@@ -64,7 +64,7 @@ export function createRoomWebSocket(
   }
 
   // 無効なルームコードをチェック
-  if (!roomCode || roomCode === "MYUSER") {
+  if (!roomCode) {
     console.error("無効なルームコードが指定されました:", roomCode);
     return null;
   }

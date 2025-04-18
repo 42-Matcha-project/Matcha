@@ -33,7 +33,7 @@ export function useRoomJoin() {
     }
 
     // ルームコードの形式を検証
-    if (!validateRoomCode(roomCode) || roomCode === "MYUSER") {
+    if (!validateRoomCode(roomCode)) {
       setError("有効なルームコードを入力してください");
       return;
     }
