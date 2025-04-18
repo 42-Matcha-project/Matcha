@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Building } from "../../types/settlement";
+import { Building, UserStats } from "../../types/settlement";
 import { useRouter } from "next/navigation";
 
 // データのインポート
@@ -15,6 +15,7 @@ import { useTimeManager } from "../../hooks/useTimeManager";
 import { useAnimationState } from "../../hooks/useAnimationState";
 import { useBuildingManager } from "../../hooks/useBuildingManager";
 import { useSettlementNavigation } from "../../hooks/useSettlementNavigation";
+import { useAuth } from "../../contexts/auth-context";
 
 // コンポーネントをインポート
 import SettlementHeader from "../components/SettlementHeader";
@@ -41,8 +42,78 @@ export default function SettlementPage() {
     contentVisible,
   } = useAnimationState(isMounted);
 
-  // 初期ユーザーデータを使用
-  const [userStats] = useState(initialUserStats);
+  // 認証コンテキストを使用
+  const { token, isAuthenticated, checkAuth } = useAuth();
+
+  // ユーザー情報の状態
+  const [userStats, setUserStats] = useState<UserStats>(initialUserStats);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // 初期ロード時に認証状態を確認
+  useEffect(() => {
+    const verifyAuth = async () => {
+      await checkAuth();
+    };
+    verifyAuth();
+  }, [checkAuth]);
+
+  // APIからユーザー情報を取得
+  useEffect(() => {
+    const fetchUserData = async () => {
+      // 認証されていない場合は何もしない
+      if (!isAuthenticated || !token) {
+        return;
+      }
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        // プロフィールAPIからユーザーデータを取得
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error(`APIエラー: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (!data.User) {
+          throw new Error("ユーザー情報が見つかりません");
+        }
+
+        // APIから取得したデータでユーザー情報を更新
+        setUserStats({
+          level: data.User.Level || 1,
+          dayStreak: data.User.DayStreak || 0,
+          totalStudyHours: data.User.TotalStudyHours || 0,
+          username: data.User.Username || "開拓者",
+          coins: data.User.CoinCount || 0,
+        });
+      } catch (error) {
+        console.error("ユーザーデータ取得エラー:", error);
+        setError(
+          error instanceof Error ? error.message : "データ取得に失敗しました",
+        );
+
+        // エラー時はデフォルトデータを使用（既存の初期値を保持）
+        console.log("初期ユーザーデータを使用します");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchUserData();
+  }, [isAuthenticated, token]);
 
   // 初期化処理: 建物の状態を初期化
   useEffect(() => {
@@ -97,6 +168,14 @@ export default function SettlementPage() {
     }
   };
 
+  // ユーザーがログインしていない場合の処理
+  useEffect(() => {
+    if (!isAuthenticated && !isLoading) {
+      // ログインページへリダイレクト
+      router.push("/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
+
   return (
     <div
       className="min-h-screen relative"
@@ -108,6 +187,24 @@ export default function SettlementPage() {
       }}
       style={{ scrollBehavior: "smooth" }}
     >
+      {/* ユーザーデータ読み込み中または認証確認中の表示 */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-amber-50/90 z-[9999] flex flex-col items-center justify-center">
+          <div className="animate-spin w-12 h-12 border-4 border-amber-600 border-t-transparent rounded-full mb-4"></div>
+          <p className="text-amber-800 font-bold text-lg">
+            データを読み込み中...
+          </p>
+        </div>
+      )}
+
+      {/* APIエラーメッセージ */}
+      {error && (
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-red-50 border-2 border-red-400 text-red-700 px-4 py-3 rounded z-[9999] shadow-lg">
+          <p className="font-bold">エラーが発生しました</p>
+          <p>{error}</p>
+        </div>
+      )}
+
       {/* 背景パターン */}
       <div
         className="fixed inset-0 z-0"

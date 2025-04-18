@@ -4,6 +4,7 @@ import React, { useState, ReactNode, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../../../contexts/auth-context";
 
 // 木の看板コンポーネント
 const WoodenSign = ({
@@ -86,6 +87,7 @@ const RequiredTag = () => {
 
 const Login = () => {
   const router = useRouter();
+  const { login } = useAuth(); // 認証コンテキストからlogin関数を取得
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isComposing, setIsComposing] = useState(false);
@@ -211,13 +213,20 @@ const Login = () => {
 
           // 成功レスポンスの処理
           console.log("Login successful:", data);
-          const token = data.token;
+          const token = data.Token;
 
-          // トークンをローカルストレージに保存
-          localStorage.setItem("token", token);
+          if (!token) {
+            throw new Error("トークンが見つかりません");
+          }
 
-          // ログイン成功後のリダイレクト
-          window.location.href = "/settlement";
+          // 認証コンテキストのlogin関数を呼び出してトークンを保存
+          login(token);
+
+          // 少し遅延を入れて認証状態が更新されるのを待つ
+          setTimeout(() => {
+            // Next.jsのルーターを使用してリダイレクト
+            router.push("/settlement");
+          }, 100);
         } catch (error) {
           // JSONパースエラーまたはその他のエラー
           console.error("Login error:", error);

@@ -6,6 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, Shield, Info, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "../../../contexts/auth-context";
 
 // 木の看板コンポーネント
 const WoodenSign = ({
@@ -184,6 +185,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const router = useRouter();
+  const { login } = useAuth();
 
   // フィールドの検証
   const validateField = useCallback((field: string, value: string) => {
@@ -597,14 +599,17 @@ const Register = () => {
           try {
             const loginData = JSON.parse(loginResponseText);
             if (loginData.Token) {
-              // トークンをローカルストレージに保存
-              localStorage.setItem("token", loginData.Token);
+              // 認証コンテキストのlogin関数を使用してトークンを保存
+              login(loginData.Token);
 
               // ホームページにリダイレクト
               console.log(
                 "自動ログインに成功しました。ホームページにリダイレクトします。",
               );
-              router.push("/settlement");
+              // 少し遅延を入れて認証状態が更新されるのを待つ
+              setTimeout(() => {
+                router.push("/settlement");
+              }, 100);
               return;
             }
           } catch (parseError) {

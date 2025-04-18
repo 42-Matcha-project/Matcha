@@ -31,7 +31,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const router = useRouter();
 
-  // 認証状態を確認する関数（シンプル化）
+  // 認証状態を確認する関数（APIからユーザー情報を取得）
   const checkAuth = async (): Promise<boolean> => {
     // すでにユーザーが設定されている場合は認証済みとみなす
     if (user && token) {
@@ -58,16 +58,74 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         // トークンをコンテキストに保存
         setToken(storedToken);
 
-        // トークンがある場合は認証されているとみなす
-        // 実際のユーザー情報はダミーデータで代用
-        setUser({
-          id: 1,
-          username: "user",
-          displayName: "ユーザー",
-          email: "user@example.com",
-        });
-        setIsLoading(false);
-        return true;
+        try {
+          // トークンを使ってAPIからユーザー情報を取得
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${storedToken}`,
+              },
+            },
+          );
+
+          if (!response.ok) {
+            // 401や403などの認証エラーの場合
+            if (response.status === 401 || response.status === 403) {
+              console.error("認証エラー:", response.status);
+              // トークンが無効な場合は削除
+              localStorage.removeItem("token");
+              setUser(null);
+              setToken(null);
+              setIsLoading(false);
+              return false;
+            }
+            throw new Error(`APIエラー: ${response.status}`);
+          }
+
+          const responseText = await response.text();
+          if (!responseText || responseText.trim() === "") {
+            console.error("空のレスポンスを受信しました");
+            throw new Error("サーバーから空のレスポンスが返されました");
+          }
+
+          try {
+            const data = JSON.parse(responseText);
+            console.log("取得したユーザー情報:", data);
+
+            if (!data.User) {
+              throw new Error("ユーザー情報が見つかりません");
+            }
+
+            // APIから取得したユーザー情報をコンテキストに設定
+            setUser({
+              id: data.User.ID,
+              username: data.User.Username,
+              displayName: data.User.DisplayName,
+              email: data.User.Email,
+            });
+
+            setIsLoading(false);
+            return true;
+          } catch (parseError) {
+            console.error("JSONパースエラー:", parseError);
+            throw new Error(
+              `レスポンスの解析に失敗しました: ${(parseError as Error).message}`,
+            );
+          }
+        } catch (apiError) {
+          console.error("API呼び出しエラー:", apiError);
+          // APIエラーの場合は認証エラーとしては扱わず、ダミーデータをセットする（一時的な対応）
+          setUser({
+            id: 1,
+            username: "user",
+            displayName: "ユーザー",
+            email: "user@example.com",
+          });
+          setIsLoading(false);
+          return true;
+        }
       } else {
         // サーバーサイドでの実行時は認証なしとする
         setUser(null);

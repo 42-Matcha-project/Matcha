@@ -125,7 +125,6 @@ export function SubjectRegistrationForm({
 
         // 認証失敗した場合はログインし直す
         if (!testResponse.ok) {
-          // ダミーでログインを試みる
           const loginResponse = await fetch(
             `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
             {
@@ -134,8 +133,8 @@ export function SubjectRegistrationForm({
                 "Content-Type": "application/json",
               },
               body: JSON.stringify({
-                Username: "test", // ダミーのテストユーザー（存在するアカウント）
-                Password: "test",
+                Username: username,
+                Password: password,
               }),
             },
           );
