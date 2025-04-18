@@ -131,27 +131,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         />
       </div>
 
-      {/* 自習終了ボタン */}
-      <div className="mb-6 flex flex-col gap-4">
-        <h3 className="text-lg font-bold mb-2">学習管理</h3>
-
-        {/* 自習終了ボタン */}
-        <button
-          className={cn(
-            "py-3.5 px-6 rounded-lg text-base font-medium flex items-center justify-center transition-all duration-200 shadow-md",
-            isDarkMode
-              ? "bg-red-900/80 hover:bg-red-800 text-red-50 border-2 border-red-700"
-              : "bg-red-50 hover:bg-red-100 text-red-700 border-2 border-red-200",
-            isLoading && "opacity-70 cursor-not-allowed",
-          )}
-          onClick={() => setShowEndSessionDialog(true)}
-          disabled={isLoading}
-        >
-          <LogOut className="h-5 w-5 mr-2.5" />
-          自習を終了する
-        </button>
-      </div>
-
       {/* End Study Session Dialog */}
       <Dialog
         open={showEndSessionDialog}
@@ -321,6 +300,30 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
             目標を追加
           </button>
         )}
+
+        {/* 自習を終了するボタン */}
+        <button
+          onClick={() => setShowEndSessionDialog(true)}
+          className="w-full py-3 px-6 rounded-lg flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 transition-colors mt-4 border-2 border-red-300"
+        >
+          <LogOut className="h-5 w-5 mr-2" />
+          <span className="font-medium">自習を終了する</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="ml-2 lucide lucide-arrow-right"
+          >
+            <path d="M5 12h14" />
+            <path d="m12 5 7 7-7 7" />
+          </svg>
+        </button>
       </div>
     </div>
   );
