@@ -14,7 +14,6 @@ import {
 } from "lucide-react";
 import FormField from "@/app/components/FormField";
 import Button from "@/app/components/Button";
-import TagSelector from "@/app/components/TagSelector";
 import { UserProfile } from "@/types/profile";
 
 export default function ProfileEditPage() {
@@ -32,27 +31,12 @@ export default function ProfileEditPage() {
     displayName: "",
     townName: "",
     introduction: "",
-    email: "",
+    email: "", // 表示用のみで更新には使用しない
     iconImage: null as File | null,
   });
 
   // プレビュー用のURL
   const [imagePreview, setImagePreview] = useState<string | null>(null);
-
-  // 趣味タグ（カスタマイズ可能）
-  const availableTags = [
-    "読書",
-    "映画鑑賞",
-    "音楽",
-    "ゲーム",
-    "スポーツ",
-    "料理",
-    "旅行",
-    "プログラミング",
-    "アウトドア",
-    "アート",
-  ];
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -72,14 +56,15 @@ export default function ProfileEditPage() {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
           },
         );
 
         if (!response.ok) {
-          // 認証エラーの場合はホームページにリダイレクト
+          // 認証エラーの場合はログインページにリダイレクト
           if (response.status === 401) {
-            router.push("/");
+            router.push("/login");
             return;
           }
           throw new Error("プロフィールの取得に失敗しました");
@@ -100,11 +85,6 @@ export default function ProfileEditPage() {
         // 画像プレビューを設定
         if (data.User.IconImageURL) {
           setImagePreview(data.User.IconImageURL);
-        }
-
-        // タグがAPIから返された場合はここで設定
-        if (data.User.Tags && Array.isArray(data.User.Tags)) {
-          setSelectedTags(data.User.Tags);
         }
       } catch (error) {
         console.error("プロフィール取得エラー:", error);
@@ -168,31 +148,23 @@ export default function ProfileEditPage() {
         return;
       }
 
-      // FormDataオブジェクトを作成
-      const submitData = new FormData();
-      submitData.append("DisplayName", formData.displayName);
-      submitData.append("TownName", formData.townName);
-      submitData.append("Introduction", formData.introduction);
+      // Create JSON data instead of FormData to match server expectations
+      const submitData = {
+        DisplayName: formData.displayName,
+        TownName: formData.townName,
+        Introduction: formData.introduction || null, // Handle null case properly
+      };
 
-      // タグがある場合は追加
-      if (selectedTags.length > 0) {
-        submitData.append("Tags", JSON.stringify(selectedTags));
-      }
-
-      // 画像がある場合は追加
-      if (formData.iconImage) {
-        submitData.append("IconImage", formData.iconImage);
-      }
-
-      // APIエンドポイントを使用してプロフィールを更新
+      // API endpoint for profile update
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/update`,
         {
-          method: "POST",
+          method: "PUT",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json", // Set content type to JSON
           },
-          body: submitData,
+          body: JSON.stringify(submitData),
         },
       );
 
@@ -350,21 +322,6 @@ export default function ProfileEditPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[120px]"
                   placeholder="自己紹介を入力してください"
-                />
-              </div>
-
-              {/* 趣味・タグ */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-amber-800 border-b pb-2 border-amber-200">
-                  趣味・興味
-                </h3>
-                <p className="text-sm text-gray-600">
-                  興味のあるものを選択してください (複数選択可)
-                </p>
-                <TagSelector
-                  availableTags={availableTags}
-                  selectedTags={selectedTags}
-                  onChange={setSelectedTags}
                 />
               </div>
 
