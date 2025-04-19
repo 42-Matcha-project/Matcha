@@ -102,6 +102,11 @@ export default function BuildingsPage() {
       const token = localStorage.getItem("token");
 
       if (!token) {
+        toast.error("認証情報がありません");
+        // ログイン画面へリダイレクト
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500); // トーストメッセージを表示した後、1.5秒後にリダイレクト
         throw new Error("認証情報がありません");
       }
 
@@ -119,6 +124,13 @@ export default function BuildingsPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          toast.error(
+            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+          );
+          // ログイン画面へリダイレクト
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000); // トーストメッセージを表示後、2秒後にリダイレクト
           throw new Error("認証エラー - 再ログインが必要です");
         }
         throw new Error(`建物データの取得に失敗しました (${response.status})`);
@@ -139,7 +151,7 @@ export default function BuildingsPage() {
         (apiBuilding) => ({
           id: apiBuilding.ID.toString(),
           name: apiBuilding.CustomName || apiBuilding.DefaultName,
-          description: "APIから取得した建物です",
+          description: "あなただけの特別なおうちなのだ！",
           imageUrl: apiBuilding.ExteriorImageURL,
           createdAt: new Date().toISOString(),
         }),
@@ -164,7 +176,7 @@ export default function BuildingsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [loadBuildingsFromLocalStorage]);
+  }, [loadBuildingsFromLocalStorage, router]);
 
   useEffect(() => {
     // First try to fetch buildings from API, then fall back to local storage
@@ -297,6 +309,11 @@ export default function BuildingsPage() {
       const token = localStorage.getItem("token");
 
       if (!token) {
+        toast.error("認証情報がありません");
+        // ログイン画面へリダイレクト
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
         throw new Error("認証情報がありません");
       }
 
@@ -314,6 +331,13 @@ export default function BuildingsPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          toast.error(
+            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+          );
+          // ログイン画面へリダイレクト
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000);
           throw new Error("認証エラー - 再ログインが必要です");
         }
         throw new Error(
@@ -347,6 +371,10 @@ export default function BuildingsPage() {
 
       if (!token) {
         toast.error("認証情報がありません");
+        // ログイン画面へリダイレクト
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
         return;
       }
 
@@ -367,7 +395,14 @@ export default function BuildingsPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error("認証エラー - 再ログインが必要です");
+          toast.error(
+            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+          );
+          // ログイン画面へリダイレクト
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000);
+          return;
         }
         const errorData = await response.json();
         throw new Error(
@@ -593,7 +628,7 @@ export default function BuildingsPage() {
             {/* Buildings grid */}
             {buildings.length === 0 ? (
               <div className="flex flex-col items-center justify-center h-64 bg-white/80 rounded-xl border-4 border-amber-200 p-8 shadow-md">
-                <div className="relative w-20 h-20 mb-4">
+                <div className="relative w-36 h-36 mb-4">
                   <Image
                     src="/images/house.png"
                     alt="はじまりの家"
@@ -618,83 +653,127 @@ export default function BuildingsPage() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {buildings.map((building) => (
-                  <Card
-                    key={building.id}
-                    className="overflow-hidden rounded-xl border-4 border-amber-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white"
-                  >
-                    <div className="relative h-48 w-full bg-amber-50">
-                      {building.imageUrl ? (
-                        <Image
-                          src={building.imageUrl}
-                          alt={building.name}
-                          fill
-                          className="object-cover rounded-t-lg"
-                          unoptimized={true}
-                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                          priority={true}
-                          quality={95}
-                        />
-                      ) : (
-                        <div className="flex items-center justify-center h-full bg-amber-50">
-                          <div className="relative w-20 h-20">
-                            <Image
-                              src="/images/house.png"
-                              alt="デフォルトハウス"
-                              fill
-                              className="object-contain"
-                              unoptimized={true}
-                            />
+                {buildings.map((building) => {
+                  // はじまりの家かどうかチェック（IDが1または名前が「はじまりの家」の場合）
+                  const isStarterHome =
+                    building.id === "1" || building.name === "はじまりの家";
+
+                  return (
+                    <Card
+                      key={building.id}
+                      className="overflow-hidden rounded-xl border-4 border-amber-200 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white"
+                    >
+                      <div className="relative h-48 w-full bg-amber-50">
+                        {isStarterHome ? (
+                          // はじまりの家の場合は固定画像を表示
+                          <div className="flex items-center justify-center h-full bg-amber-50">
+                            <div className="relative w-40 h-40">
+                              <Image
+                                src="/images/house.png"
+                                alt="はじまりの家"
+                                fill
+                                className="object-contain"
+                                unoptimized={true}
+                              />
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                        <label className="cursor-pointer bg-white/90 text-amber-700 px-4 py-2 rounded-full font-medium hover:bg-white border-2 border-amber-300">
-                          リフォームする
-                          <input
-                            type="file"
-                            accept="image/*"
-                            className="hidden"
-                            onChange={(e) =>
-                              handleFileInputChange(e, building.id)
-                            }
+                        ) : building.imageUrl ? (
+                          // 通常の建物で画像がある場合
+                          <Image
+                            src={building.imageUrl}
+                            alt={building.name}
+                            fill
+                            className="object-cover rounded-t-lg"
+                            unoptimized={true}
+                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                            priority={true}
+                            quality={95}
                           />
-                        </label>
+                        ) : (
+                          // 通常の建物で画像がない場合
+                          <div className="flex items-center justify-center h-full bg-amber-50">
+                            <div className="relative w-24 h-24">
+                              <Image
+                                src="/images/house.png"
+                                alt="デフォルトハウス"
+                                fill
+                                className="object-contain"
+                                unoptimized={true}
+                              />
+                            </div>
+                          </div>
+                        )}
+
+                        {/* はじまりの家以外の場合のみリフォームボタンを表示 */}
+                        {!isStarterHome && (
+                          <div className="absolute inset-0 bg-black/40 opacity-0 hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
+                            <label className="cursor-pointer bg-white/90 text-amber-700 px-4 py-2 rounded-full font-medium hover:bg-white border-2 border-amber-300">
+                              リフォームする
+                              <input
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) =>
+                                  handleFileInputChange(e, building.id)
+                                }
+                              />
+                            </label>
+                          </div>
+                        )}
+
+                        {/* はじまりの家の場合、ラベルを表示 */}
+                        {isStarterHome && (
+                          <div className="absolute top-2 right-2 bg-green-500 text-white px-2 py-1 rounded-full text-xs font-bold border-2 border-white">
+                            はじまりの家
+                          </div>
+                        )}
                       </div>
-                    </div>
-                    <CardHeader className="bg-amber-50 border-t-4 border-amber-100">
-                      <CardTitle className="text-amber-800">
-                        {building.name}
-                      </CardTitle>
-                      <CardDescription className="text-amber-700">
-                        建設日:{" "}
-                        {new Date(building.createdAt).toLocaleDateString()}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="bg-amber-50">
-                      <p className="text-amber-700">{building.description}</p>
-                    </CardContent>
-                    <CardFooter className="flex justify-between p-4 bg-amber-50">
-                      <Button
-                        variant="outline"
-                        className="text-green-700 bg-green-50 border-2 border-green-300 hover:bg-green-100 rounded-full"
-                        onClick={() => {
-                          // Navigate to building detail view (to be implemented)
-                          toast.info("この機能は開発中です");
-                        }}
-                      >
-                        見てみる
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        className="bg-red-100 text-red-700 hover:bg-red-200 border-2 border-red-300 rounded-full"
-                        onClick={() => handleDeleteClick(building.id)}
-                      >
-                        取り壊す
-                      </Button>
-                    </CardFooter>
-                  </Card>
-                ))}
+                      <CardHeader className="bg-amber-50 border-t-4 border-amber-100">
+                        <CardTitle className="text-amber-800">
+                          {building.name}
+                        </CardTitle>
+                        <CardDescription className="text-amber-700">
+                          建設日:{" "}
+                          {new Date(building.createdAt).toLocaleDateString()}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="bg-amber-50">
+                        <p className="text-amber-700">{building.description}</p>
+                      </CardContent>
+                      <CardFooter className="flex justify-between p-4 bg-amber-50">
+                        <Button
+                          variant="outline"
+                          className="text-green-700 bg-green-50 border-2 border-green-300 hover:bg-green-100 rounded-full"
+                          onClick={() => {
+                            // Navigate to building detail view (to be implemented)
+                            toast.info("この機能は開発中です");
+                          }}
+                        >
+                          見てみる
+                        </Button>
+
+                        {/* はじまりの家は取り壊し不可 */}
+                        {!isStarterHome ? (
+                          <Button
+                            variant="destructive"
+                            className="bg-red-100 text-red-700 hover:bg-red-200 border-2 border-red-300 rounded-full"
+                            onClick={() => handleDeleteClick(building.id)}
+                          >
+                            取り壊す
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            className="bg-gray-100 text-gray-400 border-2 border-gray-200 rounded-full cursor-not-allowed"
+                            disabled
+                          >
+                            取り壊し不可
+                          </Button>
+                        )}
+                      </CardFooter>
+                    </Card>
+                  );
+                })}
               </div>
             )}
           </>
