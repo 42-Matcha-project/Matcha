@@ -19,7 +19,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 // レポートのカテゴリタイプ
-type ReportCategory = "user" | "service" | "other";
+type ReportCategory = "user" | "bug" | "feature" | "other";
 
 // 各カテゴリの情報
 const categoryInfo = {
@@ -30,11 +30,18 @@ const categoryInfo = {
     placeholder: "報告したいユーザーの問題について詳しく教えてください...",
     color: "amber",
   },
-  service: {
-    title: "サービス関連",
-    description: "アプリの問題や改善提案について",
+  bug: {
+    title: "バグ報告",
+    description: "アプリの不具合や問題について",
+    icon: <AlertTriangle className="h-5 w-5 text-red-600" />,
+    placeholder: "発生している不具合や問題について詳しく教えてください...",
+    color: "red",
+  },
+  feature: {
+    title: "機能リクエスト",
+    description: "新機能の提案や改善点について",
     icon: <Settings className="h-5 w-5 text-green-600" />,
-    placeholder: "サービスの問題や改善してほしい点を詳しく教えてください...",
+    placeholder: "追加してほしい機能や改善点について詳しく教えてください...",
     color: "green",
   },
   other: {
@@ -71,19 +78,80 @@ export default function ReportSubmitPage() {
       return;
     }
 
-    if (!content.trim()) {
-      toast.error("内容を入力してください");
+    if (!content.trim() || content.length < 10) {
+      toast.error("内容は最低10文字以上入力してください");
       return;
     }
 
     setIsSubmitting(true);
 
+    // カテゴリをバックエンドの期待する形式に変換
+    let reportType;
+    switch (selectedCategory) {
+      case "user":
+        reportType = "UserReport";
+        break;
+      case "bug":
+        reportType = "BugReport";
+        break;
+      case "feature":
+        reportType = "FeatureRequest";
+        break;
+      case "other":
+        reportType = "AppFeedback";
+        break;
+      default:
+        reportType = "AppFeedback";
+    }
+
+    // APIに送信するデータ
+    const reportData = {
+      Type: reportType,
+      Text: `【タイトル】${title}\n\n【内容】${content}${email ? `\n\n【連絡先】${email}` : ""}`,
+    };
+
     try {
-      // ここでAPIを呼び出してデータを送信
-      // 例: const response = await fetch('/api/reports', { method: 'POST', body: JSON.stringify(reportData) });
+      // JWT トークンを localStorage から取得
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        toast.error("ログインが必要です。ログインページに移動します。");
+        router.push("/login");
+        return;
+      }
+
+      // APIを呼び出してデータを送信
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/reports/submit`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          credentials: "include",
+          body: JSON.stringify(reportData),
+        },
+      );
+
+      // エラーハンドリングの強化
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => null);
+        console.error("Error response:", response.status, errorData);
+
+        if (response.status === 401) {
+          toast.error("ログインが必要です。ログインページに移動します。");
+          router.push("/login");
+          return;
+        }
+
+        throw new Error(
+          `API error: ${response.status} ${errorData ? JSON.stringify(errorData) : ""}`,
+        );
+      }
 
       // 成功メッセージ
-      toast.success("レポートが送信されました！");
+      toast.success("レポートが送信されました！確認メールを送信しました。");
 
       // フォームをリセット
       setTitle("");
