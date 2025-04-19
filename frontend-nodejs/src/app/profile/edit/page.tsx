@@ -28,6 +28,16 @@ export default function ProfileEditPage() {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
+  // 認証チェック用のユーティリティ関数
+  const checkAuth = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return null;
+    }
+    return token;
+  };
+
   // フォームの状態
   const [formData, setFormData] = useState({
     displayName: "",
@@ -44,13 +54,8 @@ export default function ProfileEditPage() {
     const fetchProfile = async () => {
       try {
         setIsLoading(true);
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-          setError("認証情報がありません");
-          setIsLoading(false);
-          return;
-        }
+        const token = checkAuth();
+        if (!token) return; // checkAuth内でリダイレクト済み
 
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
@@ -114,6 +119,14 @@ export default function ProfileEditPage() {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 画像アップロード機能が無効の場合はメッセージを表示
+    const warningMsg =
+      "画像のアップロード機能は現在準備中です。しばらくお待ちください。";
+    setWarningMessage(warningMsg);
+    e.target.value = ""; // ファイル選択をリセット
+
+    // 以下の処理を一時的にコメントアウト
+    /*
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
 
@@ -142,10 +155,15 @@ export default function ProfileEditPage() {
       // 警告メッセージをクリア
       setWarningMessage(null);
     }
+    */
   };
 
   const handleImageButtonClick = () => {
-    fileInputRef.current?.click();
+    // 画像アップロード機能が無効の場合はメッセージを表示
+    const warningMsg =
+      "画像のアップロード機能は現在準備中です。しばらくお待ちください。";
+    setWarningMessage(warningMsg);
+    // fileInputRef.current?.click(); // 一時的にコメントアウト
   };
 
   const handleBackClick = () => {
@@ -161,92 +179,18 @@ export default function ProfileEditPage() {
       setSuccessMessage(null);
       setWarningMessage(null);
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("認証情報がありません");
-        return;
-      }
+      const token = checkAuth();
+      if (!token) return; // checkAuth内でリダイレクト済み
 
       // 画像がアップロードされた場合は、先に画像をアップロードする
-      let imageUploaded = false;
+      // 現在画像アップロード機能は無効化されているため、この処理は実行されない
+      const imageUploaded = false;
 
       if (formData.iconImage) {
-        try {
-          console.log("Uploading image to /profile/upload-image...");
-
-          // FormDataオブジェクトの作成
-          const imageFormData = new FormData();
-          imageFormData.append("image", formData.iconImage);
-
-          // バックエンドのベースURLを表示
-          console.log(
-            "Backend base URL:",
-            process.env.NEXT_PUBLIC_BACKEND_BASE_URL,
-          );
-          const uploadUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/upload-image`;
-          console.log("Full upload URL:", uploadUrl);
-
-          // タイムアウト付きで画像アップロードエンドポイントにPOSTリクエスト
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30秒タイムアウト
-
-          try {
-            const uploadResponse = await fetch(uploadUrl, {
-              method: "POST",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                // Content-Typeはブラウザが自動設定するので指定しない
-              },
-              body: imageFormData,
-              signal: controller.signal,
-            });
-
-            clearTimeout(timeoutId); // タイムアウトをクリア
-
-            if (!uploadResponse.ok) {
-              const errorText = await uploadResponse.text();
-              console.error("Image upload failed:", {
-                status: uploadResponse.status,
-                statusText: uploadResponse.statusText,
-                responseBody: errorText,
-              });
-              throw new Error(
-                `画像のアップロードに失敗しました (${uploadResponse.status})`,
-              );
-            }
-
-            // アップロード成功時の処理
-            const uploadResult = await uploadResponse.json();
-            console.log("Image upload successful:", uploadResult);
-            imageUploaded = true;
-          } catch (fetchError: unknown) {
-            if (fetchError instanceof Error) {
-              if (fetchError.name === "AbortError") {
-                console.error("Image upload timed out after 30 seconds");
-                throw new Error(
-                  "画像のアップロードがタイムアウトしました。ネットワーク接続を確認してください。",
-                );
-              } else {
-                console.error("Fetch error details:", fetchError);
-                throw fetchError;
-              }
-            } else {
-              console.error("Unknown fetch error:", fetchError);
-              throw new Error(
-                "画像のアップロード中に不明なエラーが発生しました",
-              );
-            }
-          } finally {
-            clearTimeout(timeoutId);
-          }
-        } catch (uploadError: unknown) {
-          console.error("Image upload error:", uploadError);
-          const errorMessage =
-            uploadError instanceof Error ? uploadError.message : "不明なエラー";
-          setWarningMessage(
-            `画像のアップロードに失敗しました: ${errorMessage}。他のプロフィール情報のみ更新します。`,
-          );
-        }
+        // 現在は画像アップロード機能を無効化しているため、警告メッセージを表示して処理を続行
+        setWarningMessage(
+          "画像のアップロード機能は現在準備中です。他のプロフィール情報のみ更新します。",
+        );
       }
 
       // プロフィール情報を更新 (画像をアップロードした場合は、IconImageUrlを送信しない)
@@ -291,6 +235,12 @@ export default function ProfileEditPage() {
 
           // 更新失敗時の処理
           if (!updateResponse.ok) {
+            // 認証エラーの場合はログインページにリダイレクト
+            if (updateResponse.status === 401) {
+              router.push("/login");
+              return;
+            }
+
             const errorText = await updateResponse.text();
             console.error("Profile update failed:", {
               status: updateResponse.status,
@@ -349,6 +299,18 @@ export default function ProfileEditPage() {
         }
       } catch (updateError: unknown) {
         console.error("Profile update error:", updateError);
+
+        // 認証エラーを示すメッセージが含まれているかをチェック
+        if (
+          updateError instanceof Error &&
+          (updateError.message.includes("401") ||
+            updateError.message.toLowerCase().includes("unauthorized") ||
+            updateError.message.includes("認証"))
+        ) {
+          router.push("/login");
+          return;
+        }
+
         const errorMessage =
           updateError instanceof Error ? updateError.message : "不明なエラー";
         setError(errorMessage);
@@ -357,6 +319,18 @@ export default function ProfileEditPage() {
       }
     } catch (error: unknown) {
       console.error("Overall process error:", error);
+
+      // 認証エラーを示すメッセージが含まれているかをチェック
+      if (
+        error instanceof Error &&
+        (error.message.includes("401") ||
+          error.message.toLowerCase().includes("unauthorized") ||
+          error.message.includes("認証"))
+      ) {
+        router.push("/login");
+        return;
+      }
+
       setError(
         error instanceof Error ? error.message : "不明なエラーが発生しました",
       );
@@ -399,8 +373,9 @@ export default function ProfileEditPage() {
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="relative w-32 h-32">
                   <div
-                    className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-amber-100 relative cursor-pointer"
+                    className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-amber-100 relative cursor-not-allowed"
                     onClick={handleImageButtonClick}
+                    title="画像のアップロード機能は現在準備中です"
                   >
                     {imagePreview ? (
                       <Image
@@ -415,8 +390,14 @@ export default function ProfileEditPage() {
                         <User size={64} className="text-amber-300" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                      <Upload size={24} className="text-white" />
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <Upload
+                        size={24}
+                        className="text-white mb-1 opacity-50"
+                      />
+                      <span className="text-white text-xs text-center px-1">
+                        準備中
+                      </span>
                     </div>
                   </div>
                   <input
