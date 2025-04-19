@@ -102,6 +102,11 @@ export default function BuildingsPage() {
       const token = localStorage.getItem("token");
 
       if (!token) {
+        toast.error("認証情報がありません");
+        // ログイン画面へリダイレクト
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500); // トーストメッセージを表示した後、1.5秒後にリダイレクト
         throw new Error("認証情報がありません");
       }
 
@@ -119,6 +124,13 @@ export default function BuildingsPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          toast.error(
+            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+          );
+          // ログイン画面へリダイレクト
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000); // トーストメッセージを表示後、2秒後にリダイレクト
           throw new Error("認証エラー - 再ログインが必要です");
         }
         throw new Error(`建物データの取得に失敗しました (${response.status})`);
@@ -164,7 +176,7 @@ export default function BuildingsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [loadBuildingsFromLocalStorage]);
+  }, [loadBuildingsFromLocalStorage, router]);
 
   useEffect(() => {
     // First try to fetch buildings from API, then fall back to local storage
@@ -297,6 +309,11 @@ export default function BuildingsPage() {
       const token = localStorage.getItem("token");
 
       if (!token) {
+        toast.error("認証情報がありません");
+        // ログイン画面へリダイレクト
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
         throw new Error("認証情報がありません");
       }
 
@@ -314,6 +331,13 @@ export default function BuildingsPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
+          toast.error(
+            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+          );
+          // ログイン画面へリダイレクト
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000);
           throw new Error("認証エラー - 再ログインが必要です");
         }
         throw new Error(
@@ -347,6 +371,10 @@ export default function BuildingsPage() {
 
       if (!token) {
         toast.error("認証情報がありません");
+        // ログイン画面へリダイレクト
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500);
         return;
       }
 
@@ -367,7 +395,14 @@ export default function BuildingsPage() {
 
       if (!response.ok) {
         if (response.status === 401) {
-          throw new Error("認証エラー - 再ログインが必要です");
+          toast.error(
+            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+          );
+          // ログイン画面へリダイレクト
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000);
+          return;
         }
         const errorData = await response.json();
         throw new Error(

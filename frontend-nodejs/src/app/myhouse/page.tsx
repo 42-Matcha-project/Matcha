@@ -203,6 +203,10 @@ export default function CozyRoomPage() {
       const token = localStorage.getItem("token");
       if (!token) {
         toast.error("認証情報がありません。再ログインしてください。");
+        // ログイン画面へリダイレクト
+        setTimeout(() => {
+          router.push("/login");
+        }, 1500); // トーストメッセージを表示した後、1.5秒後にリダイレクト
         return;
       }
 
@@ -217,6 +221,16 @@ export default function CozyRoomPage() {
       );
 
       if (!response.ok) {
+        // 認証エラーの場合
+        if (response.status === 401) {
+          toast.error(
+            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+          );
+          setTimeout(() => {
+            router.push("/login");
+          }, 2000); // メッセージ表示後、2秒後にリダイレクト
+          return;
+        }
         throw new Error(`自習の終了に失敗しました (${response.status})`);
       }
 

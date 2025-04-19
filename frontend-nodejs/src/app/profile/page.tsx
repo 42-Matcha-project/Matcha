@@ -235,7 +235,7 @@ export default function ProfilePage() {
           </h3>
           <p className="text-[#7b6c5d]">{error}</p>
           <p className="text-[#9b8e7e] mt-3 text-sm">
-            またあとでためしてみるか、たぬきちに相談してみよう！
+            またあとでためしてみるか、運営に相談してみよう！
           </p>
         </div>
       ) : (
