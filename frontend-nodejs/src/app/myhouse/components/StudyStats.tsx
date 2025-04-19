@@ -16,7 +16,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-// 学習目標の型定義
+// 作業目標の型定義
 interface StudyGoal {
   id: number;
   text: string;
@@ -35,16 +35,16 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const [refreshSubjectsTrigger, setRefreshSubjectsTrigger] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
-  const [studyTimeMinutes, setStudyTimeMinutes] = useState(0); // 学習時間（分）
-  const [studyTimeSeconds, setStudyTimeSeconds] = useState(0); // 学習時間（秒）
-  const [studyTimeStarted, setStudyTimeStarted] = useState<Date | null>(null); // 学習開始時間
+  const [studyTimeMinutes, setStudyTimeMinutes] = useState(0); // 作業時間（分）
+  const [studyTimeSeconds, setStudyTimeSeconds] = useState(0); // 作業時間（秒）
+  const [studyTimeStarted, setStudyTimeStarted] = useState<Date | null>(null); // 作業開始時間
   const [isStudying, setIsStudying] = useState(false); // 勉強中かどうか
-  const [totalStudyTimeSeconds, setTotalStudyTimeSeconds] = useState(0); // 累積学習時間（秒）
+  const [totalStudyTimeSeconds, setTotalStudyTimeSeconds] = useState(0); // 累積作業時間（秒）
   const [pauseTime, setPauseTime] = useState<Date | null>(null); // 一時停止時間
 
   // コンポーネントマウント時に保存された状態を復元
   useEffect(() => {
-    // localStorageから学習状態を取得
+    // localStorageから作業状態を取得
     const storedStartTime = localStorage.getItem("studyTimeStarted");
     const storedTotalTime = localStorage.getItem("totalStudyTimeSeconds");
     const storedIsStudying = localStorage.getItem("isStudying");
@@ -73,7 +73,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
 
     // クリーンアップ関数: コンポーネントのアンマウント時に実行
     return () => {
-      // 自習室から抜けた時点ですべての学習状態をリセット
+      // 自習室から抜けた時点ですべての作業状態をリセット
       // isStudyingの状態に関わらず、すべてのタイマー関連の状態をクリア
       localStorage.removeItem("studyTimeStarted");
       localStorage.removeItem("isStudying");
@@ -86,7 +86,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     };
   }, []);
 
-  // 学習状態が変わったらlocalStorageに保存
+  // 作業状態が変わったらlocalStorageに保存
   useEffect(() => {
     if (isStudying && studyTimeStarted) {
       localStorage.setItem("studyTimeStarted", studyTimeStarted.toISOString());
@@ -104,14 +104,14 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     }
   }, [isStudying, studyTimeStarted, totalStudyTimeSeconds, pauseTime]);
 
-  // 1秒ごとに学習時間を更新
+  // 1秒ごとに作業時間を更新
   useEffect(() => {
     if (!isStudying || !studyTimeStarted) {
       // タイマーが停止している場合は何もしない
       return;
     }
 
-    // 現在の学習時間を計算して設定
+    // 現在の作業時間を計算して設定
     const calcStudyTime = () => {
       const now = new Date();
       const diffMs = now.getTime() - studyTimeStarted.getTime();
@@ -265,7 +265,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         return;
       }
 
-      // 最終的な学習時間を計算
+      // 最終的な作業時間を計算
       const finalTotalSeconds = totalStudyTimeSeconds;
 
       // 秒を分に変換（端数は切り捨て）
@@ -273,7 +273,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
       const remainingSeconds = finalTotalSeconds % 60;
 
       // デバッグ用トースト
-      toast.info(`作業ログを追加します... (学習時間: ${minutesStudied}分)`);
+      toast.info(`作業ログを追加します... (作業時間: ${minutesStudied}分)`);
 
       // 作業ログを追加（fetch APIを使用）
       let logSuccess = false;
@@ -372,7 +372,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
       // 作業ログが正常に追加された場合のみ自習室削除処理に進む
       console.log("自習室削除処理開始");
       console.log(
-        `最終的な学習時間は ${finalTotalSeconds}秒 (${minutesStudied}分${remainingSeconds}秒、切り捨てで${minutesStudied}分として記録) でした`,
+        `最終的な作業時間は ${finalTotalSeconds}秒 (${minutesStudied}分${remainingSeconds}秒、切り捨てで${minutesStudied}分として記録) でした`,
       );
 
       const response = await fetch(
@@ -397,7 +397,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         );
       }
 
-      // ここで学習状態をクリア（POSTとDELETEが両方成功した場合のみ）
+      // ここで作業状態をクリア（POSTとDELETEが両方成功した場合のみ）
       setIsStudying(false);
       setStudyTimeStarted(null);
       setPauseTime(null);
@@ -429,7 +429,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     }
   };
 
-  // 学習時間のフォーマット
+  // 作業時間のフォーマット
   const formatStudyTime = (minutes: number, seconds: number = 0) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -440,7 +440,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     return `${mins}分${seconds}秒`;
   };
 
-  // 合計学習時間のフォーマット（秒から）
+  // 合計作業時間のフォーマット（秒から）
   const formatTotalTime = (totalSeconds: number) => {
     const hours = Math.floor(totalSeconds / 3600);
     const minutes = Math.floor((totalSeconds % 3600) / 60);
@@ -452,13 +452,13 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     return `${minutes}分${seconds}秒`;
   };
 
-  // 現在の学習セッション時間
+  // 現在の作業セッション時間
   const currentSessionTime = formatStudyTime(
     studyTimeMinutes,
     studyTimeSeconds,
   );
 
-  // 合計学習時間（現在のセッション + 過去のセッション）
+  // 合計作業時間（現在のセッション + 過去のセッション）
   let displayTotalTime = totalStudyTimeSeconds;
   if (isStudying && studyTimeStarted) {
     const now = new Date();
@@ -479,7 +479,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
       {/* 勉強タイマーセクション */}
       <div className="mb-6 p-4 bg-opacity-50 rounded-lg border border-amber-200 bg-amber-50">
         <div className="text-center mb-4">
-          <h3 className="text-lg font-bold mb-1">学習タイマー</h3>
+          <h3 className="text-lg font-bold mb-1">作業タイマー</h3>
           <div className="text-3xl font-bold mb-1">
             {isStudying
               ? currentSessionTime
@@ -488,7 +488,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
                 : "未開始"}
           </div>
           <div className="text-sm opacity-75">
-            合計学習時間: {formatTotalTime(displayTotalTime)}
+            合計作業時間: {formatTotalTime(displayTotalTime)}
           </div>
         </div>
 
@@ -557,9 +557,9 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
                 isDarkMode ? "text-amber-300" : "text-amber-700",
               )}
             >
-              自習を終了すると、現在の学習タイマーがリセットされます。タイマーの進捗はプロフィールに記録されます。
+              自習を終了すると、現在の作業タイマーがリセットされます。タイマーの進捗はプロフィールに記録されます。
               <span className="mt-2 font-medium block">
-                今回の学習時間: {formatTotalTime(displayTotalTime)}
+                今回の作業時間: {formatTotalTime(displayTotalTime)}
               </span>
             </DialogDescription>
           </DialogHeader>

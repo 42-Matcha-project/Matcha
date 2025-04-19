@@ -88,68 +88,68 @@ export default function ProfilePage() {
 
   const questCards = [
     {
-      title: "建物たんけん",
+      title: "マイ建物リスト",
       description: "あなたの所有している建物をみてみよう！",
-      icon: <Building className="h-7 w-7" />,
+      icon: <Building className="h-8 w-8 text-blue-900" />,
       onClick: () => router.push("/buildings"),
       difficulty: "★★☆",
       reward: "5000ベル",
       color: "bg-sky-50",
       borderColor: "border-sky-200",
-      iconBg: "bg-sky-100",
-      iconBorder: "border-sky-300",
+      iconBg: "bg-sky-200",
+      iconBorder: "border-sky-400",
       emoji: "🏠",
     },
     {
       title: "作業ログチェック",
       description: "これまでの作業記録を見てみよう！",
-      icon: <Clock className="h-7 w-7" />,
+      icon: <Clock className="h-8 w-8 text-green-900" />,
       onClick: () => router.push("/works/log"),
       difficulty: "★☆☆",
       reward: "2000ベル",
       color: "bg-lime-50",
       borderColor: "border-lime-200",
-      iconBg: "bg-lime-100",
-      iconBorder: "border-lime-300",
+      iconBg: "bg-lime-200",
+      iconBorder: "border-lime-400",
       emoji: "📝",
     },
     {
       title: "今までのタスク",
       description: "あなたのタスクを確認しよう！",
-      icon: <FileText className="h-7 w-7" />,
+      icon: <FileText className="h-8 w-8 text-purple-900" />,
       onClick: () => router.push("/works"),
       difficulty: "★☆☆",
       reward: "2500ベル",
       color: "bg-violet-50",
       borderColor: "border-violet-200",
-      iconBg: "bg-violet-100",
-      iconBorder: "border-violet-300",
+      iconBg: "bg-violet-200",
+      iconBorder: "border-violet-400",
       emoji: "📚",
     },
     {
       title: "プロフィールアップデート",
       description: "プロフィールを整えよう！",
-      icon: <Edit className="h-7 w-7" />,
+      icon: <Edit className="h-8 w-8 text-pink-900" />,
       onClick: () => router.push("/profile/edit"),
       difficulty: "★★☆",
       reward: "4000ベル",
       color: "bg-pink-50",
       borderColor: "border-pink-200",
-      iconBg: "bg-pink-100",
-      iconBorder: "border-pink-300",
+      iconBg: "bg-pink-200",
+      iconBorder: "border-pink-400",
       emoji: "✨",
     },
     {
       title: "新しいタスク",
       description: "新しいタスクを追加しよう！",
-      icon: <Plus className="h-7 w-7" />,
+      icon: <Plus className="h-8 w-8 text-teal-900" />,
       onClick: () => router.push("/works/add"),
       difficulty: "★★★",
       reward: "5000ベル",
       color: "bg-teal-50",
       borderColor: "border-teal-200",
-      iconBg: "bg-teal-100",
-      iconBorder: "border-teal-300",
+      iconBg: "bg-teal-200",
+      iconBorder: "border-teal-400",
       emoji: "🎓",
     },
   ];
@@ -257,7 +257,7 @@ export default function ProfilePage() {
                   <CardContent className="flex-1 min-h-[80px] pb-2">
                     <div className="flex justify-center items-center h-full">
                       <div
-                        className={`${quest.iconBg} p-4 rounded-full border-2 ${quest.iconBorder} shadow-sm`}
+                        className={`${quest.iconBg} p-4 rounded-full border-2 ${quest.iconBorder} shadow-md flex items-center justify-center`}
                       >
                         {quest.icon}
                       </div>

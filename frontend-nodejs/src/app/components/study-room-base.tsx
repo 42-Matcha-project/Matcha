@@ -223,7 +223,7 @@ export default function StudyRoomBase({
   // フォーマットされた時間
   const formattedTime = `${timerMinutes.toString().padStart(2, "0")}:${timerSeconds.toString().padStart(2, "0")}`;
 
-  // 学習時間のフォーマット
+  // 作業時間のフォーマット
   const formatStudyTime = (minutes: number) => {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
@@ -301,7 +301,7 @@ export default function StudyRoomBase({
                     )}
                   >
                     <span className="mr-1">
-                      {localParticipants[0]?.streakText || "学習中"}
+                      {localParticipants[0]?.streakText || "作業中"}
                     </span>
                     <span>✨</span>
                   </div>
@@ -314,10 +314,10 @@ export default function StudyRoomBase({
             </div>
           </div>
 
-          {/* 学習時間 */}
+          {/* 作業時間 */}
           <div className={cn("p-4 border-b", theme.colors.border)}>
             <h3 className={cn("text-sm font-medium mb-2", theme.colors.text)}>
-              学習時間
+              作業時間
             </h3>
             <div className="flex space-x-1 mb-2">
               {[1, 2, 3, 4, 5].map((hour) => (
@@ -679,7 +679,7 @@ export default function StudyRoomBase({
                               "dark:bg-slate-700 dark:text-white",
                             )}
                           >
-                            学習時間
+                            作業時間
                           </div>
                         </div>
 
@@ -745,7 +745,7 @@ export default function StudyRoomBase({
                             "dark:text-gray-200",
                           )}
                         >
-                          学習時間
+                          作業時間
                         </div>
 
                         {user.id === 2 ? (
@@ -772,7 +772,7 @@ export default function StudyRoomBase({
               ))}
             </div>
 
-            {/* ユーザーの累積学習時間（秒数）: {userStudySeconds}秒 - 将来的に分析機能で使用予定 */}
+            {/* ユーザーの累積作業時間（秒数）: {userStudySeconds}秒 - 将来的に分析機能で使用予定 */}
           </main>
         </div>
       </div>
