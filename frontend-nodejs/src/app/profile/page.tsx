@@ -114,19 +114,6 @@ export default function ProfilePage() {
       emoji: "📝",
     },
     {
-      title: "特別レポート",
-      description: "街の運営さんに問題を報告しよう！",
-      icon: <AlertTriangle className="h-7 w-7" />,
-      onClick: () => router.push("/reports/submit"),
-      difficulty: "★★★",
-      reward: "3000ベル",
-      color: "bg-amber-50",
-      borderColor: "border-amber-200",
-      iconBg: "bg-amber-100",
-      iconBorder: "border-amber-300",
-      emoji: "📮",
-    },
-    {
       title: "今までのタスク",
       description: "あなたのタスクを確認しよう！",
       icon: <FileText className="h-7 w-7" />,
@@ -300,6 +287,54 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* 運営への報告ボタン - メタ機能 */}
+      {!isLoading && !error && (
+        <>
+          <div className="mt-16 mb-6 flex items-center gap-3">
+            <div className="h-px bg-red-300 flex-grow"></div>
+            <span className="text-sm font-medium text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-200">
+              アプリサポート
+            </span>
+            <div className="h-px bg-red-300 flex-grow"></div>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="relative transform hover:scale-105 transition-all duration-300">
+              <button
+                onClick={() => router.push("/reports/submit")}
+                className="group px-8 py-4 bg-gradient-to-r from-red-50 to-white text-gray-800 rounded-lg border-2 border-red-300 transition-all duration-300 flex items-center gap-4 shadow-lg"
+                style={{
+                  fontFamily: "sans-serif",
+                }}
+              >
+                <div className="bg-red-100 p-2.5 rounded-full border-2 border-red-300 shadow-inner">
+                  <AlertTriangle className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="font-bold text-sm uppercase tracking-wider text-red-500">
+                    SUPPORT CENTER
+                  </span>
+                  <span className="font-semibold text-lg">
+                    運営へのレポート / お問い合わせ
+                  </span>
+                </div>
+                <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                  <span className="text-white font-bold">→</span>
+                </div>
+              </button>
+              <div className="absolute -top-3 -right-3 w-7 h-7 bg-red-500 rounded-full flex items-center justify-center border-2 border-white shadow-md">
+                <span className="text-white text-xs font-bold">!</span>
+              </div>
+              <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-red-400 to-red-600 rounded-full"></div>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-red-600 font-medium mt-3 mb-4">
+            アプリの問題報告やご意見・ご要望はこちらからお願いします
+          </p>
+        </>
       )}
     </div>
   );
