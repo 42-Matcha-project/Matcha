@@ -73,7 +73,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
 
     // クリーンアップ関数: コンポーネントのアンマウント時に実行
     return () => {
-      // 自習室から抜けた時点ですべての作業状態をリセット
+      // 作業部屋から抜けた時点ですべての作業状態をリセット
       // isStudyingの状態に関わらず、すべてのタイマー関連の状態をクリア
       localStorage.removeItem("studyTimeStarted");
       localStorage.removeItem("isStudying");
@@ -369,8 +369,8 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         }
       }
 
-      // 作業ログが正常に追加された場合のみ自習室削除処理に進む
-      console.log("自習室削除処理開始");
+      // 作業ログが正常に追加された場合のみ作業部屋削除処理に進む
+      console.log("作業部屋削除処理開始");
       console.log(
         `最終的な作業時間は ${finalTotalSeconds}秒 (${minutesStudied}分${remainingSeconds}秒、切り捨てで${minutesStudied}分として記録) でした`,
       );
@@ -385,7 +385,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         },
       );
 
-      console.log("自習室削除結果:", {
+      console.log("作業部屋削除結果:", {
         status: response.status,
         ok: response.ok,
       });

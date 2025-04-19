@@ -67,7 +67,7 @@ export type ThemeSettings = {
   customHeader?: ReactNode;
 };
 
-// 自習室ベースコンポーネントのプロパティ
+// 作業部屋ベースコンポーネントのプロパティ
 interface StudyRoomBaseProps {
   theme: ThemeSettings;
   participants: Participant[];
@@ -539,7 +539,7 @@ export default function StudyRoomBase({
                 <div className="flex items-center">
                   <span className="mr-2">{theme.emoji}</span>
                   <h1 className={cn("text-lg font-bold", theme.colors.text)}>
-                    {theme.name}の自習室
+                    {theme.name}の作業部屋
                   </h1>
                   <span className={cn("mx-2", theme.colors.border)}>|</span>
                   <div className={cn("flex items-center", theme.colors.text)}>
