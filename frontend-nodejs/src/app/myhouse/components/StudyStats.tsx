@@ -207,7 +207,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     );
   };
 
-  // 科目が追加されたときに科目リストを更新
+  // タスクが追加されたときにタスクリストを更新
   const handleSubjectAdded = () => {
     setRefreshSubjectsTrigger((prev) => prev + 1);
   };
@@ -521,7 +521,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         </div>
       </div>
 
-      {/* 科目登録セクション */}
+      {/* タスク登録セクション */}
       <div className="mb-8">
         <SubjectRegistrationForm
           isDarkMode={isDarkMode}

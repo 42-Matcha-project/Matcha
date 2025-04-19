@@ -115,7 +115,7 @@ export default function ProfilePage() {
     },
     {
       title: "特別レポート",
-      description: "街の運営さんに問題をおしらせしよう！",
+      description: "街の運営さんに問題を報告しよう！",
       icon: <AlertTriangle className="h-7 w-7" />,
       onClick: () => router.push("/reports/submit"),
       difficulty: "★★★",
@@ -127,8 +127,8 @@ export default function ProfilePage() {
       emoji: "📮",
     },
     {
-      title: "スキルずかん",
-      description: "あなたのスキルをかくにんしよう！",
+      title: "今までのタスク",
+      description: "あなたのタスクを確認しよう！",
       icon: <FileText className="h-7 w-7" />,
       onClick: () => router.push("/works"),
       difficulty: "★☆☆",
@@ -141,7 +141,7 @@ export default function ProfilePage() {
     },
     {
       title: "プロフィールアップデート",
-      description: "じぶんのプロフィールをきれいにしよう！",
+      description: "プロフィールを整えよう！",
       icon: <Edit className="h-7 w-7" />,
       onClick: () => router.push("/profile/edit"),
       difficulty: "★★☆",
@@ -153,8 +153,8 @@ export default function ProfilePage() {
       emoji: "✨",
     },
     {
-      title: "新しいスキル",
-      description: "新しいスキルをおぼえよう！",
+      title: "新しいタスク",
+      description: "新しいタスクを追加しよう！",
       icon: <Plus className="h-7 w-7" />,
       onClick: () => router.push("/works/add"),
       difficulty: "★★★",
