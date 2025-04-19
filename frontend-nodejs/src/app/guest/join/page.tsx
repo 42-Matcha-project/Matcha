@@ -83,8 +83,9 @@ export default function GuestJoinPage() {
                 type="text"
                 value={roomCode}
                 onChange={(e) => setRoomCode(e.target.value)}
-                placeholder="例: ROOM1234"
+                placeholder="6桁の英数字コード"
                 className="w-full p-3 border border-amber-300 rounded-lg focus:ring-2 focus:ring-amber-600 focus:border-amber-600 bg-amber-50/50 text-center"
+                maxLength={6}
               />
               {error && <p className="mt-1 text-sm text-red-600">{error}</p>}
             </div>
@@ -116,7 +117,7 @@ export default function GuestJoinPage() {
             </div>
 
             <div className="text-center text-sm text-amber-700">
-              <p>ルームコードはホストから共有されます</p>
+              <p>友達から共有された6桁のルームコードを入力してください</p>
               <p className="mt-1">
                 または
                 <a

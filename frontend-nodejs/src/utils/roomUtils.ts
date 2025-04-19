@@ -15,10 +15,17 @@ export function formatRoomCode(code: string): string {
  * @returns 有効な場合はtrue
  */
 export function isValidRoomCode(code: string): boolean {
-  // 部屋コードのバリデーションルール
-  // 例: 6文字以上で英数字のみ
+  // 部屋コードが空の場合
+  if (!code || code.trim() === "") {
+    return false;
+  }
+
+  // 部屋コードのフォーマット
   const formatted = formatRoomCode(code);
-  return /^[A-Z0-9]{4,}$/.test(formatted);
+
+  // 部屋コードのバリデーションルール
+  // 6桁の英数字
+  return /^[A-Z0-9]{6}$/.test(formatted);
 }
 
 /**

@@ -31,6 +31,9 @@ export const initialMessages: Message[] = [
     id: 1,
     sender: "システム",
     content: "マイルームへようこそ！一緒に勉強しましょう。",
-    time: "16:30",
+    time: new Date().toLocaleTimeString("ja-JP", {
+      hour: "2-digit",
+      minute: "2-digit",
+    }),
   },
 ];

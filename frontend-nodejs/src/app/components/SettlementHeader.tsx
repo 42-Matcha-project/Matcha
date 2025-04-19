@@ -5,13 +5,15 @@ import {
   Clock,
   Home,
   BookOpen,
-  User,
   Calendar,
   ShoppingBag,
   Gift,
   Coins,
+  UserCircle,
 } from "lucide-react";
 import { UserStats } from "../../types/settlement";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 interface SettlementHeaderProps {
   currentTime: Date;
@@ -36,6 +38,15 @@ export default function SettlementHeader({
   goToStore,
   goToGifts,
 }: SettlementHeaderProps) {
+  const router = useRouter();
+
+  const navigateToProfile = () => {
+    router.push("/profile");
+  };
+
+  // プロフィールボタンのホバー状態を管理
+  const [showProfileTooltip, setShowProfileTooltip] = useState(false);
+
   return (
     <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between z-50 sticky top-0 left-0 right-0 font-sans">
       <div className="flex items-center">
@@ -79,11 +90,6 @@ export default function SettlementHeader({
           <span className="text-lg font-medium">
             {userStats.totalStudyHours}時間
           </span>
-        </div>
-
-        <div className="flex items-center bg-amber-700 px-4 py-2 rounded">
-          <User className="h-6 w-6 mr-2" />
-          <span className="text-lg font-semibold">{userStats.username}</span>
         </div>
 
         {/* ストアボタン */}
@@ -147,6 +153,41 @@ export default function SettlementHeader({
               >
                 プレゼントを受け取る
                 <div className="absolute right-3 -top-1 w-2 h-2 bg-red-100 transform rotate-45"></div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* プロフィールボタン - 改良版 */}
+        <div className="relative">
+          <motion.button
+            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-amber-500 to-amber-700 rounded-lg shadow-md hover:shadow-lg border border-amber-400 group"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={navigateToProfile}
+            onMouseEnter={() => setShowProfileTooltip(true)}
+            onMouseLeave={() => setShowProfileTooltip(false)}
+            aria-label="プロフィールページへ"
+          >
+            <div className="relative flex-shrink-0 w-8 h-8 bg-amber-300 rounded-full flex items-center justify-center overflow-hidden">
+              <UserCircle className="h-7 w-7 text-amber-800" />
+              {/* キラキラエフェクト */}
+              <span className="absolute inset-0 bg-gradient-to-tr from-amber-200/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            </div>
+            <span className="text-white font-medium">開拓者</span>
+            <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-amber-800"></span>
+          </motion.button>
+
+          <AnimatePresence>
+            {showProfileTooltip && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.8 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 5, scale: 0.9 }}
+                className="absolute right-0 top-full mt-2 bg-amber-50 text-amber-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm border border-amber-200"
+              >
+                プロフィールを表示・編集
+                <div className="absolute right-3 -top-1 w-2 h-2 bg-amber-50 transform rotate-45 border-t border-l border-amber-200"></div>
               </motion.div>
             )}
           </AnimatePresence>

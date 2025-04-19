@@ -33,13 +33,10 @@ export function useSettlementNavigation() {
   };
 
   /**
-   * ストアページへ移動（現在は開発中メッセージを表示）
+   * ストアページへ移動
    */
   const goToStore = () => {
-    // 将来的にはストアページへのルーティングを実装
-    alert(
-      "ストアは開発中です！今後さまざまな建物やアイテムを購入できるようになります。",
-    );
+    router.push("/buildings");
   };
 
   /**

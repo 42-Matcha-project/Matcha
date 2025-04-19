@@ -1,9 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { Clock, Settings, LogOut, Moon, Sun } from "lucide-react";
+import { Clock, Settings, LogOut, Moon, Sun, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -13,6 +13,16 @@ interface HeaderProps {
   currentTime: Date | null;
 }
 
+// ルームコードを生成する関数
+function generateRandomCode(length: number = 6): string {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let result = "";
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}
+
 export function Header({
   isDarkMode,
   toggleDarkMode,
@@ -20,6 +30,31 @@ export function Header({
 }: HeaderProps) {
   const router = useRouter();
   const [showInviteTooltip, setShowInviteTooltip] = useState(false);
+  const [roomCode, setRoomCode] = useState<string>("");
+  const [showRoomCode, setShowRoomCode] = useState(false);
+
+  // コンポーネントマウント時にルームコードを読み取る
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const savedRoomCode = localStorage.getItem("myRoomCode");
+      if (savedRoomCode) {
+        setRoomCode(savedRoomCode);
+      } else {
+        // 初回訪問時は新しいコードを生成して保存
+        const newCode = generateRandomCode();
+        setRoomCode(newCode);
+        localStorage.setItem("myRoomCode", newCode);
+      }
+    }
+  }, []);
+
+  // 新しいルームコードを生成する
+  const regenerateRoomCode = () => {
+    const newCode = generateRandomCode();
+    setRoomCode(newCode);
+    localStorage.setItem("myRoomCode", newCode);
+    setShowRoomCode(true);
+  };
 
   // Format time with safety check for null
   const formattedTime = currentTime
@@ -29,10 +64,14 @@ export function Header({
   // 招待リンクをコピー
   const copyInviteLink = () => {
     if (typeof window !== "undefined" && navigator.clipboard) {
+      // ルームコードのみをコピー
+      const codeToShare = roomCode || "ルームコードがありません";
+
       navigator.clipboard
-        .writeText("https://study-room-app.com/invite/12345")
+        .writeText(codeToShare)
         .then(() => {
           setShowInviteTooltip(true);
+          setShowRoomCode(true);
           setTimeout(() => setShowInviteTooltip(false), 2000);
         })
         .catch((err) => {
@@ -42,13 +81,16 @@ export function Header({
       // フォールバック: テキストエリアを使用してコピーを試みる
       try {
         const textArea = document.createElement("textarea");
-        textArea.value = "https://study-room-app.com/invite/12345";
+        // ルームコードのみをコピー
+        const codeToShare = roomCode || "ルームコードがありません";
+        textArea.value = codeToShare;
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
         document.execCommand("copy");
         document.body.removeChild(textArea);
         setShowInviteTooltip(true);
+        setShowRoomCode(true);
         setTimeout(() => setShowInviteTooltip(false), 2000);
       } catch (err) {
         console.error("代替コピー方法も失敗しました:", err);
@@ -78,6 +120,26 @@ export function Header({
       </div>
 
       <div className="flex items-center space-x-3">
+        {showRoomCode && (
+          <div
+            className={cn(
+              "px-3 py-1 rounded-md text-sm font-mono flex items-center gap-2",
+              isDarkMode ? "bg-amber-800" : "bg-amber-200",
+            )}
+          >
+            <span>招待コード: {roomCode}</span>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={regenerateRoomCode}
+              className="h-5 w-5 rounded-full"
+              title="新しいコードを生成"
+            >
+              <RefreshCw className="h-3 w-3" />
+            </Button>
+          </div>
+        )}
+
         <Button
           variant="outline"
           size="sm"
@@ -102,7 +164,7 @@ export function Header({
                   isDarkMode ? "bg-amber-700" : "bg-amber-300",
                 )}
               >
-                招待リンクをコピーしました
+                ルームコードをコピーしました
               </motion.div>
             )}
           </AnimatePresence>
