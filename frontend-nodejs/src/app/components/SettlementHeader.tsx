@@ -42,6 +42,7 @@ export default function SettlementHeader({
   const router = useRouter();
   const [displayName, setDisplayName] = useState<string>("開拓者");
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [imageKey, setImageKey] = useState<number>(0);
 
   // Get user's profile information (display name and image)
   useEffect(() => {
@@ -50,14 +51,17 @@ export default function SettlementHeader({
         const token = localStorage.getItem("token");
         if (!token) return;
 
+        // タイムスタンプをクエリパラメータに追加してキャッシュを回避
+        const timestamp = Date.now();
         const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get?t=${timestamp}`,
           {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
               "Content-Type": "application/json",
             },
+            cache: "no-store",
           },
         );
 
@@ -71,6 +75,7 @@ export default function SettlementHeader({
         }
         if (data.User && data.User.IconImageURL) {
           setProfileImage(data.User.IconImageURL);
+          setImageKey((prev) => prev + 1);
         }
       } catch (error) {
         console.error("プロフィール取得エラー:", error);
@@ -78,6 +83,32 @@ export default function SettlementHeader({
     };
 
     fetchUserProfile();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchUserProfile();
+      }
+    };
+
+    // プロフィール更新を検知して再取得
+    const checkProfileUpdate = () => {
+      const lastUpdate = localStorage.getItem("profileUpdated");
+      if (lastUpdate) {
+        fetchUserProfile();
+        // 一度使ったら削除
+        localStorage.removeItem("profileUpdated");
+      }
+    };
+
+    // 初回ロード時とフォーカスを取得したときにプロフィール更新をチェック
+    checkProfileUpdate();
+    window.addEventListener("focus", checkProfileUpdate);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", checkProfileUpdate);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   const navigateToProfile = () => {
@@ -216,6 +247,7 @@ export default function SettlementHeader({
                   alt="ユーザーアイコン"
                   fill
                   className="object-cover"
+                  key={imageKey}
                 />
               ) : (
                 <UserCircle className="h-7 w-7 text-amber-800" />
