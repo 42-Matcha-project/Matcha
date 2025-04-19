@@ -101,12 +101,11 @@ export function SubjectRegistrationForm({
     setIconDataUrl(null);
   };
 
-  // 科目を登録する
+  // タスクを登録する
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!subjectName.trim()) {
-      toast.error("科目名を入力してください");
+      toast.error("タスク名を入力してください");
       return;
     }
 
@@ -171,7 +170,7 @@ export function SubjectRegistrationForm({
         throw new Error("認証トークンが見つかりません");
       }
 
-      // 科目登録APIを呼び出す
+      // タスク登録APIを呼び出す
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
         {
@@ -194,20 +193,20 @@ export function SubjectRegistrationForm({
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.Error || "科目登録に失敗しました");
+        throw new Error(errorData.Error || "タスク登録に失敗しました");
       }
 
-      toast.success("科目を登録しました");
+      toast.success("タスクを登録しました");
       resetForm();
 
-      // コールバック関数があれば実行（親コンポーネントで科目リストを更新するなど）
+      // コールバック関数があれば実行（親コンポーネントでタスクリストを更新するなど）
       if (onSubjectAdded) {
         onSubjectAdded();
       }
     } catch (error) {
-      console.error("科目登録エラー:", error);
+      console.error("タスク登録エラー:", error);
       toast.error(
-        error instanceof Error ? error.message : "科目登録に失敗しました",
+        error instanceof Error ? error.message : "タスク登録に失敗しました",
       );
     } finally {
       setIsSubmitting(false);
@@ -226,7 +225,7 @@ export function SubjectRegistrationForm({
       />
 
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-bold">科目登録</h3>
+        <h3 className="text-lg font-bold">タスク登録</h3>
         <button
           onClick={() => setIsFormOpen(!isFormOpen)}
           className={cn(
@@ -254,7 +253,7 @@ export function SubjectRegistrationForm({
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium mb-1">
-              科目名 <span className="text-red-500">*</span>
+              タスク名 <span className="text-red-500">*</span>
             </label>
             <input
               type="text"

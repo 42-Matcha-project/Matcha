@@ -88,81 +88,68 @@ export default function ProfilePage() {
 
   const questCards = [
     {
-      title: "建物たんけん",
+      title: "マイ建物リスト",
       description: "あなたの所有している建物をみてみよう！",
-      icon: <Building className="h-7 w-7" />,
+      icon: <Building className="h-8 w-8 text-blue-900" />,
       onClick: () => router.push("/buildings"),
       difficulty: "★★☆",
       reward: "5000ベル",
       color: "bg-sky-50",
       borderColor: "border-sky-200",
-      iconBg: "bg-sky-100",
-      iconBorder: "border-sky-300",
+      iconBg: "bg-sky-200",
+      iconBorder: "border-sky-400",
       emoji: "🏠",
     },
     {
       title: "作業ログチェック",
       description: "これまでの作業記録を見てみよう！",
-      icon: <Clock className="h-7 w-7" />,
+      icon: <Clock className="h-8 w-8 text-green-900" />,
       onClick: () => router.push("/works/log"),
       difficulty: "★☆☆",
       reward: "2000ベル",
       color: "bg-lime-50",
       borderColor: "border-lime-200",
-      iconBg: "bg-lime-100",
-      iconBorder: "border-lime-300",
+      iconBg: "bg-lime-200",
+      iconBorder: "border-lime-400",
       emoji: "📝",
     },
     {
-      title: "特別レポート",
-      description: "街の運営さんに問題をおしらせしよう！",
-      icon: <AlertTriangle className="h-7 w-7" />,
-      onClick: () => router.push("/reports/submit"),
-      difficulty: "★★★",
-      reward: "3000ベル",
-      color: "bg-amber-50",
-      borderColor: "border-amber-200",
-      iconBg: "bg-amber-100",
-      iconBorder: "border-amber-300",
-      emoji: "📮",
-    },
-    {
-      title: "スキルずかん",
-      description: "あなたのスキルをかくにんしよう！",
-      icon: <FileText className="h-7 w-7" />,
+      title: "今までのタスク",
+      description: "あなたのタスクを確認しよう！",
+      icon: <FileText className="h-8 w-8 text-purple-900" />,
       onClick: () => router.push("/works"),
       difficulty: "★☆☆",
       reward: "2500ベル",
       color: "bg-violet-50",
       borderColor: "border-violet-200",
-      iconBg: "bg-violet-100",
-      iconBorder: "border-violet-300",
+      iconBg: "bg-violet-200",
+      iconBorder: "border-violet-400",
       emoji: "📚",
     },
     {
       title: "プロフィールアップデート",
-      description: "じぶんのプロフィールをきれいにしよう！",
-      icon: <Edit className="h-7 w-7" />,
+      description: "プロフィールを整えよう！",
+      icon: <Edit className="h-8 w-8 text-pink-900" />,
       onClick: () => router.push("/profile/edit"),
       difficulty: "★★☆",
       reward: "4000ベル",
       color: "bg-pink-50",
       borderColor: "border-pink-200",
-      iconBg: "bg-pink-100",
-      iconBorder: "border-pink-300",
+      iconBg: "bg-pink-200",
+      iconBorder: "border-pink-400",
       emoji: "✨",
     },
     {
-      title: "新しいスキル",
-      description: "新しいスキルをおぼえよう！",
-      icon: <Plus className="h-7 w-7" />,
+      title: "新しいタスク",
+      description: "新しいタスクを追加しよう！",
+      icon: <Plus className="h-8 w-8 text-teal-900" />,
       onClick: () => router.push("/works/add"),
       difficulty: "★★★",
       reward: "5000ベル",
       color: "bg-teal-50",
       borderColor: "border-teal-200",
-      iconBg: "bg-teal-100",
-      iconBorder: "border-teal-300",
+      iconBg: "bg-teal-200",
+      iconBorder: "border-teal-400",
       emoji: "🎓",
     },
   ];
@@ -270,7 +257,7 @@ export default function ProfilePage() {
                   <CardContent className="flex-1 min-h-[80px] pb-2">
                     <div className="flex justify-center items-center h-full">
                       <div
-                        className={`${quest.iconBg} p-4 rounded-full border-2 ${quest.iconBorder} shadow-sm`}
+                        className={`${quest.iconBg} p-4 rounded-full border-2 ${quest.iconBorder} shadow-md flex items-center justify-center`}
                       >
                         {quest.icon}
                       </div>
@@ -300,6 +287,54 @@ export default function ProfilePage() {
             ))}
           </div>
         </div>
+      )}
+
+      {/* 運営への報告ボタン - メタ機能 */}
+      {!isLoading && !error && (
+        <>
+          <div className="mt-16 mb-6 flex items-center gap-3">
+            <div className="h-px bg-red-300 flex-grow"></div>
+            <span className="text-sm font-medium text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-200">
+              アプリサポート
+            </span>
+            <div className="h-px bg-red-300 flex-grow"></div>
+          </div>
+
+          <div className="flex justify-center">
+            <div className="relative transform hover:scale-105 transition-all duration-300">
+              <button
+                onClick={() => router.push("/reports/submit")}
+                className="group px-8 py-4 bg-gradient-to-r from-red-50 to-white text-gray-800 rounded-lg border-2 border-red-300 transition-all duration-300 flex items-center gap-4 shadow-lg"
+                style={{
+                  fontFamily: "sans-serif",
+                }}
+              >
+                <div className="bg-red-100 p-2.5 rounded-full border-2 border-red-300 shadow-inner">
+                  <AlertTriangle className="h-6 w-6 text-red-600" />
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="font-bold text-sm uppercase tracking-wider text-red-500">
+                    SUPPORT CENTER
+                  </span>
+                  <span className="font-semibold text-lg">
+                    運営へのレポート / お問い合わせ
+                  </span>
+                </div>
+                <div className="absolute -right-1 top-1/2 transform -translate-y-1/2 w-8 h-8 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
+                  <span className="text-white font-bold">→</span>
+                </div>
+              </button>
+              <div className="absolute -top-3 -right-3 w-7 h-7 bg-red-500 rounded-full flex items-center justify-center border-2 border-white shadow-md">
+                <span className="text-white text-xs font-bold">!</span>
+              </div>
+              <div className="absolute -bottom-1 left-0 right-0 h-1 bg-gradient-to-r from-red-400 to-red-600 rounded-full"></div>
+            </div>
+          </div>
+
+          <p className="text-center text-sm text-red-600 font-medium mt-3 mb-4">
+            アプリの問題報告やご意見・ご要望はこちらからお願いします
+          </p>
+        </>
       )}
     </div>
   );

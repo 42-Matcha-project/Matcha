@@ -57,10 +57,10 @@ export default function GuestJoinPage() {
         <div className="w-full max-w-lg bg-white/90 rounded-xl shadow-lg overflow-hidden border border-amber-200">
           <div className="p-8">
             <h1 className="text-2xl font-bold text-center text-amber-800 mb-4">
-              自習室に参加
+              作業部屋に参加
             </h1>
             <p className="text-center text-amber-700 mb-8">
-              ルームコードを入力して自習室に参加しましょう
+              ルームコードを入力して作業部屋に参加しましょう
             </p>
 
             {/* 建物イラスト */}
@@ -68,7 +68,7 @@ export default function GuestJoinPage() {
               <div className="relative w-52 h-52">
                 <Image
                   src="/images/house.png"
-                  alt="自習室"
+                  alt="作業部屋"
                   fill
                   className="object-contain"
                 />
@@ -112,7 +112,7 @@ export default function GuestJoinPage() {
                 {isJoining ? (
                   <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                 ) : null}
-                自習室に参加
+                作業部屋に参加
               </motion.button>
             </div>
 
@@ -124,7 +124,7 @@ export default function GuestJoinPage() {
                   href="/host/building-selection"
                   className="text-amber-800 font-medium hover:underline ml-1"
                 >
-                  自分で自習室を作成
+                  自分で作業部屋を作成
                 </a>
                 することもできます
               </p>

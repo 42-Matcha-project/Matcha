@@ -531,7 +531,7 @@ export default function CozyRoomPage() {
                   isDarkMode ? "text-amber-300" : "text-amber-700",
                 )}
               >
-                自習を終了すると、現在の学習タイマーがリセットされます。タイマーの進捗はプロフィールに記録されます。
+                自習を終了すると、現在の作業タイマーがリセットされます。タイマーの進捗はプロフィールに記録されます。
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-between flex-row gap-3 mt-6 mb-2">
@@ -571,7 +571,7 @@ export default function CozyRoomPage() {
           </DialogContent>
         </Dialog>
 
-        {/* メモ・チャット・学習状態エリア - 画面最下部に固定 */}
+        {/* メモ・チャット・作業状態エリア - 画面最下部に固定 */}
         <div className="fixed bottom-0 left-0 right-0 z-30">
           <div className="container mx-auto px-4">
             {/* 開閉ボタン - タブの外に移動 */}
@@ -630,7 +630,7 @@ export default function CozyRoomPage() {
                     </TabsTrigger>
                     <TabsTrigger value="stats" className="flex items-center">
                       <span className="mr-2">📊</span>
-                      学習状況
+                      作業状況
                     </TabsTrigger>
                   </TabsList>
                 </div>

@@ -9,12 +9,12 @@ import { toast } from "sonner";
 // HTMLImageElementを使用するために明示的に参照
 const HTMLImage = globalThis.Image;
 
-// 科目（Work）の型定義
+// タスク（Work）の型定義
 interface Subject {
   ID: number;
   WorkName: string;
   IconImageURL: string;
-  notes?: string; // 科目ごとのメモ
+  notes?: string; // タスクごとのメモ
 }
 
 interface SubjectListProps {
@@ -48,7 +48,7 @@ export function SubjectList({
     number | null
   >(null);
 
-  // 科目リストを取得する
+  // タスクリストを取得する
   const fetchSubjects = async () => {
     try {
       setIsLoading(true);
@@ -116,7 +116,7 @@ export function SubjectList({
         return;
       }
 
-      // 科目リストを取得
+      // タスクリストを取得
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/get`,
         {
@@ -130,7 +130,7 @@ export function SubjectList({
       if (!response.ok) {
         // エラーをコンソールにログするが、UIにはメッセージを表示しない
         console.error(
-          "科目リスト取得エラー:",
+          "タスクリスト取得エラー:",
           response.status,
           response.statusText,
         );
@@ -141,7 +141,7 @@ export function SubjectList({
       const data = await response.json();
       setSubjects(data.Works || []);
     } catch (error) {
-      console.error("科目リスト取得エラー:", error);
+      console.error("タスクリスト取得エラー:", error);
       // エラーをコンソールに記録するだけで、UIには表示しない
       setSubjects([]);
     } finally {
@@ -149,7 +149,7 @@ export function SubjectList({
     }
   };
 
-  // 科目アイコンを更新する (ローカルストレージのみ)
+  // タスクアイコンを更新する (ローカルストレージのみ)
   const updateSubjectIcon = async (subjectId: number, iconFile: File) => {
     try {
       // ローディング状態を設定
@@ -168,10 +168,10 @@ export function SubjectList({
         return;
       }
 
-      // 科目の存在チェック
+      // タスクの存在チェック
       const subject = subjects.find((s) => s.ID === subjectId);
       if (!subject) {
-        toast.error("科目が見つかりません");
+        toast.error("タスクが見つかりません");
         return;
       }
 
@@ -260,7 +260,7 @@ export function SubjectList({
     });
   };
 
-  // 初期表示時の科目リスト読み込み
+  // 初期表示時のタスクリスト読み込み
   useEffect(() => {
     // コンポーネントマウント時に一度だけ実行
     fetchSubjects().then(() => {
@@ -319,12 +319,12 @@ export function SubjectList({
     }
   };
 
-  // ローカルで科目アイコンを更新する
+  // ローカルでタスクアイコンを更新する
   const updateLocalIcon = (subjectId: number, iconUrl: string) => {
-    // 現在の科目リストをコピー
+    // 現在のタスクリストをコピー
     const updatedSubjects = subjects.map((subject) => {
       if (subject.ID === subjectId) {
-        // 対象の科目のアイコンを更新（ローカルでは圧縮したDataURLを使用）
+        // 対象のタスクのアイコンを更新（ローカルでは圧縮したDataURLを使用）
         return {
           ...subject,
           IconImageURL: iconUrl,
@@ -333,7 +333,7 @@ export function SubjectList({
       return subject;
     });
 
-    // 科目リストを更新
+    // タスクリストを更新
     setSubjects(updatedSubjects);
 
     // ローカルストレージに画像URLを保存して、リロード後も表示できるようにする
@@ -343,7 +343,7 @@ export function SubjectList({
         localStorage.getItem("subjectIcons") || "{}",
       );
 
-      // 現在の科目IDとアイコンURLを追加（IDを文字列化して保存）
+      // 現在のタスクIDとアイコンURLを追加（IDを文字列化して保存）
       const cacheKey = subjectId.toString();
       cachedIcons[cacheKey] = iconUrl;
 
@@ -411,7 +411,7 @@ export function SubjectList({
   const saveNote = (subjectId: number) => {
     if (noteText.trim() === "") return;
 
-    // 科目リストを更新
+    // タスクリストを更新
     const updatedSubjects = subjects.map((subject) => {
       if (subject.ID === subjectId) {
         return {
@@ -449,7 +449,7 @@ export function SubjectList({
     // 確認ダイアログを閉じる
     setDeleteNoteConfirmSubjectId(null);
 
-    // 科目リストを更新
+    // タスクリストを更新
     const updatedSubjects = subjects.map((subject) => {
       if (subject.ID === subjectId) {
         // notesプロパティを削除（スプレッド演算子を使って残りのプロパティを新しいオブジェクトにコピー）
@@ -486,7 +486,7 @@ export function SubjectList({
     }));
   };
 
-  // 科目を削除する
+  // タスクを削除する
   const deleteSubject = async (subjectId: number) => {
     // 確認ダイアログを閉じる
     setDeleteConfirmSubjectId(null);
@@ -501,7 +501,7 @@ export function SubjectList({
         return;
       }
 
-      // APIで科目を削除
+      // APIでタスクを削除
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/delete`,
         {
@@ -517,10 +517,10 @@ export function SubjectList({
       );
 
       if (!response.ok) {
-        throw new Error(`科目の削除に失敗しました (${response.status})`);
+        throw new Error(`タスクの削除に失敗しました (${response.status})`);
       }
 
-      // 科目リストから対象の科目を削除
+      // タスクリストから対象のタスクを削除
       setSubjects(subjects.filter((subject) => subject.ID !== subjectId));
 
       // ローカルストレージからアイコンとノートを削除
@@ -537,13 +537,13 @@ export function SubjectList({
       localStorage.setItem("subjectIcons", JSON.stringify(cachedIcons));
       localStorage.setItem("subjectNotes", JSON.stringify(cachedNotes));
 
-      toast.success("科目を削除しました");
+      toast.success("タスクを削除しました");
     } catch (error) {
-      console.error("科目削除エラー:", error);
+      console.error("タスク削除エラー:", error);
       toast.error(
         error instanceof Error
           ? error.message
-          : "科目の削除中にエラーが発生しました",
+          : "タスクの削除中にエラーが発生しました",
       );
     } finally {
       setIsLoading(false);
@@ -587,7 +587,7 @@ export function SubjectList({
       />
 
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-bold">登録済み科目</h3>
+        <h3 className="text-lg font-bold">登録済みタスク</h3>
         <button
           onClick={handleRefresh}
           className={cn(
@@ -603,18 +603,18 @@ export function SubjectList({
       {isLoading ? (
         <div className="p-4 text-center">
           <RefreshCw className="h-6 w-6 mx-auto mb-2 animate-spin opacity-50" />
-          <p className="text-sm opacity-70">科目を読み込み中...</p>
+          <p className="text-sm opacity-70">タスクを読み込み中...</p>
         </div>
       ) : subjects.length === 0 ? (
         <div className="p-4 text-center bg-amber-100/30 rounded-lg">
           <BookOpen className="h-6 w-6 mx-auto mb-2 opacity-50" />
-          <p className="text-sm opacity-70">登録されている科目はありません</p>
+          <p className="text-sm opacity-70">登録されているタスクはありません</p>
           <p className="text-xs opacity-50 mt-1">
-            「科目登録」から新しい科目を追加してください
+            「タスク登録」から新しいタスクを追加してください
           </p>
           {hasAttemptedFetch && !isLoading && error && (
             <p className="text-xs text-amber-700 mt-2">
-              （科目リストの取得中にエラーが発生しました。更新ボタンを押して再試行してください）
+              （タスクリストの取得中にエラーが発生しました。更新ボタンを押して再試行してください）
             </p>
           )}
         </div>
@@ -733,7 +733,7 @@ export function SubjectList({
                         ? "hover:bg-red-800/50 text-red-300"
                         : "hover:bg-red-100 text-red-500",
                     )}
-                    title="科目を削除"
+                    title="タスクを削除"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -847,7 +847,7 @@ export function SubjectList({
                     )}
                   >
                     <strong>警告:</strong>{" "}
-                    この科目と関連するメモをすべて削除します。この操作は元に戻せません。
+                    このタスクと関連するメモをすべて削除します。この操作は元に戻せません。
                   </p>
                   <div className="flex justify-end space-x-2">
                     <button
