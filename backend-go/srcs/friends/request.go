@@ -53,7 +53,7 @@ func SendFriendRequestHandler(reqContext *gin.Context) {
 	}
 
 	var sendFriendRequestInput SendFriendRequestInput
-	err = reqContext.ShouldBind(&sendFriendRequestInput)
+	err = reqContext.ShouldBindJSON(&sendFriendRequestInput)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)

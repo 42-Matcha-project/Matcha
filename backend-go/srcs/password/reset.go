@@ -76,7 +76,7 @@ func ResetPasswordHandler(reqContext *gin.Context) {
 		ユーザーのパスワードを更新する。
 	*/
 	var resetPasswordInput ResetPasswordInput
-	if err := reqContext.ShouldBind(&resetPasswordInput); err != nil {
+	if err := reqContext.ShouldBindJSON(&resetPasswordInput); err != nil {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
@@ -94,5 +94,5 @@ func ResetPasswordHandler(reqContext *gin.Context) {
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.ResetPasswordSuccess)
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.ResetPasswordSuccess, applogs.ResponseOptions{}))
 }

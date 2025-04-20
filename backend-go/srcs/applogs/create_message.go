@@ -207,6 +207,7 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 				"Minutes":  workLog.GetMinutes(),
 			})
 		}
+		JSONResponse["WorkLogs"] = workLogs
 	}
 
 	return JSONResponse

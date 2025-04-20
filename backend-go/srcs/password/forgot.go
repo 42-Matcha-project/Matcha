@@ -85,7 +85,7 @@ func ForgotPasswordHandler(reqContext *gin.Context) {
 	}
 
 	var forgotPasswordInput ForgotPasswordInput
-	if err = reqContext.ShouldBind(&forgotPasswordInput); err != nil {
+	if err = reqContext.ShouldBindJSON(&forgotPasswordInput); err != nil {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return

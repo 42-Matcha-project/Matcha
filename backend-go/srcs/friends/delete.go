@@ -43,7 +43,7 @@ func DeleteFriendshipHandler(reqContext *gin.Context) {
 	}
 
 	var deleteFriendshipInput DeleteFriendshipInput
-	if err := reqContext.ShouldBind(&deleteFriendshipInput); err != nil {
+	if err := reqContext.ShouldBindJSON(&deleteFriendshipInput); err != nil {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return

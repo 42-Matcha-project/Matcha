@@ -28,6 +28,8 @@ const (
 	AddWorkSuccess                     = 23
 	GetWorksSuccess                    = 24
 	GetWorkLogsSuccess                 = 25
+	SetBuildingsInStoreSuccess         = 26
+	LogWorkSuccess                     = 27
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -40,6 +42,9 @@ const (
 	NotHaveAdministratorPrivileges = 108
 	ForgotEmailOTPPairsNotFound    = 109
 	RoomCodeNotFound               = 110
+	EmailForUserAlreadyExists      = 111
+	UserNameForUserAlreadyExists   = 112
+	NotEnoughCoins                 = 113
 	// 200~ フロントエンドレベル
 	InvalidJSONInput            = 200
 	UserDoesNotOwnBuilding      = 201
@@ -57,6 +62,7 @@ const (
 	FailedToHashPassword          = 307
 	FailedToGenerateJWTToken      = 308
 	FailedToUpgradeConnectionToWS = 309
+	CoinCountToGiveExceeded       = 310
 	// 400~ データベースレベル
 	FailedToCreateUser           = 401
 	FailedToBuildDefaultBuilding = 402
@@ -71,6 +77,9 @@ const (
 	FailedToCreateWork           = 411
 	FailedToGetWork              = 412
 	FailedToGetWorkLog           = 413
+	FailedToCreateBuilding       = 414
+	FailedToCreateWorkLog        = 415
+	FailedToSaveUser             = 416
 )
 
 var Message = map[int]string{}
@@ -103,6 +112,8 @@ func init() {
 	Message[AddWorkSuccess] = "タスクの追加に成功しました。"
 	Message[GetWorksSuccess] = "タスク一覧の取得に成功しました。"
 	Message[GetWorkLogsSuccess] = "タスクログ一覧の取得に成功しました。"
+	Message[SetBuildingsInStoreSuccess] = "ストアに建物をセットしました。"
+	Message[LogWorkSuccess] = "作業を記録しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -115,6 +126,9 @@ func init() {
 	Message[NotHaveAdministratorPrivileges] = "管理者権限がありません。"
 	Message[ForgotEmailOTPPairsNotFound] = "入力されたメールアドレスにパスワード忘れ用のワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[RoomCodeNotFound] = "入力されたルームコードは見つかりませんでした。正しいルームコードであることを確認してください。"
+	Message[EmailForUserAlreadyExists] = "入力されたメールアドレスはすでに使用されています。ログインを試みてください。"
+	Message[UserNameForUserAlreadyExists] = "入力されたユーザー名はすでに使用されています。"
+	Message[NotEnoughCoins] = "コインが不足しています。"
 	// 200~ フロントエンドレベル
 	Message[InvalidJSONInput] = "JSONデータの形式にエラーがあります。"
 	Message[UserDoesNotOwnBuilding] = "ユーザーは建物を所有していません。"
@@ -132,6 +146,7 @@ func init() {
 	Message[FailedToHashPassword] = "パスワードのハッシュ化に失敗しました。"
 	Message[FailedToGenerateJWTToken] = "JWTトークンの生成に失敗しました。"
 	Message[FailedToUpgradeConnectionToWS] = "接続をWebSocketにアップグレードできませんでした。"
+	Message[CoinCountToGiveExceeded] = "最大コイン枚数を超過しました。"
 	// 400~ データベースレベル
 	Message[FailedToCreateUser] = "データベースにユーザーを保存できませんでした。"
 	Message[FailedToBuildDefaultBuilding] = "初期建物を設定できませんでした。"
@@ -145,4 +160,7 @@ func init() {
 	Message[FailedToCreateWork] = "データベースにタスクを保存できませんでした。"
 	Message[FailedToGetWork] = "データベースからタスクの取得に失敗しました。"
 	Message[FailedToGetWorkLog] = "データベースからタスクログの取得に失敗しました。"
+	Message[FailedToCreateBuilding] = "データベースに建物を保存できませんでした。"
+	Message[FailedToCreateWorkLog] = "データベースにタスクログを保存できませんでした。"
+	Message[FailedToSaveUser] = "データベースのユーザー情報を更新できませんでした。"
 }

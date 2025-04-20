@@ -17,7 +17,7 @@ func BuyBuilding(user *models.TUser, buildingID int) (error, int) {
 
 	err = user.DeductCoins(building.RequiredCoinCount)
 	if err != nil {
-		return err, applogs.FailedToUpdateUser
+		return err, applogs.NotEnoughCoins
 	}
 
 	userBuilding := &models.TUserBuilding{

@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 	"net/http"
 	"os"
@@ -105,7 +106,18 @@ func (user TUser) CreateUser() (TUser, error, int) {
 	user.CoinCount = 0
 	user.Introduction = ""
 
-	err = DB.Create(user).Error
+	err = DB.Create(&user).Error
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		switch pgErr.ConstraintName {
+		case "uni_t_users_email":
+			return user, err, applogs.EmailForUserAlreadyExists
+		case "uni_t_users_username":
+			return user, err, applogs.UserNameForUserAlreadyExists
+		default:
+			return user, err, applogs.FailedToCreateUser
+		}
+	}
 	if err != nil {
 		return user, err, applogs.FailedToCreateUser
 	}
