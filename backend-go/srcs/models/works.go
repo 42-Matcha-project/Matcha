@@ -26,6 +26,8 @@ func (TWork) TableName() string {
 func (work TWork) GetID() int              { return work.ID }
 func (work TWork) GetWorkName() string     { return work.WorkName }
 func (work TWork) GetIconImageURL() string { return work.IconImageURL }
+func (work TWork) GetColor() uint32        { return work.Color }
+func (work TWork) GetMemo() string         { return work.Memo }
 
 func ConvertToWorkInfos(works []TWork) []applogs.WorkInfo {
 	workInfos := make([]applogs.WorkInfo, len(works))
