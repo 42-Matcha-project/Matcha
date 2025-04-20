@@ -8,7 +8,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { useTheme } from "../../contexts/theme-context";
+import { useTheme } from "../../contexts/ThemeContext";
 
 export default function ThemeToggle({
   showTooltip = true,

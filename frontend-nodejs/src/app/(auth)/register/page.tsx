@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, Shield, Info, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../../contexts/auth-context";
+import { useAuth } from "../../../contexts/AuthContext";
 
 // 木の看板コンポーネント
 const WoodenSign = ({

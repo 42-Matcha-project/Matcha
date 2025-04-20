@@ -6,10 +6,9 @@ import { AnimatePresence, motion } from "framer-motion";
 import { Clock, Settings, LogOut, Moon, Sun, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface HeaderProps {
-  isDarkMode: boolean;
-  toggleDarkMode: () => void;
   currentTime: Date | null;
 }
 
@@ -23,12 +22,9 @@ function generateRandomCode(length: number = 6): string {
   return result;
 }
 
-export function Header({
-  isDarkMode,
-  toggleDarkMode,
-  currentTime,
-}: HeaderProps) {
+export function Header({ currentTime }: HeaderProps) {
   const router = useRouter();
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [showInviteTooltip, setShowInviteTooltip] = useState(false);
   const [roomCode, setRoomCode] = useState<string>("");
   const [showRoomCode, setShowRoomCode] = useState(false);

@@ -4,7 +4,7 @@ import React, { useState, ReactNode, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../../../contexts/auth-context";
+import { useAuth } from "../../../contexts/AuthContext";
 
 // 木の看板コンポーネント
 const WoodenSign = ({
