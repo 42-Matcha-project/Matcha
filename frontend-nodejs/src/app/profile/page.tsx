@@ -228,7 +228,7 @@ export default function ProfilePage() {
       title: "新しいタスク",
       description: "新しいタスクを追加しよう！",
       icon: <Plus className="h-8 w-8 text-teal-900" />,
-      onClick: () => router.push("/works/add"),
+      onClick: () => router.push("/profile/add-task"),
       difficulty: "★★★",
       reward: "5000ベル",
       color: "bg-teal-50",
@@ -472,19 +472,22 @@ export default function ProfilePage() {
                     <FileText className="h-8 w-8 text-purple-800" />
                   </div>
                   <h4 className="text-lg font-medium text-purple-900 mb-2">
-                    タスクがありません
+                    タスクがまだありません
                   </h4>
-                  <p className="text-purple-700 mb-4">
-                    新しいタスクを追加してみましょう
+                  <p className="text-purple-700 mb-2">
+                    新しいタスクを追加して、学習の進捗を管理しましょう！
+                  </p>
+                  <p className="text-purple-600 text-sm mb-4">
+                    日々の学習や課題をタスクとして登録すると、進捗の把握や振り返りに役立ちます
                   </p>
                   <button
                     onClick={() => {
                       setShowTasksModal(false);
-                      router.push("/works/add");
+                      router.push("/profile/add-task");
                     }}
-                    className="px-4 py-2 bg-purple-100 hover:bg-purple-200 transition-colors rounded-lg text-purple-700 border border-purple-200 inline-flex items-center"
+                    className="px-4 py-2 bg-purple-200 hover:bg-purple-300 transition-colors rounded-lg text-purple-800 border border-purple-300 inline-flex items-center shadow-sm"
                   >
-                    <Plus className="h-4 w-4 mr-1" /> 新しいタスクを追加
+                    <Plus className="h-4 w-4 mr-1" /> 最初のタスクを追加する
                   </button>
                 </div>
               ) : (
@@ -543,7 +546,7 @@ export default function ProfilePage() {
                 <button
                   onClick={() => {
                     setShowTasksModal(false);
-                    router.push("/works/add");
+                    router.push("/profile/add-task");
                   }}
                   className="px-4 py-2 bg-purple-600 hover:bg-purple-700 transition-colors rounded-lg text-white flex items-center"
                 >
