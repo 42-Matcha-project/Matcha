@@ -424,6 +424,17 @@ export default function ProfileEditPage() {
                     <div className="text-xs text-gray-500 mt-1 text-right">
                       {formData.displayName.length}/15
                     </div>
+                    {formData.displayName.length >= 13 &&
+                      formData.displayName.length < 15 && (
+                        <span className="text-amber-500 text-xs ml-2">
+                          制限に近づいています
+                        </span>
+                      )}
+                    {formData.displayName.length >= 15 && (
+                      <span className="text-red-500 text-xs ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
                   </FormField>
                   <p className="text-amber-100 mt-1">@{profile.Username}</p>
                 </div>
@@ -468,10 +479,21 @@ export default function ProfileEditPage() {
                         placeholder="あなたの街の名前を入力"
                         maxLength={25}
                       />
-                      <div className="text-xs text-gray-500 mt-1 text-right">
-                        {formData.townName.length}/25
-                      </div>
                     </div>
+                    <div className="text-xs text-gray-500 mt-1 text-right">
+                      {formData.townName.length}/25
+                    </div>
+                    {formData.townName.length >= 22 &&
+                      formData.townName.length < 25 && (
+                        <span className="text-amber-500 text-xs ml-2">
+                          制限に近づいています
+                        </span>
+                      )}
+                    {formData.townName.length >= 25 && (
+                      <span className="text-red-500 text-xs ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
                   </FormField>
                 </div>
               </div>
@@ -493,6 +515,17 @@ export default function ProfileEditPage() {
                 <div className="text-xs text-gray-500 mt-1 text-right">
                   {formData.introduction.length}/200
                 </div>
+                {formData.introduction.length >= 180 &&
+                  formData.introduction.length < 200 && (
+                    <span className="text-amber-500 text-xs ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                {formData.introduction.length >= 200 && (
+                  <span className="text-red-500 text-xs ml-2">
+                    文字数制限に達しました
+                  </span>
+                )}
               </div>
 
               {/* メッセージ表示エリア */}

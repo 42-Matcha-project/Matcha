@@ -961,6 +961,16 @@ const Register = () => {
                       </span>
                     )}
                   </div>
+                  {username.length >= 18 && username.length < 20 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {username.length >= 20 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.username && submitAttempted && (
                   <BookmarkError message="ユーザー名を入力してね！" />
@@ -999,6 +1009,16 @@ const Register = () => {
                       </span>
                     )}
                   </div>
+                  {displayName.length >= 13 && displayName.length < 15 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {displayName.length >= 15 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.displayName && submitAttempted && (
                   <BookmarkError message="ニックネームを入力してね！" />
@@ -1051,6 +1071,16 @@ const Register = () => {
                       </span>
                     )}
                   </div>
+                  {email.length >= 90 && email.length < 100 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {email.length >= 100 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.email && submitAttempted && (
                   <BookmarkError message="メールアドレスを入力してね！" />
@@ -1232,22 +1262,7 @@ const Register = () => {
                     placeholder="例）taro1234"
                     maxLength={50}
                   />
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
-                    onClick={() => setShowPassword(!showPassword)}
-                    aria-label={
-                      showPassword ? "パスワードを隠す" : "パスワードを表示する"
-                    }
-                    style={{ top: "calc(50% - 10px)" }}
-                  >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
-                  </button>
-                  <div className="text-xs text-gray-600 mt-1 text-right">
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {password.length}/50
                     {password.length >= 45 && password.length < 50 && (
                       <span className="text-amber-500 ml-2">
@@ -1260,6 +1275,21 @@ const Register = () => {
                       </span>
                     )}
                   </div>
+                  <button
+                    type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                    onClick={togglePasswordVisibility}
+                    aria-label={
+                      showPassword ? "パスワードを隠す" : "パスワードを表示する"
+                    }
+                    style={{ top: "calc(50% - 10px)" }}
+                  >
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
+                  </button>
                 </div>
                 {errors.password && (
                   <div className="mt-2 text-red-500">{errors.password}</div>

@@ -117,9 +117,18 @@ export default function ProfilePage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+
+    // 文字数制限を設定
+    let limitedValue = value;
+    if (name === "workName" && value.length > 20) {
+      limitedValue = value.slice(0, 20);
+    } else if (name === "notes" && value.length > 100) {
+      limitedValue = value.slice(0, 100);
+    }
+
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: limitedValue,
     });
   };
 
@@ -835,6 +844,17 @@ export default function ProfilePage() {
                       <div className="text-xs text-gray-600 mt-1 text-right">
                         {formData.workName.length}/20
                       </div>
+                      {formData.workName.length >= 18 &&
+                        formData.workName.length < 20 && (
+                          <span className="text-amber-500 text-xs block mt-1">
+                            制限に近づいています
+                          </span>
+                        )}
+                      {formData.workName.length >= 20 && (
+                        <span className="text-red-500 text-xs block mt-1">
+                          文字数制限に達しました
+                        </span>
+                      )}
                     </div>
                     <div>
                       <label
@@ -857,6 +877,17 @@ export default function ProfilePage() {
                       <div className="text-xs text-gray-600 mt-1 text-right">
                         {formData.notes.length}/100
                       </div>
+                      {formData.notes.length >= 90 &&
+                        formData.notes.length < 100 && (
+                          <span className="text-amber-500 text-xs block mt-1">
+                            制限に近づいています
+                          </span>
+                        )}
+                      {formData.notes.length >= 100 && (
+                        <span className="text-red-500 text-xs block mt-1">
+                          文字数制限に達しました
+                        </span>
+                      )}
                     </div>
                     <div>
                       <label

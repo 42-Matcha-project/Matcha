@@ -43,6 +43,15 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const [totalStudyTimeSeconds, setTotalStudyTimeSeconds] = useState(0); // 累積作業時間（秒）
   const [pauseTime, setPauseTime] = useState<Date | null>(null); // 一時停止時間
 
+  // 警告メッセージの状態
+  const [showWarning, setShowWarning] = useState(false);
+  const [warningMessage, setWarningMessage] = useState("");
+
+  // 目標テキストの最大文字数を定義
+  const MAX_GOAL_TEXT_LENGTH = 100;
+  // 表示する警告の閾値を調整
+  const WARNING_THRESHOLD = Math.floor(MAX_GOAL_TEXT_LENGTH * 0.8); // 80%で警告
+
   // コンポーネントマウント時に保存された状態を復元
   useEffect(() => {
     // localStorageから作業状態を取得
@@ -480,6 +489,26 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     displayTotalTime += diffSeconds;
   }
 
+  // 目標テキスト入力ハンドラ
+  const handleGoalTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+
+    // 現在の文字数が最大を超えているか確認
+    if (value.length > MAX_GOAL_TEXT_LENGTH) {
+      // 警告メッセージを設定して表示
+      setWarningMessage(
+        `このテキストを半角${MAX_GOAL_TEXT_LENGTH}文字以下にしてください（現時点で半角 ${value.length} 文字です）。`,
+      );
+      setShowWarning(true);
+      // 最大文字数に制限
+      setNewGoalText(value.slice(0, MAX_GOAL_TEXT_LENGTH));
+    } else {
+      setNewGoalText(value);
+      // 警告を非表示
+      setShowWarning(false);
+    }
+  };
+
   return (
     <div
       className={cn(
@@ -657,6 +686,17 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         {/* 目標追加フォーム */}
         {isAddingGoal ? (
           <div className="mt-3">
+            {showWarning && (
+              <div className="bg-gray-700 text-white p-3 rounded mb-2 relative">
+                {warningMessage}
+                <button
+                  onClick={() => setShowWarning(false)}
+                  className="absolute top-2 right-2 text-white"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
             <input
               type="text"
               className={cn(
@@ -668,42 +708,46 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
               )}
               placeholder="新しい目標を入力..."
               value={newGoalText}
-              onChange={handleGoalInputChange}
+              onChange={handleGoalTextChange}
               onKeyDown={(e) => e.key === "Enter" && addGoal()}
               autoFocus
-              maxLength={50}
+              maxLength={MAX_GOAL_TEXT_LENGTH}
             />
-            <div className="flex justify-between items-center">
-              <div className="text-xs text-red-500">
-                {goalError && goalError}
-              </div>
-              <div className="text-xs text-gray-600">
-                {newGoalText.length}/50
-              </div>
-              <div className="flex space-x-2">
-                <button
-                  className={cn(
-                    "px-3 py-1 rounded-lg text-xs",
-                    isDarkMode
-                      ? "bg-amber-700 hover:bg-amber-600"
-                      : "bg-amber-100 hover:bg-amber-200",
-                  )}
-                  onClick={() => setIsAddingGoal(false)}
-                >
-                  キャンセル
-                </button>
-                <button
-                  className={cn(
-                    "px-3 py-1 rounded-lg text-xs",
-                    isDarkMode
-                      ? "bg-amber-600 hover:bg-amber-500"
-                      : "bg-amber-300 hover:bg-amber-400",
-                  )}
-                  onClick={addGoal}
-                >
-                  追加
-                </button>
-              </div>
+            <div className="text-xs mt-1 mb-2">
+              {newGoalText.length}/{MAX_GOAL_TEXT_LENGTH}
+              {newGoalText.length >= WARNING_THRESHOLD &&
+                newGoalText.length < MAX_GOAL_TEXT_LENGTH && (
+                  <span className="text-amber-500 ml-2">
+                    制限に近づいています
+                  </span>
+                )}
+            </div>
+            <p className="text-xs text-red-500 mb-2">
+              最大{MAX_GOAL_TEXT_LENGTH}文字までです
+            </p>
+            <div className="flex justify-end space-x-2">
+              <button
+                className={cn(
+                  "px-3 py-1 rounded-lg text-xs",
+                  isDarkMode
+                    ? "bg-amber-700 hover:bg-amber-600"
+                    : "bg-amber-100 hover:bg-amber-200",
+                )}
+                onClick={() => setIsAddingGoal(false)}
+              >
+                キャンセル
+              </button>
+              <button
+                className={cn(
+                  "px-3 py-1 rounded-lg text-xs",
+                  isDarkMode
+                    ? "bg-amber-600 hover:bg-amber-500"
+                    : "bg-amber-300 hover:bg-amber-400",
+                )}
+                onClick={addGoal}
+              >
+                追加
+              </button>
             </div>
           </div>
         ) : (
