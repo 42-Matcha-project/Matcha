@@ -110,8 +110,8 @@ func ForgotPasswordHandler(reqContext *gin.Context) {
 	}
 
 	if os.Getenv("ENVIRONMENT") == "development" {
-		reqContext.JSON(http.StatusCreated, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{OTP: OTP}))
+		reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{OTP: OTP}))
 		return
 	}
-	reqContext.JSON(http.StatusCreated, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{}))
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{}))
 }
