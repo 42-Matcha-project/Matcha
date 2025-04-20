@@ -951,6 +951,16 @@ const Register = () => {
                   <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {username.length}/20
                   </div>
+                  {username.length >= 18 && username.length < 20 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {username.length >= 20 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.username && submitAttempted && (
                   <BookmarkError message="ユーザー名を入力してね！" />
@@ -979,6 +989,16 @@ const Register = () => {
                   <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {displayName.length}/15
                   </div>
+                  {displayName.length >= 13 && displayName.length < 15 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {displayName.length >= 15 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.displayName && submitAttempted && (
                   <BookmarkError message="ニックネームを入力してね！" />
@@ -1021,6 +1041,16 @@ const Register = () => {
                   <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {email.length}/100
                   </div>
+                  {email.length >= 90 && email.length < 100 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {email.length >= 100 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.email && submitAttempted && (
                   <BookmarkError message="メールアドレスを入力してね！" />
@@ -1200,6 +1230,16 @@ const Register = () => {
                   <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {password.length}/50
                   </div>
+                  {password.length >= 45 && password.length < 50 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {password.length >= 50 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
@@ -1241,6 +1281,17 @@ const Register = () => {
                   <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {confirmPassword.length}/50
                   </div>
+                  {confirmPassword.length >= 45 &&
+                    confirmPassword.length < 50 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                  {confirmPassword.length >= 50 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={toggleConfirmPasswordVisibility}
