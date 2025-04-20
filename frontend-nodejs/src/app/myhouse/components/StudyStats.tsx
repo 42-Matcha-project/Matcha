@@ -32,6 +32,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const [goals, setGoals] = useState<StudyGoal[]>([]);
   const [newGoalText, setNewGoalText] = useState("");
   const [isAddingGoal, setIsAddingGoal] = useState(false);
+  const [goalError, setGoalError] = useState<string | null>(null);
   const [refreshSubjectsTrigger, setRefreshSubjectsTrigger] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
@@ -194,8 +195,20 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
       };
       setGoals([...goals, newGoal]);
       setNewGoalText("");
+      setGoalError(null);
       setIsAddingGoal(false);
     }
+  };
+
+  const handleGoalInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value } = e.target;
+    if (value.length > 50) {
+      setGoalError("最大50文字までです");
+      return;
+    } else {
+      setGoalError(null);
+    }
+    setNewGoalText(value);
   };
 
   // 目標の状態を切り替え
@@ -651,36 +664,46 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
                 isDarkMode
                   ? "bg-amber-800 border-amber-700 text-amber-50"
                   : "bg-white border border-amber-200 text-amber-950",
+                goalError ? "border-red-500" : "",
               )}
               placeholder="新しい目標を入力..."
               value={newGoalText}
-              onChange={(e) => setNewGoalText(e.target.value)}
+              onChange={handleGoalInputChange}
               onKeyDown={(e) => e.key === "Enter" && addGoal()}
               autoFocus
+              maxLength={50}
             />
-            <div className="flex justify-end space-x-2">
-              <button
-                className={cn(
-                  "px-3 py-1 rounded-lg text-xs",
-                  isDarkMode
-                    ? "bg-amber-700 hover:bg-amber-600"
-                    : "bg-amber-100 hover:bg-amber-200",
-                )}
-                onClick={() => setIsAddingGoal(false)}
-              >
-                キャンセル
-              </button>
-              <button
-                className={cn(
-                  "px-3 py-1 rounded-lg text-xs",
-                  isDarkMode
-                    ? "bg-amber-600 hover:bg-amber-500"
-                    : "bg-amber-300 hover:bg-amber-400",
-                )}
-                onClick={addGoal}
-              >
-                追加
-              </button>
+            <div className="flex justify-between items-center">
+              <div className="text-xs text-red-500">
+                {goalError && goalError}
+              </div>
+              <div className="text-xs text-gray-600">
+                {newGoalText.length}/50
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  className={cn(
+                    "px-3 py-1 rounded-lg text-xs",
+                    isDarkMode
+                      ? "bg-amber-700 hover:bg-amber-600"
+                      : "bg-amber-100 hover:bg-amber-200",
+                  )}
+                  onClick={() => setIsAddingGoal(false)}
+                >
+                  キャンセル
+                </button>
+                <button
+                  className={cn(
+                    "px-3 py-1 rounded-lg text-xs",
+                    isDarkMode
+                      ? "bg-amber-600 hover:bg-amber-500"
+                      : "bg-amber-300 hover:bg-amber-400",
+                  )}
+                  onClick={addGoal}
+                >
+                  追加
+                </button>
+              </div>
             </div>
           </div>
         ) : (

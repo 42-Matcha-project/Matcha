@@ -830,7 +830,11 @@ export default function ProfilePage() {
                         onChange={handleInputChange}
                         placeholder="プログラミングの勉強、英語、etc..."
                         className="mt-2 block w-full rounded-md border-2 border-[#e4cbac] p-3 text-[#7b6c5d] focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                        maxLength={20}
                       />
+                      <div className="text-xs text-gray-600 mt-1 text-right">
+                        {formData.workName.length}/20
+                      </div>
                     </div>
                     <div>
                       <label
@@ -848,7 +852,11 @@ export default function ProfilePage() {
                         onChange={handleInputChange}
                         placeholder="詰まっていることや、達成したい目標などを書いておきましょう..."
                         className="mt-2 block w-full rounded-md border-2 border-[#e4cbac] p-3 text-[#7b6c5d] focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                        maxLength={100}
                       />
+                      <div className="text-xs text-gray-600 mt-1 text-right">
+                        {formData.notes.length}/100
+                      </div>
                     </div>
                     <div>
                       <label

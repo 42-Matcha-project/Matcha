@@ -17,17 +17,23 @@ export function SubjectRegistrationForm({
 }: SubjectRegistrationFormProps) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [subjectName, setSubjectName] = useState("");
+  const [notes, setNotes] = useState("");
   const [iconDataUrl, setIconDataUrl] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [nameError, setNameError] = useState<string | null>(null);
+  const [notesError, setNotesError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // フォームをリセットする
   const resetForm = () => {
     setSubjectName("");
+    setNotes("");
     setIconDataUrl(null);
     setIsFormOpen(false);
     setIsDragging(false);
+    setNameError(null);
+    setNotesError(null);
   };
 
   // 画像ファイルを処理する
@@ -99,6 +105,27 @@ export function SubjectRegistrationForm({
   // 選択された画像を削除する
   const handleRemoveImage = () => {
     setIconDataUrl(null);
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+    maxLength: number,
+    setError: (error: string | null) => void,
+  ) => {
+    const { name, value } = e.target;
+
+    if (value.length > maxLength) {
+      setError(`最大${maxLength}文字までです`);
+      return;
+    } else {
+      setError(null);
+    }
+
+    if (name === "subjectName") {
+      setSubjectName(value);
+    } else if (name === "notes") {
+      setNotes(value);
+    }
   };
 
   // タスクを登録する
@@ -181,6 +208,7 @@ export function SubjectRegistrationForm({
           },
           body: JSON.stringify({
             WorkName: subjectName,
+            Notes: notes || null,
             // 画像URLが長すぎる場合は省略（サーバーの許容範囲内に制限）
             IconImageURL: iconDataUrl
               ? iconDataUrl.length > 100000
@@ -257,17 +285,56 @@ export function SubjectRegistrationForm({
             </label>
             <input
               type="text"
+              name="subjectName"
               value={subjectName}
-              onChange={(e) => setSubjectName(e.target.value)}
+              onChange={(e) => handleInputChange(e, 20, setNameError)}
               className={cn(
                 "w-full p-2 rounded-lg text-sm",
                 isDarkMode
                   ? "bg-amber-800 border-amber-700 text-amber-50"
                   : "bg-white border border-amber-200 text-amber-950",
+                nameError ? "border-red-500" : "",
               )}
               placeholder="例：数学、英語、プログラミング"
               disabled={isSubmitting}
+              maxLength={20}
             />
+            <div className="flex justify-between items-center mt-1">
+              <div className="text-xs text-red-500">
+                {nameError && nameError}
+              </div>
+              <div className="text-xs text-gray-600">
+                {subjectName.length}/20
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              メモ（任意）
+            </label>
+            <textarea
+              name="notes"
+              value={notes}
+              onChange={(e) => handleInputChange(e, 100, setNotesError)}
+              className={cn(
+                "w-full p-2 rounded-lg text-sm",
+                isDarkMode
+                  ? "bg-amber-800 border-amber-700 text-amber-50"
+                  : "bg-white border border-amber-200 text-amber-950",
+                notesError ? "border-red-500" : "",
+              )}
+              placeholder="メモを入力してください..."
+              disabled={isSubmitting}
+              maxLength={100}
+              rows={3}
+            />
+            <div className="flex justify-between items-center mt-1">
+              <div className="text-xs text-red-500">
+                {notesError && notesError}
+              </div>
+              <div className="text-xs text-gray-600">{notes.length}/100</div>
+            </div>
           </div>
 
           <div>
@@ -294,7 +361,7 @@ export function SubjectRegistrationForm({
                 <div className="relative w-full h-full flex items-center justify-center">
                   <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-amber-300">
                     <Image
-                      src={iconDataUrl}
+                      src={iconDataUrl || ""}
                       alt="アイコンプレビュー"
                       fill
                       className="object-cover"
