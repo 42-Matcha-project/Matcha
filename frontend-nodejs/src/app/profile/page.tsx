@@ -17,6 +17,9 @@ import {
   Trees,
   Heart,
   Music,
+  X,
+  Loader2,
+  Check,
 } from "lucide-react";
 import { UserProfile } from "@/types/profile";
 import {
@@ -28,6 +31,14 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 
+// タスクのインターフェース定義
+interface Task {
+  ID: number;
+  WorkName: string;
+  IconImageURL: string;
+  notes?: string;
+}
+
 export default function ProfilePage() {
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
@@ -35,6 +46,62 @@ export default function ProfilePage() {
   const [error, setError] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<number | null>(null);
   const [imageKey, setImageKey] = useState<number>(0);
+
+  // タスク関連の状態
+  const [showTasksModal, setShowTasksModal] = useState(false);
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const [isLoadingTasks, setIsLoadingTasks] = useState(false);
+  const [tasksError, setTasksError] = useState<string | null>(null);
+
+  // タスク取得関数
+  const fetchTasks = async () => {
+    try {
+      setIsLoadingTasks(true);
+      setTasksError(null);
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setTasksError("認証情報がありません");
+        return;
+      }
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/get`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+        },
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+        throw new Error(`タスクの取得に失敗しました (${response.status})`);
+      }
+
+      const data = await response.json();
+      setTasks(data.Works || []);
+    } catch (error) {
+      console.error("タスク取得エラー:", error);
+      setTasksError(
+        error instanceof Error ? error.message : "不明なエラーが発生しました",
+      );
+    } finally {
+      setIsLoadingTasks(false);
+    }
+  };
+
+  // タスクモーダルを開く関数
+  const openTasksModal = () => {
+    setShowTasksModal(true);
+    fetchTasks();
+  };
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -135,7 +202,7 @@ export default function ProfilePage() {
       title: "今までのタスク",
       description: "あなたのタスクを確認しよう！",
       icon: <FileText className="h-8 w-8 text-purple-900" />,
-      onClick: () => router.push("/works"),
+      onClick: openTasksModal,
       difficulty: "★☆☆",
       reward: "2500ベル",
       color: "bg-violet-50",
@@ -363,6 +430,129 @@ export default function ProfilePage() {
             アプリの問題報告やご意見・ご要望はこちらからお願いします
           </p>
         </>
+      )}
+
+      {/* タスクモーダル */}
+      {showTasksModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-lg w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center border-b-2 border-[#e4cbac] p-4">
+              <h3 className="text-xl font-bold text-[#7b6c5d] flex items-center">
+                <FileText className="h-5 w-5 mr-2 text-purple-900" />
+                あなたのタスク一覧
+              </h3>
+              <button
+                onClick={() => setShowTasksModal(false)}
+                className="p-2 rounded-full hover:bg-[#e4cbac]/50 transition-colors"
+              >
+                <X className="h-5 w-5 text-[#7b6c5d]" />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto max-h-[70vh]">
+              {isLoadingTasks ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-10 w-10 text-purple-600 animate-spin mb-4" />
+                  <p className="text-[#7b6c5d]">タスクを読み込み中...</p>
+                </div>
+              ) : tasksError ? (
+                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 text-center">
+                  <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                  <p className="text-red-600 font-medium">{tasksError}</p>
+                  <button
+                    onClick={fetchTasks}
+                    className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 transition-colors rounded-lg text-red-700 border border-red-300"
+                  >
+                    再試行
+                  </button>
+                </div>
+              ) : tasks.length === 0 ? (
+                <div className="text-center py-10 bg-purple-50 rounded-xl border-2 border-purple-100">
+                  <div className="w-16 h-16 mx-auto bg-purple-100 rounded-full flex items-center justify-center mb-4">
+                    <FileText className="h-8 w-8 text-purple-800" />
+                  </div>
+                  <h4 className="text-lg font-medium text-purple-900 mb-2">
+                    タスクがありません
+                  </h4>
+                  <p className="text-purple-700 mb-4">
+                    新しいタスクを追加してみましょう
+                  </p>
+                  <button
+                    onClick={() => {
+                      setShowTasksModal(false);
+                      router.push("/works/add");
+                    }}
+                    className="px-4 py-2 bg-purple-100 hover:bg-purple-200 transition-colors rounded-lg text-purple-700 border border-purple-200 inline-flex items-center"
+                  >
+                    <Plus className="h-4 w-4 mr-1" /> 新しいタスクを追加
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {tasks.map((task) => (
+                    <div
+                      key={task.ID}
+                      className="bg-white rounded-xl border-2 border-[#e4cbac] p-3 flex items-center shadow-sm hover:shadow-md transition-shadow"
+                    >
+                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-200 bg-purple-100 relative flex-shrink-0 mr-3">
+                        {task.IconImageURL ? (
+                          <Image
+                            src={task.IconImageURL}
+                            alt={task.WorkName}
+                            fill
+                            className="object-cover"
+                          />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center">
+                            <FileText className="h-6 w-6 text-purple-500" />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-[#7b6c5d] truncate">
+                          {task.WorkName}
+                        </h4>
+                        {task.notes && (
+                          <p className="text-sm text-[#9b8e7e] truncate">
+                            {task.notes}
+                          </p>
+                        )}
+                      </div>
+
+                      <div className="bg-purple-100 px-2 py-1 rounded-full border border-purple-200 text-purple-700 text-xs flex items-center ml-2">
+                        <Check className="h-3 w-3 mr-1" /> タスク
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div className="border-t-2 border-[#e4cbac] p-4 bg-[#f8eddc] flex justify-between items-center">
+              <div className="text-sm text-[#9b8e7e]">
+                <span className="font-medium">{tasks.length}</span> 件のタスク
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() => setShowTasksModal(false)}
+                  className="px-4 py-2 bg-[#e4cbac] hover:bg-[#d9b796] transition-colors rounded-lg text-[#7b6c5d]"
+                >
+                  閉じる
+                </button>
+                <button
+                  onClick={() => {
+                    setShowTasksModal(false);
+                    router.push("/works/add");
+                  }}
+                  className="px-4 py-2 bg-purple-600 hover:bg-purple-700 transition-colors rounded-lg text-white flex items-center"
+                >
+                  <Plus className="h-4 w-4 mr-1" /> 新規タスク
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
