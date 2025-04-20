@@ -419,7 +419,11 @@ export default function ProfileEditPage() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                       placeholder="表示名を入力"
+                      maxLength={15}
                     />
+                    <div className="text-xs text-gray-500 mt-1 text-right">
+                      {formData.displayName.length}/15
+                    </div>
                   </FormField>
                   <p className="text-amber-100 mt-1">@{profile.Username}</p>
                 </div>
@@ -462,7 +466,11 @@ export default function ProfileEditPage() {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                         placeholder="あなたの街の名前を入力"
+                        maxLength={25}
                       />
+                      <div className="text-xs text-gray-500 mt-1 text-right">
+                        {formData.townName.length}/25
+                      </div>
                     </div>
                   </FormField>
                 </div>
@@ -480,7 +488,11 @@ export default function ProfileEditPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[120px]"
                   placeholder="自己紹介を入力してください"
+                  maxLength={200}
                 />
+                <div className="text-xs text-gray-500 mt-1 text-right">
+                  {formData.introduction.length}/200
+                </div>
               </div>
 
               {/* メッセージ表示エリア */}
