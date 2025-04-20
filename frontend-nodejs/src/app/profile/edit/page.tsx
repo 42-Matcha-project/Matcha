@@ -480,12 +480,9 @@ export default function ProfileEditPage() {
                         maxLength={25}
                       />
                     </div>
-<<<<<<< HEAD
                     <div className="text-xs text-gray-500 mt-1 text-right">
                       {formData.townName.length}/25
                     </div>
-=======
->>>>>>> 3be267fe39a78f151427e5594c621a8f81c7fe13
                     {formData.townName.length >= 22 &&
                       formData.townName.length < 25 && (
                         <span className="text-amber-500 text-xs ml-2">

@@ -209,21 +209,10 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     }
   };
 
-  const handleGoalInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value } = e.target;
-    if (value.length > 50) {
-      setGoalError("最大50文字までです");
-      return;
-    } else {
-      setGoalError(null);
-    }
-    setNewGoalText(value);
-  };
-
   // 目標の状態を切り替え
   const toggleGoalCompletion = (id: number) => {
-    setGoals(
-      goals.map((goal) =>
+    setGoals((prevGoals) =>
+      prevGoals.map((goal) =>
         goal.id === id ? { ...goal, completed: !goal.completed } : goal,
       ),
     );
@@ -236,9 +225,8 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
 
   // 自習終了ダイアログを表示
   const openEndSessionDialog = () => {
-    // ダイアログ表示時に勉強中なら一時停止する
     if (isStudying) {
-      pauseStudy();
+      pauseStudy(); // 作業中なら一時停止
     }
     setShowEndSessionDialog(true);
   };
@@ -497,7 +485,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     if (value.length > MAX_GOAL_TEXT_LENGTH) {
       // 警告メッセージを設定して表示
       setWarningMessage(
-        `このテキストを半角${MAX_GOAL_TEXT_LENGTH}文字以下にしてください（現時点で半角 ${value.length} 文字です）。`,
+        `このテキストを${MAX_GOAL_TEXT_LENGTH}文字以下にしてください（現時点で ${value.length} 文字です）。`,
       );
       setShowWarning(true);
       // 最大文字数に制限
