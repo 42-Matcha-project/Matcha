@@ -20,7 +20,7 @@ import {
   X,
   Loader2,
   Check,
-  AlertCircle,
+  Upload,
 } from "lucide-react";
 import { UserProfile } from "@/types/profile";
 import {
@@ -59,10 +59,13 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     workName: "",
     notes: "",
+    // iconImage: null as File | null, // 画像機能は現在準備中
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [formSuccess, setFormSuccess] = useState<string | null>(null);
+  // const [imagePreview, setImagePreview] = useState<string | null>(null); // 画像機能は現在準備中
+  // const fileInputRef = useRef<HTMLInputElement>(null); // 画像機能は現在準備中
 
   // タスク取得関数
   const fetchTasks = async () => {
@@ -76,8 +79,10 @@ export default function ProfilePage() {
         return;
       }
 
+      // タイムスタンプを追加してキャッシュを回避
+      const timestamp = Date.now();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/get`,
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/get?t=${timestamp}`,
         {
           method: "GET",
           headers: {
@@ -108,6 +113,51 @@ export default function ProfilePage() {
     }
   };
 
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
+  // 画像機能は現在準備中のため、コメントアウト
+  /*
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+
+      // Check file size
+      if (file.size > 1 * 1024 * 1024) {
+        // 1MB limit
+        setFormError("画像サイズが大きすぎます（上限1MB）。より小さい画像を選択してください。");
+        return;
+      }
+
+      setFormData({
+        ...formData,
+        iconImage: file,
+      });
+
+      // プレビュー用URLを作成
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImagePreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+
+      // エラーメッセージをクリア
+      setFormError(null);
+    }
+  };
+
+  const handleImageButtonClick = () => {
+    fileInputRef.current?.click();
+  };
+  */
+
   // タスク追加関数
   const handleAddTask = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -130,9 +180,11 @@ export default function ProfilePage() {
       }
 
       // APIにタスクを登録するリクエスト
+      // 画像アップロードは一時的に無効化
       const taskData = {
         WorkName: formData.workName,
         Notes: formData.notes || null,
+        // IconImageURL: null // 画像機能は現在準備中
       };
 
       const response = await fetch(
@@ -152,7 +204,15 @@ export default function ProfilePage() {
           router.push("/login");
           return;
         }
-        throw new Error(`タスクの登録に失敗しました (${response.status})`);
+        // レスポンスのエラーメッセージを取得
+        try {
+          const errorData = await response.json();
+          throw new Error(
+            `タスクの登録に失敗しました: ${errorData.Error || response.status}`,
+          );
+        } catch {
+          throw new Error(`タスクの登録に失敗しました (${response.status})`);
+        }
       }
 
       // 成功レスポンスの処理
@@ -165,7 +225,9 @@ export default function ProfilePage() {
       setFormData({
         workName: "",
         notes: "",
+        // iconImage: null, // 画像機能は現在準備中
       });
+      // setImagePreview(null); // 画像機能は現在準備中
 
       // 少し待ってからタスク一覧を更新してモーダルを閉じる
       setTimeout(() => {
@@ -183,16 +245,6 @@ export default function ProfilePage() {
     }
   };
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-  };
-
   // タスクモーダルを開く関数
   const openTasksModal = () => {
     setShowTasksModal(true);
@@ -203,7 +255,12 @@ export default function ProfilePage() {
   const openAddTaskModal = () => {
     setShowAddTaskModal(true);
     // フォームの状態をリセット
-    setFormData({ workName: "", notes: "" });
+    setFormData({
+      workName: "",
+      notes: "",
+      // iconImage: null  // 画像機能は現在準備中
+    });
+    // setImagePreview(null); // 画像機能は現在準備中
     setFormError(null);
     setFormSuccess(null);
   };
@@ -390,6 +447,22 @@ export default function ProfilePage() {
                 fill
                 className="object-cover"
                 key={imageKey}
+                onError={(e) => {
+                  // 画像読み込みエラー時にデフォルトアイコンを表示
+                  const target = e.target as HTMLImageElement;
+                  target.onerror = null; // エラーループ防止
+                  target.style.display = "none";
+                  const parent = target.parentElement;
+                  if (parent) {
+                    parent.classList.add("bg-[#8cc750]");
+                    // デフォルトアイコンをDOMに追加
+                    const iconDiv = document.createElement("div");
+                    iconDiv.className =
+                      "w-full h-full flex items-center justify-center";
+                    iconDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-8 w-8 text-white"><path d="M10 10a2 2 0 1 0 4 0c0-1.5-2-2.5-2-5"></path><path d="M7 16a6 6 0 1 0 10 0"></path><path d="M2 22v-1a8 8 0 0 1 16 0v1"></path></svg>`;
+                    parent.appendChild(iconDiv);
+                  }
+                }}
               />
             ) : (
               <PawPrint className="h-8 w-8 text-white" />
@@ -600,16 +673,35 @@ export default function ProfilePage() {
                   {tasks.map((task) => (
                     <div
                       key={task.ID}
-                      className="bg-white rounded-xl border-2 border-[#e4cbac] p-3 flex items-center shadow-sm hover:shadow-md transition-shadow"
+                      className={`bg-white rounded-xl border-2 ${task.notes ? "border-purple-200" : "border-[#e4cbac]"} p-3 flex items-center shadow-sm hover:shadow-md transition-shadow`}
                     >
                       <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-200 bg-purple-100 relative flex-shrink-0 mr-3">
                         {task.IconImageURL ? (
-                          <Image
-                            src={task.IconImageURL}
-                            alt={task.WorkName}
-                            fill
-                            className="object-cover"
-                          />
+                          <div className="relative w-full h-full">
+                            <Image
+                              src={`${task.IconImageURL}?t=${Date.now()}`}
+                              alt={task.WorkName}
+                              fill
+                              className="object-cover"
+                              unoptimized={true}
+                              onError={(e) => {
+                                // 画像読み込みエラー時にデフォルトアイコンを表示
+                                const target = e.target as HTMLImageElement;
+                                target.onerror = null; // エラーループ防止
+                                target.style.display = "none";
+                                const parent = target.parentElement;
+                                if (parent) {
+                                  parent.classList.add("bg-purple-100");
+                                  // デフォルトアイコンをDOMに追加
+                                  const iconDiv = document.createElement("div");
+                                  iconDiv.className =
+                                    "w-full h-full flex items-center justify-center";
+                                  iconDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-purple-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
+                                  parent.appendChild(iconDiv);
+                                }
+                              }}
+                            />
+                          </div>
                         ) : (
                           <div className="w-full h-full flex items-center justify-center">
                             <FileText className="h-6 w-6 text-purple-500" />
@@ -622,14 +714,22 @@ export default function ProfilePage() {
                           {task.WorkName}
                         </h4>
                         {task.notes && (
-                          <p className="text-sm text-[#9b8e7e] truncate">
+                          <p className="text-xs text-[#9b8e7e] truncate mt-1 italic">
+                            <span className="inline-block mr-1 text-violet-500">
+                              📝
+                            </span>
                             {task.notes}
                           </p>
                         )}
                       </div>
 
-                      <div className="bg-purple-100 px-2 py-1 rounded-full border border-purple-200 text-purple-700 text-xs flex items-center ml-2">
-                        <Check className="h-3 w-3 mr-1" /> タスク
+                      <div
+                        className={`${task.notes ? "bg-purple-100 border-purple-200" : "bg-amber-100 border-amber-200"} px-2 py-1 rounded-full border text-xs flex items-center ml-2`}
+                      >
+                        <Check
+                          className={`h-3 w-3 mr-1 ${task.notes ? "text-purple-700" : "text-amber-700"}`}
+                        />
+                        {task.notes ? "メモあり" : "タスク"}
                       </div>
                     </div>
                   ))}
@@ -691,10 +791,7 @@ export default function ProfilePage() {
                   <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
                   <p className="text-red-600 font-medium">{formError}</p>
                   <button
-                    onClick={() => {
-                      setShowAddTaskModal(false);
-                      setFormError(null);
-                    }}
+                    onClick={() => setFormError(null)}
                     className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 transition-colors rounded-lg text-red-700 border border-red-300"
                   >
                     閉じる
@@ -753,13 +850,22 @@ export default function ProfilePage() {
                         className="mt-2 block w-full rounded-md border-2 border-[#e4cbac] p-3 text-[#7b6c5d] focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
                       />
                     </div>
-                    <div className="bg-violet-50 rounded-lg p-3 border border-violet-200">
-                      <p className="text-sm text-violet-700 flex items-start">
-                        <AlertCircle className="h-4 w-4 mr-2 mt-0.5 text-violet-500 flex-shrink-0" />
-                        <span>
-                          画像アップロード機能は現在準備中です。タスク名とメモのみ保存できます。
-                        </span>
-                      </p>
+                    <div>
+                      <label
+                        htmlFor="iconImage"
+                        className="text-sm font-medium text-[#7b6c5d] flex items-center"
+                      >
+                        <Upload className="h-4 w-4 mr-1 text-purple-700" />{" "}
+                        アイコン画像（準備中）
+                      </label>
+                      <div className="mt-2 bg-violet-50 rounded-lg p-3 border border-violet-200">
+                        <p className="text-sm text-violet-700 flex items-start">
+                          <AlertTriangle className="h-4 w-4 mr-2 mt-0.5 text-violet-500 flex-shrink-0" />
+                          <span>
+                            画像アップロード機能は現在準備中です。タスク名とメモのみ保存できます。
+                          </span>
+                        </p>
+                      </div>
                     </div>
                   </div>
                   <div className="mt-6 flex justify-end space-x-3 border-t border-[#e4cbac] pt-4">
