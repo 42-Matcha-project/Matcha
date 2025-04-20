@@ -62,7 +62,6 @@ func SendFriendRequestHandler(reqContext *gin.Context) {
 
 	if user.ID == sendFriendRequestInput.ReceiverID {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.CannotFriendRequestYourself, applogs.ResponseOptions{}))
-		reqContext.Error(err)
 		return
 	}
 
