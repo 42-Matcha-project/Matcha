@@ -1328,6 +1328,17 @@ const Register = () => {
                       </span>
                     )}
                   </div>
+                  {confirmPassword.length >= 45 &&
+                    confirmPassword.length < 50 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                  {confirmPassword.length >= 50 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={toggleConfirmPasswordVisibility}
