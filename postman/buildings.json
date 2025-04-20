@@ -19,17 +19,19 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "// レスポンスがJSON形式であることを確認",
-              "pm.test(\"レスポンスがJSONであることを確認\", function () {",
-              "    pm.response.to.be.json;",
-              "});",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
               "",
-              "// \"token\" キーがレスポンスに含まれていることを確認し、その値を環境変数に保存",
-              "pm.test('\"Token\" キーが含まれていることを確認', function () {",
+              "pm.test(\"レスポンスに ReponseCode=5 Message Tokenが含まれている\", function () {",
               "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.have.property(\"Token\");",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(5);",
               "",
-              "    // tokenの値を環境変数に保存",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"Token\")",
+              "",
               "    pm.environment.set(\"jwt_token\", jsonData.Token);",
               "});",
               ""
@@ -68,14 +70,87 @@
       "response": []
     },
     {
-      "name": "建物を建てる Copy",
+      "name": "建物を建てる Copy (JSONデータが正しくない)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "pm.test(\"レスポンスが 400 であることを確認\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=200 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(200);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"BuildingID\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/buildings/build",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "buildings",
+            "build"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "建物を建てる Copy (成功)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
               "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=6 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(6);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
               "});",
               ""
             ],
@@ -118,19 +193,29 @@
       "response": []
     },
     {
-      "name": "所持している建物一覧 Copy",
+      "name": "所持している建物一覧 Copy (成功)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"レスポンスのJSONにBuildingsフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('OwnBuildings');",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=7 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(7);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"Buildings\")",
               "});",
               ""
             ],
@@ -170,13 +255,23 @@
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"レスポンスのJSONにTownBuildingsフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('TownBuildings');",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=9 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(9);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"BuildingsWithPlaceIndex\")",
               "});",
               ""
             ],
