@@ -64,6 +64,8 @@ Table t_works {
   user_id integer [not null, ref: > t_users.id]
   work_name varchar(60) [not null]
   icon_image_url varchar(255)
+  color integer
+  memo varchar(110)
 }
 
 
@@ -74,7 +76,7 @@ Table t_work_logs {
   id integer [primary key]
   user_id integer [not null, ref: > t_users.id]
   work_id integer [not null, ref: > t_works.id]
-  start_at timestamp [not null]
+  date timestamp [not null]
   minutes bigint [not null]
 }
 
