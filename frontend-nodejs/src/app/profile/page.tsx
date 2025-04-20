@@ -20,6 +20,7 @@ import {
   X,
   Loader2,
   Check,
+  AlertCircle,
 } from "lucide-react";
 import { UserProfile } from "@/types/profile";
 import {
@@ -49,9 +50,19 @@ export default function ProfilePage() {
 
   // タスク関連の状態
   const [showTasksModal, setShowTasksModal] = useState(false);
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
   const [tasks, setTasks] = useState<Task[]>([]);
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [tasksError, setTasksError] = useState<string | null>(null);
+
+  // タスク追加フォームの状態
+  const [formData, setFormData] = useState({
+    workName: "",
+    notes: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [formSuccess, setFormSuccess] = useState<string | null>(null);
 
   // タスク取得関数
   const fetchTasks = async () => {
@@ -97,10 +108,104 @@ export default function ProfilePage() {
     }
   };
 
+  // タスク追加関数
+  const handleAddTask = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    // バリデーション
+    if (!formData.workName.trim()) {
+      setFormError("タスク名を入力してください");
+      return;
+    }
+
+    try {
+      setIsSubmitting(true);
+      setFormError(null);
+      setFormSuccess(null);
+
+      const token = localStorage.getItem("token");
+      if (!token) {
+        router.push("/login");
+        return;
+      }
+
+      // APIにタスクを登録するリクエスト
+      const taskData = {
+        WorkName: formData.workName,
+        Notes: formData.notes || null,
+      };
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(taskData),
+        },
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          router.push("/login");
+          return;
+        }
+        throw new Error(`タスクの登録に失敗しました (${response.status})`);
+      }
+
+      // 成功レスポンスの処理
+      const responseData = await response.json();
+      console.log("Task created successfully:", responseData);
+
+      setFormSuccess("タスクを登録しました！");
+
+      // フォームをリセット
+      setFormData({
+        workName: "",
+        notes: "",
+      });
+
+      // 少し待ってからタスク一覧を更新してモーダルを閉じる
+      setTimeout(() => {
+        fetchTasks();
+        setShowAddTaskModal(false);
+        setFormSuccess(null);
+      }, 1500);
+    } catch (error) {
+      console.error("タスク登録エラー:", error);
+      setFormError(
+        error instanceof Error ? error.message : "不明なエラーが発生しました",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+
   // タスクモーダルを開く関数
   const openTasksModal = () => {
     setShowTasksModal(true);
     fetchTasks();
+  };
+
+  // タスク追加モーダルを開く関数
+  const openAddTaskModal = () => {
+    setShowAddTaskModal(true);
+    // フォームの状態をリセット
+    setFormData({ workName: "", notes: "" });
+    setFormError(null);
+    setFormSuccess(null);
   };
 
   useEffect(() => {
@@ -228,7 +333,7 @@ export default function ProfilePage() {
       title: "新しいタスク",
       description: "新しいタスクを追加しよう！",
       icon: <Plus className="h-8 w-8 text-teal-900" />,
-      onClick: () => router.push("/profile/add-task"),
+      onClick: openAddTaskModal,
       difficulty: "★★★",
       reward: "5000ベル",
       color: "bg-teal-50",
@@ -483,7 +588,7 @@ export default function ProfilePage() {
                   <button
                     onClick={() => {
                       setShowTasksModal(false);
-                      router.push("/profile/add-task");
+                      openAddTaskModal();
                     }}
                     className="px-4 py-2 bg-purple-200 hover:bg-purple-300 transition-colors rounded-lg text-purple-800 border border-purple-300 inline-flex items-center shadow-sm"
                   >
@@ -546,13 +651,135 @@ export default function ProfilePage() {
                 <button
                   onClick={() => {
                     setShowTasksModal(false);
-                    router.push("/profile/add-task");
+                    openAddTaskModal();
                   }}
                   className="px-4 py-2 bg-purple-600 hover:bg-purple-700 transition-colors rounded-lg text-white flex items-center"
                 >
                   <Plus className="h-4 w-4 mr-1" /> 新規タスク
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* タスク追加モーダル */}
+      {showAddTaskModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-lg w-full max-w-2xl max-h-[90vh] overflow-hidden">
+            <div className="flex justify-between items-center border-b-2 border-[#e4cbac] p-4">
+              <h3 className="text-xl font-bold text-[#7b6c5d] flex items-center">
+                <FileText className="h-5 w-5 mr-2 text-purple-900" />
+                新しいタスクを追加する
+              </h3>
+              <button
+                onClick={() => setShowAddTaskModal(false)}
+                className="p-2 rounded-full hover:bg-[#e4cbac]/50 transition-colors"
+              >
+                <X className="h-5 w-5 text-[#7b6c5d]" />
+              </button>
+            </div>
+
+            <div className="p-4 overflow-y-auto max-h-[70vh]">
+              {isSubmitting ? (
+                <div className="flex flex-col items-center justify-center py-12">
+                  <Loader2 className="h-10 w-10 text-purple-600 animate-spin mb-4" />
+                  <p className="text-[#7b6c5d]">タスクを登録中...</p>
+                </div>
+              ) : formError ? (
+                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 text-center">
+                  <AlertTriangle className="h-8 w-8 text-red-500 mx-auto mb-2" />
+                  <p className="text-red-600 font-medium">{formError}</p>
+                  <button
+                    onClick={() => {
+                      setShowAddTaskModal(false);
+                      setFormError(null);
+                    }}
+                    className="mt-4 px-4 py-2 bg-red-100 hover:bg-red-200 transition-colors rounded-lg text-red-700 border border-red-300"
+                  >
+                    閉じる
+                  </button>
+                </div>
+              ) : formSuccess ? (
+                <div className="bg-green-50 border-2 border-green-200 rounded-xl p-4 text-center">
+                  <Check className="h-8 w-8 text-green-500 mx-auto mb-2" />
+                  <p className="text-green-600 font-medium">{formSuccess}</p>
+                  <button
+                    onClick={() => {
+                      setShowAddTaskModal(false);
+                      setFormSuccess(null);
+                    }}
+                    className="mt-4 px-4 py-2 bg-green-100 hover:bg-green-200 transition-colors rounded-lg text-green-700 border border-green-300"
+                  >
+                    閉じる
+                  </button>
+                </div>
+              ) : (
+                <form onSubmit={handleAddTask}>
+                  <div className="space-y-5">
+                    <div>
+                      <label
+                        htmlFor="workName"
+                        className="text-sm font-medium text-[#7b6c5d] flex items-center"
+                      >
+                        <FileText className="h-4 w-4 mr-1 text-purple-700" />{" "}
+                        タスク名 <span className="text-red-500 ml-1">*</span>
+                      </label>
+                      <input
+                        type="text"
+                        id="workName"
+                        name="workName"
+                        value={formData.workName}
+                        onChange={handleInputChange}
+                        placeholder="プログラミングの勉強、英語、etc..."
+                        className="mt-2 block w-full rounded-md border-2 border-[#e4cbac] p-3 text-[#7b6c5d] focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                      />
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="notes"
+                        className="text-sm font-medium text-[#7b6c5d] flex items-center"
+                      >
+                        <Edit className="h-4 w-4 mr-1 text-purple-700" />{" "}
+                        メモ（任意）
+                      </label>
+                      <textarea
+                        id="notes"
+                        name="notes"
+                        rows={4}
+                        value={formData.notes}
+                        onChange={handleInputChange}
+                        placeholder="詰まっていることや、達成したい目標などを書いておきましょう..."
+                        className="mt-2 block w-full rounded-md border-2 border-[#e4cbac] p-3 text-[#7b6c5d] focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                      />
+                    </div>
+                    <div className="bg-violet-50 rounded-lg p-3 border border-violet-200">
+                      <p className="text-sm text-violet-700 flex items-start">
+                        <AlertCircle className="h-4 w-4 mr-2 mt-0.5 text-violet-500 flex-shrink-0" />
+                        <span>
+                          画像アップロード機能は現在準備中です。タスク名とメモのみ保存できます。
+                        </span>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-6 flex justify-end space-x-3 border-t border-[#e4cbac] pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setShowAddTaskModal(false)}
+                      className="px-4 py-2 bg-[#e4cbac] text-[#7b6c5d] rounded-md hover:bg-[#d9b796] transition-colors border border-[#d9b796]"
+                    >
+                      キャンセル
+                    </button>
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors flex items-center shadow-md"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      タスクを登録する
+                    </button>
+                  </div>
+                </form>
+              )}
             </div>
           </div>
         </div>
