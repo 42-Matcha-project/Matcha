@@ -950,6 +950,16 @@ const Register = () => {
                   />
                   <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {username.length}/20
+                    {username.length >= 16 && username.length < 20 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                    {username.length >= 20 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
                   </div>
                 </div>
                 {errors.username && submitAttempted && (
@@ -978,6 +988,16 @@ const Register = () => {
                   />
                   <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {displayName.length}/15
+                    {displayName.length >= 12 && displayName.length < 15 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                    {displayName.length >= 15 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
                   </div>
                 </div>
                 {errors.displayName && submitAttempted && (
@@ -1020,6 +1040,16 @@ const Register = () => {
                   />
                   <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {email.length}/100
+                    {email.length >= 90 && email.length < 100 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                    {email.length >= 100 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
                   </div>
                 </div>
                 {errors.email && submitAttempted && (
@@ -1193,20 +1223,23 @@ const Register = () => {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={handlePassword}
-                    className="w-full px-4 py-3 pr-12 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
-                    placeholder="8文字以上の安全なパスワード"
+                    onKeyDown={handleKeyDown}
+                    className={`${
+                      errors.password && submitAttempted
+                        ? "bg-white border-red-500"
+                        : "bg-white"
+                    } h-10 block px-3 w-full border border-brown-300 rounded text-sm shadow-sm placeholder-brown-400 focus:outline-none focus:border-brown-500 focus:ring-1 focus:ring-brown-500`}
+                    placeholder="例）taro1234"
                     maxLength={50}
                   />
-                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
-                    {password.length}/50
-                  </div>
                   <button
                     type="button"
-                    onClick={togglePasswordVisibility}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-amber-800 focus:outline-none"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
+                    onClick={() => setShowPassword(!showPassword)}
                     aria-label={
-                      showPassword ? "パスワードを隠す" : "パスワードを表示"
+                      showPassword ? "パスワードを隠す" : "パスワードを表示する"
                     }
+                    style={{ top: "calc(50% - 10px)" }}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -1214,6 +1247,19 @@ const Register = () => {
                       <Eye className="h-5 w-5" />
                     )}
                   </button>
+                  <div className="text-xs text-gray-600 mt-1 text-right">
+                    {password.length}/50
+                    {password.length >= 45 && password.length < 50 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                    {password.length >= 50 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
+                  </div>
                 </div>
                 {errors.password && (
                   <div className="mt-2 text-red-500">{errors.password}</div>
@@ -1240,6 +1286,17 @@ const Register = () => {
                   />
                   <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                     {confirmPassword.length}/50
+                    {confirmPassword.length >= 45 &&
+                      confirmPassword.length < 50 && (
+                        <span className="text-amber-500 ml-2">
+                          制限に近づいています
+                        </span>
+                      )}
+                    {confirmPassword.length >= 50 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
                   </div>
                   <button
                     type="button"
