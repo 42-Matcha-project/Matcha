@@ -961,6 +961,16 @@ const Register = () => {
                       </span>
                     )}
                   </div>
+                  {username.length >= 18 && username.length < 20 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {username.length >= 20 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.username && submitAttempted && (
                   <BookmarkError message="ユーザー名を入力してね！" />
@@ -999,6 +1009,16 @@ const Register = () => {
                       </span>
                     )}
                   </div>
+                  {displayName.length >= 13 && displayName.length < 15 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {displayName.length >= 15 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.displayName && submitAttempted && (
                   <BookmarkError message="ニックネームを入力してね！" />
@@ -1051,6 +1071,16 @@ const Register = () => {
                       </span>
                     )}
                   </div>
+                  {email.length >= 90 && email.length < 100 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {email.length >= 100 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.email && submitAttempted && (
                   <BookmarkError message="メールアドレスを入力してね！" />
@@ -1298,6 +1328,17 @@ const Register = () => {
                       </span>
                     )}
                   </div>
+                  {confirmPassword.length >= 45 &&
+                    confirmPassword.length < 50 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                  {confirmPassword.length >= 50 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={toggleConfirmPasswordVisibility}

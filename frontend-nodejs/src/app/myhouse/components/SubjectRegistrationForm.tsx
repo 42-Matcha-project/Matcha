@@ -25,6 +25,12 @@ export function SubjectRegistrationForm({
   const [notesError, setNotesError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // 最大文字数を定義
+  const MAX_SUBJECT_NAME_LENGTH = 20;
+
+  // 表示する警告の閾値を調整
+  const WARNING_THRESHOLD = Math.floor(MAX_SUBJECT_NAME_LENGTH * 0.8); // 80%で警告
+
   // フォームをリセットする
   const resetForm = () => {
     setSubjectName("");
@@ -178,7 +184,7 @@ export function SubjectRegistrationForm({
             // tokenが文字列であることを保証
             if (typeof data.Token === "string") {
               token = data.Token;
-              localStorage.setItem("token", token);
+              localStorage.setItem("token", data.Token);
               toast.success("再認証しました");
             } else {
               throw new Error("認証トークンが無効です");
