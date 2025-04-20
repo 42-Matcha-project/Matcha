@@ -54,7 +54,7 @@ type WorkInfo interface {
 type WorkLogInfo interface {
 	GetWorkID() int
 	GetWorkName() string
-	GetStartAt() time.Time
+	GetDate() time.Time
 	GetMinutes() int64
 }
 
@@ -209,7 +209,7 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			workLogs = append(workLogs, gin.H{
 				"ID":       workLog.GetWorkID(),
 				"WorkName": workLog.GetWorkName(),
-				"StartAt":  workLog.GetStartAt(),
+				"Date":     workLog.GetDate(),
 				"Minutes":  workLog.GetMinutes(),
 			})
 		}

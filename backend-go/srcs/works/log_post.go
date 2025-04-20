@@ -13,7 +13,7 @@ import (
 
 type LogWorkInput struct {
 	WorkID  int       `json:"WorkID" binding:"required"`
-	StartAt time.Time `json:"StartAt"`
+	Date    time.Time `json:"StartAt"`
 	Minutes int64     `json:"Minutes" binding:"required"`
 }
 
@@ -22,23 +22,33 @@ func logWork(logWorkInput LogWorkInput, user models.TUser) (*models.TWorkLog, er
 		作業ログをDBに保存する関数。
 		StartAtが無ければMinutesから時刻を計算する
 	*/
-	workLog := &models.TWorkLog{
-		UserID:  user.ID,
-		WorkID:  logWorkInput.WorkID,
-		StartAt: logWorkInput.StartAt,
-		Minutes: logWorkInput.Minutes,
-	}
-
-	if logWorkInput.StartAt.IsZero() {
+	if logWorkInput.Date.IsZero() {
 		timeZone := os.Getenv("TIME_ZONE")
 		location, err := time.LoadLocation(timeZone)
 		if err != nil {
 			return nil, err
 		}
-		logWorkInput.StartAt = time.Now().In(location).Add(-time.Duration(logWorkInput.Minutes) * time.Minute)
+		logWorkInput.Date = time.Now().In(location).Add(-time.Duration(logWorkInput.Minutes) * time.Minute)
 	}
 
-	err := models.DB.Create(workLog).Error
+	adjustedDate := utils.AdjustDateToFourAM(logWorkInput.Date)
+
+	workLog, err := GetWorkLogByDate(adjustedDate, user)
+	if err != nil {
+		return nil, err
+	}
+
+	if workLog == nil {
+		workLog = &models.TWorkLog{
+			WorkID:  logWorkInput.WorkID,
+			Date:    logWorkInput.Date,
+			Minutes: logWorkInput.Minutes,
+		}
+		err = models.DB.Create(&workLog).Error
+	} else {
+		workLog.Minutes += logWorkInput.Minutes
+		err = models.DB.Model(workLog).Updates(workLog).Error
+	}
 	return workLog, err
 }
 
