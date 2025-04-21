@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import {
   ArrowLeft,
   Building,
@@ -33,6 +34,7 @@ export default function ProfilePage() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCard, setActiveCard] = useState<number | null>(null);
+  const [imageKey, setImageKey] = useState<number>(0);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -47,7 +49,9 @@ export default function ProfilePage() {
         }
 
         // APIエンドポイントを呼び出し
-        const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`;
+        // タイムスタンプをクエリパラメータに追加してキャッシュを回避
+        const timestamp = Date.now();
+        const apiUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get?t=${timestamp}`;
         const headers = {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -56,6 +60,7 @@ export default function ProfilePage() {
         const response = await fetch(apiUrl, {
           method: "GET",
           headers: headers,
+          cache: "no-store",
         });
 
         if (!response.ok) {
@@ -73,6 +78,7 @@ export default function ProfilePage() {
         }
 
         setProfile(data.User);
+        setImageKey((prev) => prev + 1);
       } catch (error) {
         console.error("プロフィール取得エラー:", error);
         setError(
@@ -84,6 +90,18 @@ export default function ProfilePage() {
     };
 
     fetchProfile();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchProfile();
+      }
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
   }, []);
 
   const questCards = [
@@ -192,8 +210,18 @@ export default function ProfilePage() {
       {/* プレイヤー情報 */}
       <div className="mb-8 p-4 bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-md">
         <div className="flex items-center">
-          <div className="w-16 h-16 bg-[#8cc750] rounded-full flex items-center justify-center border-2 border-[#7ab145] shadow-md">
-            <PawPrint className="h-8 w-8 text-white" />
+          <div className="w-16 h-16 bg-[#8cc750] rounded-full flex items-center justify-center border-2 border-[#7ab145] shadow-md overflow-hidden relative">
+            {profile?.IconImageURL ? (
+              <Image
+                src={profile.IconImageURL}
+                alt="ユーザーアイコン"
+                fill
+                className="object-cover"
+                key={imageKey}
+              />
+            ) : (
+              <PawPrint className="h-8 w-8 text-white" />
+            )}
           </div>
           <div className="ml-4">
             <h2 className="text-2xl font-bold text-[#7b6c5d]">

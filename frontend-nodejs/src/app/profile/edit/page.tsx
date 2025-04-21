@@ -14,57 +14,48 @@ import {
 } from "lucide-react";
 import FormField from "@/app/components/FormField";
 import Button from "@/app/components/Button";
-import TagSelector from "@/app/components/TagSelector";
 import { UserProfile } from "@/types/profile";
 
 export default function ProfileEditPage() {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [imageKey, setImageKey] = useState<number>(0);
 
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [warningMessage, setWarningMessage] = useState<string | null>(null);
+
+  // 認証チェック用のユーティリティ関数
+  const checkAuth = () => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return null;
+    }
+    return token;
+  };
 
   // フォームの状態
   const [formData, setFormData] = useState({
     displayName: "",
     townName: "",
     introduction: "",
-    email: "",
+    email: "", // 表示用のみで更新には使用しない
     iconImage: null as File | null,
   });
 
   // プレビュー用のURL
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
-  // 趣味タグ（カスタマイズ可能）
-  const availableTags = [
-    "読書",
-    "映画鑑賞",
-    "音楽",
-    "ゲーム",
-    "スポーツ",
-    "料理",
-    "旅行",
-    "プログラミング",
-    "アウトドア",
-    "アート",
-  ];
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         setIsLoading(true);
-        const token = localStorage.getItem("token");
-
-        if (!token) {
-          setError("認証情報がありません");
-          setIsLoading(false);
-          return;
-        }
+        const token = checkAuth();
+        if (!token) return; // checkAuth内でリダイレクト済み
 
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
@@ -72,14 +63,16 @@ export default function ProfileEditPage() {
             method: "GET",
             headers: {
               Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
             },
+            cache: "no-store", // Prevent caching
           },
         );
 
         if (!response.ok) {
-          // 認証エラーの場合はホームページにリダイレクト
+          // 認証エラーの場合はログインページにリダイレクト
           if (response.status === 401) {
-            router.push("/");
+            router.push("/login");
             return;
           }
           throw new Error("プロフィールの取得に失敗しました");
@@ -100,11 +93,7 @@ export default function ProfileEditPage() {
         // 画像プレビューを設定
         if (data.User.IconImageURL) {
           setImagePreview(data.User.IconImageURL);
-        }
-
-        // タグがAPIから返された場合はここで設定
-        if (data.User.Tags && Array.isArray(data.User.Tags)) {
-          setSelectedTags(data.User.Tags);
+          setImageKey((prev) => prev + 1); // Increment key to force image refresh
         }
       } catch (error) {
         console.error("プロフィール取得エラー:", error);
@@ -130,8 +119,26 @@ export default function ProfileEditPage() {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    // 画像アップロード機能が無効の場合はメッセージを表示
+    const warningMsg =
+      "画像のアップロード機能は現在準備中です。しばらくお待ちください。";
+    setWarningMessage(warningMsg);
+    e.target.value = ""; // ファイル選択をリセット
+
+    // 以下の処理を一時的にコメントアウト
+    /*
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
+
+      // Check file size
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
+        setWarningMessage(
+          "画像サイズが大きすぎます（上限5MB）。より小さい画像を選択してください。",
+        );
+        return;
+      }
+
       setFormData({
         ...formData,
         iconImage: file,
@@ -141,13 +148,22 @@ export default function ProfileEditPage() {
       const reader = new FileReader();
       reader.onloadend = () => {
         setImagePreview(reader.result as string);
+        setImageKey((prev) => prev + 1); // Increment key to force image refresh
       };
       reader.readAsDataURL(file);
+
+      // 警告メッセージをクリア
+      setWarningMessage(null);
     }
+    */
   };
 
   const handleImageButtonClick = () => {
-    fileInputRef.current?.click();
+    // 画像アップロード機能が無効の場合はメッセージを表示
+    const warningMsg =
+      "画像のアップロード機能は現在準備中です。しばらくお待ちください。";
+    setWarningMessage(warningMsg);
+    // fileInputRef.current?.click(); // 一時的にコメントアウト
   };
 
   const handleBackClick = () => {
@@ -161,57 +177,163 @@ export default function ProfileEditPage() {
       setIsSaving(true);
       setError(null);
       setSuccessMessage(null);
+      setWarningMessage(null);
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        setError("認証情報がありません");
+      const token = checkAuth();
+      if (!token) return; // checkAuth内でリダイレクト済み
+
+      // 画像がアップロードされた場合は、先に画像をアップロードする
+      // 現在画像アップロード機能は無効化されているため、この処理は実行されない
+      const imageUploaded = false;
+
+      if (formData.iconImage) {
+        // 現在は画像アップロード機能を無効化しているため、警告メッセージを表示して処理を続行
+        setWarningMessage(
+          "画像のアップロード機能は現在準備中です。他のプロフィール情報のみ更新します。",
+        );
+      }
+
+      // プロフィール情報を更新 (画像をアップロードした場合は、IconImageUrlを送信しない)
+      const submitData = {
+        DisplayName: formData.displayName,
+        TownName: formData.townName,
+        Introduction: formData.introduction || null,
+      };
+
+      // 画像をアップロードしなかった場合のみ、既存の画像URLを送信
+      if (!imageUploaded && !formData.iconImage) {
+        // @ts-expect-error - TypeScriptのエラーを無視（動的にプロパティを追加）
+        submitData.IconImageUrl = profile?.IconImageURL || "";
+      }
+
+      console.log("Submitting profile update with data:", submitData);
+
+      // プロフィール更新エンドポイントにPUTリクエスト
+      try {
+        const updateUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/update`;
+        console.log("Profile update URL:", updateUrl);
+
+        // タイムアウト付きでリクエスト
+        const updateController = new AbortController();
+        const updateTimeoutId = setTimeout(
+          () => updateController.abort(),
+          30000,
+        ); // 30秒タイムアウト
+
+        try {
+          const updateResponse = await fetch(updateUrl, {
+            method: "PUT",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify(submitData),
+            signal: updateController.signal,
+          });
+
+          clearTimeout(updateTimeoutId);
+
+          // 更新失敗時の処理
+          if (!updateResponse.ok) {
+            // 認証エラーの場合はログインページにリダイレクト
+            if (updateResponse.status === 401) {
+              router.push("/login");
+              return;
+            }
+
+            const errorText = await updateResponse.text();
+            console.error("Profile update failed:", {
+              status: updateResponse.status,
+              statusText: updateResponse.statusText,
+              responseBody: errorText,
+            });
+            throw new Error(
+              `プロフィールの更新に失敗しました (${updateResponse.status}: ${updateResponse.statusText})`,
+            );
+          }
+
+          console.log("Profile update successful");
+
+          // Clear caches for profile data
+          if ("caches" in window) {
+            try {
+              const cache = await caches.open("next-data");
+              const profileCacheKeys = await cache.keys();
+              const profileKeys = profileCacheKeys.filter(
+                (key) =>
+                  key.url.includes("/profile/get") ||
+                  key.url.includes("/profile/update"),
+              );
+
+              for (const key of profileKeys) {
+                await cache.delete(key);
+              }
+            } catch (err) {
+              console.error("Failed to clear cache:", err);
+            }
+          }
+
+          setSuccessMessage("プロフィール情報を更新しました");
+
+          // 全ブラウザキャッシュをクリアするためにlocalStorageにタイムスタンプを保存
+          localStorage.setItem("profileUpdated", Date.now().toString());
+
+          // 少し待ってからプロフィールページに戻る
+          setTimeout(() => {
+            // 遷移時にキャッシュされたデータを使わないようにする
+            router.push("/profile?t=" + Date.now());
+          }, 2000);
+        } catch (fetchError: unknown) {
+          clearTimeout(updateTimeoutId);
+          if (fetchError instanceof Error) {
+            if (fetchError.name === "AbortError") {
+              throw new Error(
+                "プロフィール更新がタイムアウトしました。ネットワーク接続を確認してください。",
+              );
+            } else {
+              throw fetchError;
+            }
+          } else {
+            throw new Error("プロフィール更新中に不明なエラーが発生しました");
+          }
+        }
+      } catch (updateError: unknown) {
+        console.error("Profile update error:", updateError);
+
+        // 認証エラーを示すメッセージが含まれているかをチェック
+        if (
+          updateError instanceof Error &&
+          (updateError.message.includes("401") ||
+            updateError.message.toLowerCase().includes("unauthorized") ||
+            updateError.message.includes("認証"))
+        ) {
+          router.push("/login");
+          return;
+        }
+
+        const errorMessage =
+          updateError instanceof Error ? updateError.message : "不明なエラー";
+        setError(errorMessage);
+      } finally {
+        setIsSaving(false);
+      }
+    } catch (error: unknown) {
+      console.error("Overall process error:", error);
+
+      // 認証エラーを示すメッセージが含まれているかをチェック
+      if (
+        error instanceof Error &&
+        (error.message.includes("401") ||
+          error.message.toLowerCase().includes("unauthorized") ||
+          error.message.includes("認証"))
+      ) {
+        router.push("/login");
         return;
       }
 
-      // FormDataオブジェクトを作成
-      const submitData = new FormData();
-      submitData.append("DisplayName", formData.displayName);
-      submitData.append("TownName", formData.townName);
-      submitData.append("Introduction", formData.introduction);
-
-      // タグがある場合は追加
-      if (selectedTags.length > 0) {
-        submitData.append("Tags", JSON.stringify(selectedTags));
-      }
-
-      // 画像がある場合は追加
-      if (formData.iconImage) {
-        submitData.append("IconImage", formData.iconImage);
-      }
-
-      // APIエンドポイントを使用してプロフィールを更新
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/update`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-          body: submitData,
-        },
-      );
-
-      if (!response.ok) {
-        throw new Error("プロフィールの更新に失敗しました");
-      }
-
-      setSuccessMessage("プロフィールを更新しました");
-
-      // 少し待ってからプロフィールページに戻る
-      setTimeout(() => {
-        router.push("/profile");
-      }, 2000);
-    } catch (error) {
-      console.error("プロフィール更新エラー:", error);
       setError(
         error instanceof Error ? error.message : "不明なエラーが発生しました",
       );
-    } finally {
       setIsSaving(false);
     }
   };
@@ -251,8 +373,9 @@ export default function ProfileEditPage() {
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="relative w-32 h-32">
                   <div
-                    className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-amber-100 relative cursor-pointer"
+                    className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-amber-100 relative cursor-not-allowed"
                     onClick={handleImageButtonClick}
+                    title="画像のアップロード機能は現在準備中です"
                   >
                     {imagePreview ? (
                       <Image
@@ -260,14 +383,21 @@ export default function ProfileEditPage() {
                         alt="ユーザーアイコン"
                         fill
                         className="object-cover"
+                        key={imageKey}
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <User size={64} className="text-amber-300" />
                       </div>
                     )}
-                    <div className="absolute inset-0 bg-black bg-opacity-20 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
-                      <Upload size={24} className="text-white" />
+                    <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
+                      <Upload
+                        size={24}
+                        className="text-white mb-1 opacity-50"
+                      />
+                      <span className="text-white text-xs text-center px-1">
+                        準備中
+                      </span>
                     </div>
                   </div>
                   <input
@@ -289,7 +419,22 @@ export default function ProfileEditPage() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                       placeholder="表示名を入力"
+                      maxLength={15}
                     />
+                    <div className="text-xs text-gray-500 mt-1 text-right">
+                      {formData.displayName.length}/15
+                    </div>
+                    {formData.displayName.length >= 13 &&
+                      formData.displayName.length < 15 && (
+                        <span className="text-amber-500 text-xs ml-2">
+                          制限に近づいています
+                        </span>
+                      )}
+                    {formData.displayName.length >= 15 && (
+                      <span className="text-red-500 text-xs ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
                   </FormField>
                   <p className="text-amber-100 mt-1">@{profile.Username}</p>
                 </div>
@@ -332,8 +477,23 @@ export default function ProfileEditPage() {
                         onChange={handleInputChange}
                         className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
                         placeholder="あなたの街の名前を入力"
+                        maxLength={25}
                       />
+                      <div className="text-xs text-gray-500 mt-1 text-right">
+                        {formData.townName.length}/25
+                      </div>
                     </div>
+                    {formData.townName.length >= 22 &&
+                      formData.townName.length < 25 && (
+                        <span className="text-amber-500 text-xs ml-2">
+                          制限に近づいています
+                        </span>
+                      )}
+                    {formData.townName.length >= 25 && (
+                      <span className="text-red-500 text-xs ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
                   </FormField>
                 </div>
               </div>
@@ -350,22 +510,22 @@ export default function ProfileEditPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[120px]"
                   placeholder="自己紹介を入力してください"
+                  maxLength={200}
                 />
-              </div>
-
-              {/* 趣味・タグ */}
-              <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-amber-800 border-b pb-2 border-amber-200">
-                  趣味・興味
-                </h3>
-                <p className="text-sm text-gray-600">
-                  興味のあるものを選択してください (複数選択可)
-                </p>
-                <TagSelector
-                  availableTags={availableTags}
-                  selectedTags={selectedTags}
-                  onChange={setSelectedTags}
-                />
+                <div className="text-xs text-gray-500 mt-1 text-right">
+                  {formData.introduction.length}/200
+                </div>
+                {formData.introduction.length >= 180 &&
+                  formData.introduction.length < 200 && (
+                    <span className="text-amber-500 text-xs ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                {formData.introduction.length >= 200 && (
+                  <span className="text-red-500 text-xs ml-2">
+                    文字数制限に達しました
+                  </span>
+                )}
               </div>
 
               {/* メッセージ表示エリア */}
@@ -373,6 +533,13 @@ export default function ProfileEditPage() {
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative flex items-start">
                   <AlertCircle className="mr-2 h-5 w-5 flex-shrink-0 mt-0.5" />
                   <span>{error}</span>
+                </div>
+              )}
+
+              {warningMessage && (
+                <div className="bg-yellow-100 border border-yellow-400 text-yellow-800 px-4 py-3 rounded relative flex items-start">
+                  <AlertCircle className="mr-2 h-5 w-5 flex-shrink-0 mt-0.5 text-yellow-600" />
+                  <span>{warningMessage}</span>
                 </div>
               )}
 

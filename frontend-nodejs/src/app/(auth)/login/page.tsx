@@ -393,7 +393,11 @@ const Login = () => {
                 onCompositionEnd={() => setIsComposing(false)}
                 className={getInputStyle("usernameOrEmail", usernameOrEmail)}
                 placeholder="例）taro または taro@example.com"
+                maxLength={100}
               />
+              <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                {usernameOrEmail.length}/100
+              </div>
             </div>
             {errors.usernameOrEmail && submitAttempted && (
               <BookmarkError message="ユーザー名またはメールアドレスを入力してね！" />
@@ -413,7 +417,7 @@ const Login = () => {
               </WoodenSign>
             </div>
 
-            <div className="relative mt-2 flex items-center">
+            <div className="relative mt-2">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -421,6 +425,7 @@ const Login = () => {
                 onKeyDown={handleKeyDown}
                 className={getInputStyle("password", password)}
                 placeholder="例）taro1234"
+                maxLength={50}
               />
               <button
                 type="button"
@@ -429,6 +434,7 @@ const Login = () => {
                 aria-label={
                   showPassword ? "パスワードを隠す" : "パスワードを表示する"
                 }
+                style={{ top: "calc(50% - 10px)" }}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -436,6 +442,9 @@ const Login = () => {
                   <Eye className="h-5 w-5" />
                 )}
               </button>
+              <div className="text-xs text-gray-600 mt-1 text-right">
+                {password.length}/50
+              </div>
             </div>
             {errors.password && submitAttempted && (
               <BookmarkError message="パスワードを入力してね！" />

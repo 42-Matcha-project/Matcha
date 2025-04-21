@@ -228,6 +228,13 @@ const Register = () => {
       }));
       return false;
     }
+    if (value.length > 20) {
+      setErrors((prev) => ({
+        ...prev,
+        username: "ユーザー名は20文字以内で入力してください",
+      }));
+      return false;
+    }
     setErrors((prev) => ({ ...prev, username: "" }));
     return true;
   };
@@ -235,6 +242,13 @@ const Register = () => {
   const validateDisplayName = (value: string) => {
     if (!value) {
       setErrors((prev) => ({ ...prev, displayName: "表示名は必須です" }));
+      return false;
+    }
+    if (value.length > 15) {
+      setErrors((prev) => ({
+        ...prev,
+        displayName: "表示名は15文字以内で入力してください",
+      }));
       return false;
     }
     setErrors((prev) => ({ ...prev, displayName: "" }));
@@ -399,6 +413,28 @@ const Register = () => {
       }));
       return false;
     }
+    if (value.length > 50) {
+      setErrors((prev) => ({
+        ...prev,
+        password: "パスワードは50文字以内で入力してください",
+      }));
+      return false;
+    }
+    // 大文字・小文字、数字、記号を含むかどうか検証
+    const hasUppercase = /[A-Z]/.test(value);
+    const hasLowercase = /[a-z]/.test(value);
+    const hasNumber = /[0-9]/.test(value);
+    const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value);
+
+    if (!(hasUppercase && hasLowercase && hasNumber && hasSymbol)) {
+      setErrors((prev) => ({
+        ...prev,
+        password:
+          "パスワードは大文字・小文字、数字、記号をそれぞれ1つ以上含む必要があります",
+      }));
+      return false;
+    }
+
     setErrors((prev) => ({ ...prev, password: "" }));
     return true;
   };
@@ -910,7 +946,21 @@ const Register = () => {
                     onKeyDown={handleKeyDown}
                     className={getInputStyle("username")}
                     placeholder="例）taro"
+                    maxLength={20}
                   />
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {username.length}/20
+                  </div>
+                  {username.length >= 18 && username.length < 20 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {username.length >= 20 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.username && submitAttempted && (
                   <BookmarkError message="ユーザー名を入力してね！" />
@@ -934,7 +984,21 @@ const Register = () => {
                     onKeyDown={handleKeyDown}
                     className={getInputStyle("displayName")}
                     placeholder="例）たっちゃん"
+                    maxLength={15}
                   />
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {displayName.length}/15
+                  </div>
+                  {displayName.length >= 13 && displayName.length < 15 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {displayName.length >= 15 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.displayName && submitAttempted && (
                   <BookmarkError message="ニックネームを入力してね！" />
@@ -972,7 +1036,21 @@ const Register = () => {
                     onKeyDown={handleKeyDown}
                     className={getInputStyle("email")}
                     placeholder="例）taro@example.com"
+                    maxLength={100}
                   />
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {email.length}/100
+                  </div>
+                  {email.length >= 90 && email.length < 100 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {email.length >= 100 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                 </div>
                 {errors.email && submitAttempted && (
                   <BookmarkError message="メールアドレスを入力してね！" />
@@ -1045,7 +1123,11 @@ const Register = () => {
                       } shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500`}
                       placeholder="例）123456"
                       disabled={isVerified}
+                      maxLength={6}
                     />
+                    <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                      {verificationCode.length}/6
+                    </div>
                     {isVerified && (
                       <div className="absolute right-3 top-3 text-green-500">
                         <Shield className="h-6 w-6" />
@@ -1143,7 +1225,21 @@ const Register = () => {
                     onChange={handlePassword}
                     className="w-full px-4 py-3 pr-12 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
                     placeholder="8文字以上の安全なパスワード"
+                    maxLength={50}
                   />
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {password.length}/50
+                  </div>
+                  {password.length >= 45 && password.length < 50 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                  {password.length >= 50 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={togglePasswordVisibility}
@@ -1180,7 +1276,22 @@ const Register = () => {
                     onChange={handleConfirmPassword}
                     className="w-full px-4 py-3 pr-12 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
                     placeholder="同じパスワードを再入力"
+                    maxLength={50}
                   />
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {confirmPassword.length}/50
+                  </div>
+                  {confirmPassword.length >= 45 &&
+                    confirmPassword.length < 50 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                  {confirmPassword.length >= 50 && (
+                    <span className="text-red-500 ml-2">
+                      文字数制限に達しました
+                    </span>
+                  )}
                   <button
                     type="button"
                     onClick={toggleConfirmPasswordVisibility}

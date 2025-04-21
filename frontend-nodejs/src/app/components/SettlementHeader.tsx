@@ -13,7 +13,8 @@ import {
 } from "lucide-react";
 import { UserStats } from "../../types/settlement";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 
 interface SettlementHeaderProps {
   currentTime: Date;
@@ -39,6 +40,76 @@ export default function SettlementHeader({
   goToGifts,
 }: SettlementHeaderProps) {
   const router = useRouter();
+  const [displayName, setDisplayName] = useState<string>("開拓者");
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [imageKey, setImageKey] = useState<number>(0);
+
+  // Get user's profile information (display name and image)
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        if (!token) return;
+
+        // タイムスタンプをクエリパラメータに追加してキャッシュを回避
+        const timestamp = Date.now();
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get?t=${timestamp}`,
+          {
+            method: "GET",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            cache: "no-store",
+          },
+        );
+
+        if (!response.ok) {
+          throw new Error("プロフィールの取得に失敗しました");
+        }
+
+        const data = await response.json();
+        if (data.User && data.User.DisplayName) {
+          setDisplayName(data.User.DisplayName);
+        }
+        if (data.User && data.User.IconImageURL) {
+          setProfileImage(data.User.IconImageURL);
+          setImageKey((prev) => prev + 1);
+        }
+      } catch (error) {
+        console.error("プロフィール取得エラー:", error);
+      }
+    };
+
+    fetchUserProfile();
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === "visible") {
+        fetchUserProfile();
+      }
+    };
+
+    // プロフィール更新を検知して再取得
+    const checkProfileUpdate = () => {
+      const lastUpdate = localStorage.getItem("profileUpdated");
+      if (lastUpdate) {
+        fetchUserProfile();
+        // 一度使ったら削除
+        localStorage.removeItem("profileUpdated");
+      }
+    };
+
+    // 初回ロード時とフォーカスを取得したときにプロフィール更新をチェック
+    checkProfileUpdate();
+    window.addEventListener("focus", checkProfileUpdate);
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener("focus", checkProfileUpdate);
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    };
+  }, []);
 
   const navigateToProfile = () => {
     router.push("/profile");
@@ -170,11 +241,21 @@ export default function SettlementHeader({
             aria-label="プロフィールページへ"
           >
             <div className="relative flex-shrink-0 w-8 h-8 bg-amber-300 rounded-full flex items-center justify-center overflow-hidden">
-              <UserCircle className="h-7 w-7 text-amber-800" />
+              {profileImage ? (
+                <Image
+                  src={profileImage}
+                  alt="ユーザーアイコン"
+                  fill
+                  className="object-cover"
+                  key={imageKey}
+                />
+              ) : (
+                <UserCircle className="h-7 w-7 text-amber-800" />
+              )}
               {/* キラキラエフェクト */}
               <span className="absolute inset-0 bg-gradient-to-tr from-amber-200/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
             </div>
-            <span className="text-white font-medium">開拓者</span>
+            <span className="text-white font-medium">{displayName}</span>
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-amber-800"></span>
           </motion.button>
 
