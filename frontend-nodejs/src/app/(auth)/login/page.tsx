@@ -4,7 +4,7 @@ import React, { useState, ReactNode, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../../../contexts/auth-context";
+import { useAuth } from "../../../contexts/AuthContext";
 
 // 木の看板コンポーネント
 const WoodenSign = ({
@@ -397,6 +397,17 @@ const Login = () => {
               />
               <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
                 {usernameOrEmail.length}/100
+                {usernameOrEmail.length >= 90 &&
+                  usernameOrEmail.length < 100 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                {usernameOrEmail.length >= 100 && (
+                  <span className="text-red-500 ml-2">
+                    文字数制限に達しました
+                  </span>
+                )}
               </div>
             </div>
             {errors.usernameOrEmail && submitAttempted && (
@@ -444,6 +455,16 @@ const Login = () => {
               </button>
               <div className="text-xs text-gray-600 mt-1 text-right">
                 {password.length}/50
+                {password.length >= 45 && password.length < 50 && (
+                  <span className="text-amber-500 ml-2">
+                    制限に近づいています
+                  </span>
+                )}
+                {password.length >= 50 && (
+                  <span className="text-red-500 ml-2">
+                    文字数制限に達しました
+                  </span>
+                )}
               </div>
             </div>
             {errors.password && submitAttempted && (

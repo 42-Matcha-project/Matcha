@@ -15,7 +15,7 @@ import { useTimeManager } from "../../hooks/useTimeManager";
 import { useAnimationState } from "../../hooks/useAnimationState";
 import { useBuildingManager } from "../../hooks/useBuildingManager";
 import { useSettlementNavigation } from "../../hooks/useSettlementNavigation";
-import { useAuth } from "../../contexts/auth-context";
+import { useAuth } from "../../contexts/AuthContext";
 
 // コンポーネントをインポート
 import SettlementHeader from "../components/SettlementHeader";

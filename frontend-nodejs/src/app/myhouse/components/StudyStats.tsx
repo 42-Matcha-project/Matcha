@@ -32,6 +32,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const [goals, setGoals] = useState<StudyGoal[]>([]);
   const [newGoalText, setNewGoalText] = useState("");
   const [isAddingGoal, setIsAddingGoal] = useState(false);
+  const [goalError, setGoalError] = useState<string | null>(null);
   const [refreshSubjectsTrigger, setRefreshSubjectsTrigger] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
@@ -203,14 +204,15 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
       };
       setGoals([...goals, newGoal]);
       setNewGoalText("");
+      setGoalError(null);
       setIsAddingGoal(false);
     }
   };
 
   // 目標の状態を切り替え
   const toggleGoalCompletion = (id: number) => {
-    setGoals(
-      goals.map((goal) =>
+    setGoals((prevGoals) =>
+      prevGoals.map((goal) =>
         goal.id === id ? { ...goal, completed: !goal.completed } : goal,
       ),
     );
@@ -223,9 +225,8 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
 
   // 自習終了ダイアログを表示
   const openEndSessionDialog = () => {
-    // ダイアログ表示時に勉強中なら一時停止する
     if (isStudying) {
-      pauseStudy();
+      pauseStudy(); // 作業中なら一時停止
     }
     setShowEndSessionDialog(true);
   };
@@ -484,7 +485,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     if (value.length > MAX_GOAL_TEXT_LENGTH) {
       // 警告メッセージを設定して表示
       setWarningMessage(
-        `このテキストを半角${MAX_GOAL_TEXT_LENGTH}文字以下にしてください（現時点で半角 ${value.length} 文字です）。`,
+        `このテキストを${MAX_GOAL_TEXT_LENGTH}文字以下にしてください（現時点で ${value.length} 文字です）。`,
       );
       setShowWarning(true);
       // 最大文字数に制限
@@ -691,6 +692,7 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
                 isDarkMode
                   ? "bg-amber-800 border-amber-700 text-amber-50"
                   : "bg-white border border-amber-200 text-amber-950",
+                goalError ? "border-red-500" : "",
               )}
               placeholder="新しい目標を入力..."
               value={newGoalText}

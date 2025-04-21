@@ -23,6 +23,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // コンポーネントをインポート
 import { ChatPanel } from "./components/ChatPanel";
@@ -35,7 +36,7 @@ import { initialMessages } from "./data";
 
 export default function CozyRoomPage() {
   const router = useRouter();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState("chat");
   const [isPanelExpanded, setIsPanelExpanded] = useState(true);
   const [participants, setParticipants] =
@@ -190,9 +191,6 @@ export default function CozyRoomPage() {
     }
   };
 
-  // ダークモードの切り替え
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
-
   // パネルの展開・収納を切り替え
   const togglePanel = () => setIsPanelExpanded(!isPanelExpanded);
 
@@ -231,18 +229,18 @@ export default function CozyRoomPage() {
           }, 2000); // メッセージ表示後、2秒後にリダイレクト
           return;
         }
-        throw new Error(`自習の終了に失敗しました (${response.status})`);
+        throw new Error(`タスクの終了に失敗しました (${response.status})`);
       }
 
-      toast.success("自習を終了しました");
+      toast.success("タスクを終了しました");
       // リダイレクトをsettlementページに
       router.push("/settlement");
     } catch (error) {
-      console.error("自習終了エラー:", error);
+      console.error("タスク終了エラー:", error);
       toast.error(
         error instanceof Error
           ? error.message
-          : "自習の終了中にエラーが発生しました",
+          : "タスクの終了中にエラーが発生しました",
       );
     } finally {
       setIsLoading(false);
@@ -349,7 +347,7 @@ export default function CozyRoomPage() {
             )}
           >
             <LogOut className="h-4 w-4 mr-1.5" />
-            自習終了
+            タスク終了
           </button>
 
           {/* Custom theme toggle button */}
@@ -523,7 +521,7 @@ export default function CozyRoomPage() {
             <DialogHeader className="p-2">
               <DialogTitle className="flex items-center gap-3 text-xl mb-2">
                 <LogOut className="h-6 w-6" />
-                自習を終了しますか？
+                タスクを終了しますか？
               </DialogTitle>
               <DialogDescription
                 className={cn(
@@ -531,7 +529,7 @@ export default function CozyRoomPage() {
                   isDarkMode ? "text-amber-300" : "text-amber-700",
                 )}
               >
-                自習を終了すると、現在の作業タイマーがリセットされます。タイマーの進捗はプロフィールに記録されます。
+                タスクを終了すると、現在の作業タイマーがリセットされます。タイマーの進捗はプロフィールに記録されます。
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="sm:justify-between flex-row gap-3 mt-6 mb-2">
