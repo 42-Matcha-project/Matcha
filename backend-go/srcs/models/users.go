@@ -3,9 +3,11 @@ package models
 import (
 	"errors"
 	"github.com/gin-gonic/gin"
+	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
 	"net/http"
 	"os"
+	"srcs/applogs"
 	"srcs/token"
 	"time"
 
@@ -36,7 +38,7 @@ type TUser struct {
 	FriendshipsReceived []TFriendship `gorm:"foreignKey:ReceiverID;references:ID" json:"-"`
 }
 
-func (*TUser) TableName() string {
+func (TUser) TableName() string {
 	/*
 		テーブル名を明示的に指定する関数。
 		AutoMigrateの際に自動で参照される。
@@ -44,7 +46,24 @@ func (*TUser) TableName() string {
 	return "t_users"
 }
 
-func (user *TUser) DeductCoins(requiredCoinCount int) error {
+func (user TUser) GetID() int              { return user.ID }
+func (user TUser) GetUsername() string     { return user.Username }
+func (user TUser) GetEmail() string        { return user.Email }
+func (user TUser) GetDisplayName() string  { return user.DisplayName }
+func (user TUser) GetIconImageURL() string { return user.IconImageURL }
+func (user TUser) GetIntroduction() string { return user.Introduction }
+func (user TUser) GetTownName() string     { return user.TownName }
+func (user TUser) GetCoinCount() int       { return user.CoinCount }
+
+func ConvertToOtherUsersInfos(users []TUser) []applogs.OtherUserInfo {
+	otherUserInfos := make([]applogs.OtherUserInfo, len(users))
+	for i, user := range users {
+		otherUserInfos[i] = user
+	}
+	return otherUserInfos
+}
+
+func (user TUser) DeductCoins(requiredCoinCount int) error {
 	if user.CoinCount < requiredCoinCount {
 		return errors.New("Not enough coins")
 	}
@@ -53,7 +72,7 @@ func (user *TUser) DeductCoins(requiredCoinCount int) error {
 	return err
 }
 
-func (user *TUser) IsBuildingIDOwned(buildingID int) (bool, error) {
+func (user TUser) IsBuildingIDOwned(buildingID int) (bool, error) {
 	err := DB.Where("t_building_id = ? AND t_user_id = ?", buildingID, user.ID).First(&TUserBuilding{}).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return false, nil
@@ -63,13 +82,13 @@ func (user *TUser) IsBuildingIDOwned(buildingID int) (bool, error) {
 	return true, nil
 }
 
-func (user *TUser) CreateUser() (*TUser, error) {
+func (user TUser) CreateUser() (TUser, error, int) {
 	/*
 		DBに新規ユーザーを保存する関数。
 	*/
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(user.Password), bcrypt.DefaultCost)
 	if err != nil {
-		return nil, err
+		return user, err, applogs.FailedToHashPassword
 	}
 
 	user.Password = string(hashedPassword)
@@ -77,7 +96,7 @@ func (user *TUser) CreateUser() (*TUser, error) {
 	timeZone := os.Getenv("TIME_ZONE")
 	location, err := time.LoadLocation(timeZone)
 	if err != nil {
-		return nil, err
+		return user, err, applogs.FailedToLoadTimeZone
 	}
 	if user.CreatedAt.IsZero() {
 		user.CreatedAt = time.Now().In(location)
@@ -87,14 +106,25 @@ func (user *TUser) CreateUser() (*TUser, error) {
 	user.CoinCount = 0
 	user.Introduction = ""
 
-	err = DB.Create(user).Error
-	if err != nil {
-		return nil, err
+	err = DB.Create(&user).Error
+	var pgErr *pgconn.PgError
+	if errors.As(err, &pgErr) && pgErr.Code == "23505" {
+		switch pgErr.ConstraintName {
+		case "uni_t_users_email":
+			return user, err, applogs.EmailForUserAlreadyExists
+		case "uni_t_users_username":
+			return user, err, applogs.UserNameForUserAlreadyExists
+		default:
+			return user, err, applogs.FailedToCreateUser
+		}
 	}
-	return user, nil
+	if err != nil {
+		return user, err, applogs.FailedToCreateUser
+	}
+	return user, nil, applogs.CreateUserSuccess
 }
 
-func (user *TUser) PrepareOutput() *TUser {
+func (user TUser) PrepareOutput() TUser {
 	/*
 		ユーザーデータを返すor出力する前の準備をする関数。
 		アウトプットの際はpasswordを非表示に。
@@ -110,7 +140,7 @@ func PrepareOutput(users []*TUser) []*TUser {
 	return users
 }
 
-func FetchUserAndGenerateJWTTokenString(username string, email string, password string) (string, error) {
+func FetchUserAndGenerateJWTTokenString(username string, email string, password string) (string, error, int) {
 	/*
 		JWTトークンを生成する関数。
 		usernameかemailからユーザーを識別し、DBから対応するユーザーを取り出す。
@@ -119,19 +149,19 @@ func FetchUserAndGenerateJWTTokenString(username string, email string, password 
 	*/
 	var user TUser
 	if err := DB.Where("username = ? OR email = ?", username, email).First(&user).Error; err != nil {
-		return "", err
+		return "", err, applogs.UserNotFound
 	}
 
 	if err := bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password)); err != nil {
-		return "", err
+		return "", err, applogs.FailedToHashPassword
 	}
 
 	jwtTokenString, err := token.GenerateJWTTokenString(uint(user.ID))
 	if err != nil {
-		return "", err
+		return "", err, applogs.FailedToGenerateJWTToken
 	}
 
-	return jwtTokenString, nil
+	return jwtTokenString, nil, applogs.JWTGenerateSuccess
 }
 
 func GetUserInfo(reqContext *gin.Context) {

@@ -3,6 +3,7 @@ package buildings
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
@@ -25,17 +26,17 @@ func GetTownBuildingsHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	townBuildings, err := GetTownBuildings(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in getting town buildings"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetBuildings, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"TownBuildings": townBuildings})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetTownBuildingsSuccess, applogs.ResponseOptions{UserBuildings: models.ConvertToUserBuildingInfos(townBuildings)}))
 }

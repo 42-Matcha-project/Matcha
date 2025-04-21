@@ -19,17 +19,19 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "// レスポンスがJSON形式であることを確認",
-              "pm.test(\"レスポンスがJSONであることを確認\", function () {",
-              "    pm.response.to.be.json;",
-              "});",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
               "",
-              "// \"token\" キーがレスポンスに含まれていることを確認し、その値を環境変数に保存",
-              "pm.test('\"Token\" キーが含まれていることを確認', function () {",
+              "pm.test(\"レスポンスに ReponseCode=5 Message Tokenが含まれている\", function () {",
               "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.have.property(\"Token\");",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(5);",
               "",
-              "    // tokenの値を環境変数に保存",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"Token\")",
+              "",
               "    pm.environment.set(\"jwt_token\", jsonData.Token);",
               "});",
               ""
@@ -68,19 +70,91 @@
       "response": []
     },
     {
-      "name": "作業追加 Copy",
+      "name": "作業追加 Copy (JSONデータが正しくない)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "// ステータスコードが400であることを確認",
+              "pm.test(\"レスポンスが 400 であることを確認\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=200 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(200);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"IconImageURL\": \"url\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/add",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "add"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業追加 Copy (成功)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"レスポンスのJSONにWorkフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('Work');",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=23 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(23);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"Work\")",
               "});",
               ""
             ],
@@ -123,19 +197,29 @@
       "response": []
     },
     {
-      "name": "作業一覧取得 Copy",
+      "name": "作業一覧取得 Copy (成功)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"レスポンスのJSONにWorksフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('Works');",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=24 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(24);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"Works\")",
               "});",
               ""
             ],
@@ -169,19 +253,26 @@
       "response": []
     },
     {
-      "name": "作業ログ記録 Copy",
+      "name": "作業ログ記録 Copy (JSONデータが正しくない)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
-              "    pm.response.to.have.status(200);",
+              "// ステータスコードが400であることを確認",
+              "pm.test(\"レスポンスが 400 であることを確認\", function () {",
+              "    pm.response.to.have.status(400);",
               "});",
               "",
-              "pm.test(\"レスポンスのJSONにworkLogフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('WorkLog');",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=200 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(200);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
               "});",
               ""
             ],
@@ -201,7 +292,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"WorkID\": 1,\n    \"Minutes\": 1000\n}",
+          "raw": "{\n    \"WorkID\": 1\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -224,19 +315,91 @@
       "response": []
     },
     {
-      "name": "作業ログ取得 Copy",
+      "name": "作業ログ記録 Copy (成功)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"レスポンスのJSONにWorkLogsフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('WorkLogs');",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=27 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(27);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"WorkID\": 1,\n    \"Minutes\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/log",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "log"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業ログ取得 Copy (成功)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=25 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(25);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"WorkLogs\");",
               "});",
               ""
             ],

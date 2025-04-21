@@ -5,13 +5,14 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+	"srcs/applogs"
 	"srcs/mail"
 	"srcs/mail_contents"
 	"srcs/models"
 	"srcs/utils"
 )
 
-func sendReportEmailToAdmin(user models.TUser, submitReportInput SubmitReportInput) error {
+func sendReportEmailToAdmin(user models.TUser, submitReportInput SubmitReportInput) (error, int) {
 	/*
 		報告をタイプごとに振り分けて対応するメールを管理者に送信する関数
 	*/
@@ -38,14 +39,14 @@ func sendReportEmailToAdmin(user models.TUser, submitReportInput SubmitReportInp
 		textPlain = mail_contents.CreateUserReportText(true, user, submitReportInput.Text)
 		textHTML = mail_contents.CreateUserReportHTML(true, user, submitReportInput.Text)
 	} else {
-		return errors.New("Unknown report type")
+		return errors.New("Unknown report type"), applogs.UnknownReportType
 	}
 
 	err := mail.SendMail(os.Getenv("ADMIN_EMAIL"), subject, textPlain, textHTML)
-	return err
+	return err, applogs.FailedToSendEmail
 }
 
-func sendReportEmailToUser(user models.TUser, submitReportInput SubmitReportInput) error {
+func sendReportEmailToUser(user models.TUser, submitReportInput SubmitReportInput) (error, int) {
 	/*
 		報告をタイプごとに振り分けて対応するメールをユーザーに送信する関数
 	*/
@@ -72,11 +73,11 @@ func sendReportEmailToUser(user models.TUser, submitReportInput SubmitReportInpu
 		textPlain = mail_contents.CreateUserReportText(false, user, submitReportInput.Text)
 		textHTML = mail_contents.CreateUserReportHTML(false, user, submitReportInput.Text)
 	} else {
-		return errors.New("Unknown report type")
+		return errors.New("Unknown report type"), applogs.UnknownReportType
 	}
 
 	err := mail.SendMail(user.Email, subject, textPlain, textHTML)
-	return err
+	return err, applogs.FailedToSendEmail
 }
 
 type SubmitReportInput struct {
@@ -93,31 +94,31 @@ func SubmitReportsHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	var submitReportInput SubmitReportInput
 	if err := reqContext.ShouldBindJSON(&submitReportInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	err = sendReportEmailToAdmin(*user, submitReportInput)
+	err, responseCode := sendReportEmailToAdmin(*user, submitReportInput)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to send email to admin"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	err = sendReportEmailToUser(*user, submitReportInput)
+	err, responseCode = sendReportEmailToUser(*user, submitReportInput)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to send email to user"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.Status(http.StatusOK)
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.SubmitReportSuccess, applogs.ResponseOptions{}))
 }

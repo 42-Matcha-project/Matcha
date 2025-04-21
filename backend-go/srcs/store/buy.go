@@ -3,20 +3,21 @@ package store
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
 
-func BuyBuilding(user *models.TUser, buildingID int) error {
+func BuyBuilding(user *models.TUser, buildingID int) (error, int) {
 	var building models.TBuilding
 	err := models.DB.Where("id = ?", buildingID).First(&building).Error
 	if err != nil {
-		return err
+		return err, applogs.FailedToGetBuildings
 	}
 
 	err = user.DeductCoins(building.RequiredCoinCount)
 	if err != nil {
-		return err
+		return err, applogs.NotEnoughCoins
 	}
 
 	userBuilding := &models.TUserBuilding{
@@ -26,7 +27,7 @@ func BuyBuilding(user *models.TUser, buildingID int) error {
 	}
 
 	err = models.DB.Create(&userBuilding).Error
-	return err
+	return err, applogs.FailedToCreateUserBuilding
 }
 
 type BuyBuildingInput struct {
@@ -39,31 +40,32 @@ func BuyBuildingHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	var buyBuildingInput BuyBuildingInput
 	if err := reqContext.ShouldBindJSON(&buyBuildingInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	if isBuildingOwned, err := user.IsBuildingIDOwned(buyBuildingInput.BuildingID); !isBuildingOwned && err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in checking user ownership"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetBuildings, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	} else if isBuildingOwned {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "The building ID is owned"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.BuildingAlreadyOwned, applogs.ResponseOptions{}))
+		return
 	}
 
-	if err := BuyBuilding(user, buyBuildingInput.BuildingID); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in buying building"})
+	if err, responseCode := BuyBuilding(user, buyBuildingInput.BuildingID); err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.Status(http.StatusOK)
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.BuyBuildingSuccess, applogs.ResponseOptions{}))
 }
