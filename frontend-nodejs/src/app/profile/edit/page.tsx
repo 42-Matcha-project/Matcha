@@ -61,8 +61,8 @@ export default function ProfileEditPage() {
     try {
       setIsLoading(true);
 
-      // ローカルストレージからトークンを取得
-      const token = localStorage.getItem("token");
+      // useAuthコンテキストからトークンを取得
+      const { token } = useAuth();
       if (!token) {
         setError("認証情報がありません。ログインしてください。");
         setIsLoading(false);
