@@ -223,7 +223,7 @@ const Login = () => {
             // Next.jsのルーターを使用してリダイレクト
             router.push("/settlement");
           }, 100);
-        } catch (error) {
+        } catch {
           throw new Error("ログインに失敗しました");
         } finally {
           setIsLoading(false);

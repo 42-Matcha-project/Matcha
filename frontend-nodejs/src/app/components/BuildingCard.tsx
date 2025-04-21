@@ -13,6 +13,7 @@ interface BuildingCardProps {
   isMounted: boolean;
   shouldShowAnimation: boolean;
   onClick: (buildingId: string, e: React.MouseEvent) => void;
+  priority?: boolean;
 }
 
 export default function BuildingCard({
@@ -22,6 +23,7 @@ export default function BuildingCard({
   isMounted,
   shouldShowAnimation,
   onClick,
+  priority = false,
 }: BuildingCardProps) {
   const scale = isSelected ? 1.25 : 1;
 
@@ -116,7 +118,9 @@ export default function BuildingCard({
                 : "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.2)]",
             )}
             quality={95}
-            priority={building.id === "house" || building.id === "cafe"}
+            priority={
+              priority || building.id === "house" || building.id === "cafe"
+            }
           />
 
           {/* 選択インジケーター */}

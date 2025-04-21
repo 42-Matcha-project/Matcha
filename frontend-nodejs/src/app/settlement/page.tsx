@@ -280,7 +280,20 @@ export default function SettlementPage() {
         >
           {/* 建物配置エリア */}
           <div className="relative h-[320vh] w-full z-10 mx-auto rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner pb-40">
-            {managedBuildings.map((building) => (
+            {/* LCPが7.58秒と遅いので、最初に表示される建物だけ優先レンダリングし、残りは遅延ロード */}
+            {managedBuildings.slice(0, 2).map((building) => (
+              <BuildingCard
+                key={building.id}
+                building={building}
+                isSelected={selectedBuilding === building.id}
+                isLoaded={isLoaded}
+                isMounted={isMounted}
+                shouldShowAnimation={shouldShowAnimation}
+                onClick={handleBuildingClick}
+                priority={true} // 優先的にレンダリング
+              />
+            ))}
+            {managedBuildings.slice(2).map((building) => (
               <BuildingCard
                 key={building.id}
                 building={building}

@@ -349,9 +349,6 @@ const Register = () => {
         try {
           responseData = await response.json();
         } catch {}
-      } else {
-        const text = await response.text();
-        console.log("Response text:", text.substring(0, 200)); // 最初の200文字だけログ出力
       }
 
       if (!response.ok) {
@@ -577,9 +574,7 @@ const Register = () => {
       if (contentType && contentType.includes("application/json")) {
         try {
           responseData = await response.json();
-        } catch (error) {}
-      } else {
-        const text = await response.text();
+        } catch {}
       }
 
       if (!response.ok) {
