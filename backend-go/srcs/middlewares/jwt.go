@@ -2,6 +2,7 @@ package middlewares
 
 import (
 	"net/http"
+	"srcs/applogs"
 	"srcs/token"
 
 	"github.com/gin-gonic/gin"
@@ -16,7 +17,7 @@ func JWTValidationMiddleware() gin.HandlerFunc {
 	return func(reqContext *gin.Context) {
 		err := token.ValidateJWTToken(reqContext)
 		if err != nil {
-			reqContext.JSON(http.StatusUnauthorized, gin.H{"Error": "Failed to validate JWT"})
+			reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJWTToken, applogs.ResponseOptions{}))
 			reqContext.Error(err)
 			reqContext.Abort()
 			return
@@ -35,7 +36,7 @@ func AdminJWTValidationMiddleware() gin.HandlerFunc {
 	return func(reqContext *gin.Context) {
 		err := token.ValidateJWTToken(reqContext)
 		if err != nil {
-			reqContext.JSON(http.StatusUnauthorized, gin.H{"Error": "Failed to validate JWT"})
+			reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJWTToken, applogs.ResponseOptions{}))
 			reqContext.Error(err)
 			reqContext.Abort()
 			return
@@ -43,14 +44,14 @@ func AdminJWTValidationMiddleware() gin.HandlerFunc {
 
 		userId, err := token.ExtractUserIdFromRequest(reqContext)
 		if err != nil {
-			reqContext.JSON(http.StatusUnauthorized, gin.H{"Error": "Invalid JWT token"})
+			reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJWTToken, applogs.ResponseOptions{}))
 			reqContext.Error(err)
 			reqContext.Abort()
 			return
 		}
 
 		if userId != 1 {
-			reqContext.JSON(http.StatusUnauthorized, gin.H{"Error": "Not have administrator privileges"})
+			reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.NotHaveAdministratorPrivileges, applogs.ResponseOptions{}))
 			reqContext.Error(err)
 			reqContext.Abort()
 			return

@@ -3,6 +3,7 @@ package friends
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
@@ -36,24 +37,24 @@ func DeleteFriendshipHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	var deleteFriendshipInput DeleteFriendshipInput
-	if err := reqContext.ShouldBind(&deleteFriendshipInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+	if err := reqContext.ShouldBindJSON(&deleteFriendshipInput); err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	err = deleteFriendship(user.ID, deleteFriendshipInput.FriendIDToDelete)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in deleting friendship"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToDeleteFriendship, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.Status(http.StatusOK)
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.DeleteFriendshipSuccess, applogs.ResponseOptions{}))
 }

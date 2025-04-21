@@ -19,17 +19,19 @@
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "// レスポンスがJSON形式であることを確認",
-              "pm.test(\"レスポンスがJSONであることを確認\", function () {",
-              "    pm.response.to.be.json;",
-              "});",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
               "",
-              "// \"token\" キーがレスポンスに含まれていることを確認し、その値を環境変数に保存",
-              "pm.test('\"Token\" キーが含まれていることを確認', function () {",
+              "pm.test(\"レスポンスに ReponseCode=5 Message Tokenが含まれている\", function () {",
               "    var jsonData = pm.response.json();",
-              "    pm.expect(jsonData).to.have.property(\"Token\");",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(5);",
               "",
-              "    // tokenの値を環境変数に保存",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"Token\")",
+              "",
               "    pm.environment.set(\"jwt_token\", jsonData.Token);",
               "});",
               ""
@@ -68,21 +70,90 @@
       "response": []
     },
     {
-      "name": "自習室作成 Copy",
+      "name": "自習室作成 Copy (JSONデータが正しくない)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "pm.test(\"レスポンスが 400 であることを確認\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=200 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(200);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"StudyRoomName\": \"test room\",\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/study-room/create",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "study-room",
+            "create"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "自習室作成 Copy (成功)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
               "    pm.response.to.have.status(200);",
               "});",
               "",
-              "pm.test(\"レスポンスのJSONにRoomCodeフィールドが含まれていること\", function() {",
-              "    var jsonResponse = pm.response.json();",
-              "    pm.expect(jsonResponse).to.have.property('RoomCode');",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
               "",
-              "    pm.environment.set(\"roomCode\", jsonResponse.RoomCode);",
+              "pm.test(\"レスポンスに ReponseCode=21 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(21);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"RoomCode\");",
+              "",
+              "    pm.environment.set(\"roomCode\", jsonData.RoomCode);",
               "});",
               ""
             ],
@@ -125,14 +196,24 @@
       "response": []
     },
     {
-      "name": "自習室削除 Copy",
+      "name": "自習室削除 Copy (成功)",
       "event": [
         {
           "listen": "test",
           "script": {
             "exec": [
-              "pm.test(\"レスポンスコードが200であること\", function() {",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
               "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=22 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(22);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
               "});",
               ""
             ],

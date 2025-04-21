@@ -3,6 +3,7 @@ package works
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
@@ -32,7 +33,7 @@ func AddWorkHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
@@ -40,17 +41,17 @@ func AddWorkHandler(reqContext *gin.Context) {
 	var addWorkInput AddWorkInput
 	err = reqContext.ShouldBindJSON(&addWorkInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to bind JSON"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	work, err := addWork(addWorkInput, *user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to add work"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateWork, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"Work": work})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.AddWorkSuccess, applogs.ResponseOptions{Work: work}))
 }

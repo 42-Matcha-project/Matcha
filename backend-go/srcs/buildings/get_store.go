@@ -1,9 +1,9 @@
 package buildings
 
 import (
-	"fmt"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
@@ -26,14 +26,11 @@ func getNonOwnedBuildingsInStore(user models.TUser) ([]models.TBuilding, error) 
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("buildingsInStore", buildingsInStore)
-	fmt.Println("!!!!!!!!!!!!!!!!!!!!!")
 
 	ownBuildings, err := GetOwnBuildings(user)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println("ownBuildings", ownBuildings)
 
 	for _, ownBuilding := range ownBuildings {
 		buildingsInStore = utils.RemoveElementFromTBuilding(buildingsInStore, ownBuilding.ID)
@@ -49,17 +46,17 @@ func GetNonOwnedBuildingsInStoreHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	nonOwnedBuildingsInStore, err := getNonOwnedBuildingsInStore(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in getting store buildings"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetBuildings, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"Buildings": nonOwnedBuildingsInStore})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetNonOwnedBuildingsInStoreSuccess, applogs.ResponseOptions{Buildings: models.ConvertToBuildingInfos(nonOwnedBuildingsInStore)}))
 }

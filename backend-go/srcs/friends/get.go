@@ -3,11 +3,12 @@ package friends
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
 
-func getFriends(userID int) ([]*models.TUser, error) {
+func getFriends(userID int) ([]models.TUser, error) {
 	/*
 		DBからそのユーザーのフレンド一覧を取得する関数
 	*/
@@ -17,7 +18,7 @@ func getFriends(userID int) ([]*models.TUser, error) {
 		return nil, err
 	}
 
-	var friends []*models.TUser
+	var friends []models.TUser
 	for _, friendship := range friendships {
 		userIDToSearch := friendship.RequesterID
 		if userIDToSearch == userID {
@@ -29,7 +30,7 @@ func getFriends(userID int) ([]*models.TUser, error) {
 		if err != nil {
 			return nil, err
 		}
-		friends = append(friends, &friend)
+		friends = append(friends, friend)
 	}
 
 	return friends, nil
@@ -41,17 +42,17 @@ func GetFriendsHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	friends, err := getFriends(user.ID)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in getting friends"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"Friends": models.PrepareOutput(friends)})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetFriendsSuccess, applogs.ResponseOptions{Friends: models.ConvertToOtherUsersInfos(friends)}))
 }

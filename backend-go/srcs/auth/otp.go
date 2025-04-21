@@ -6,9 +6,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+	"srcs/applogs"
 	"srcs/mail"
 	"srcs/mail_contents"
 	"srcs/utils"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -88,46 +90,47 @@ func GenerateOTPHandler(reqContext *gin.Context) {
 	var generateOTPInput GenerateOTPInput
 	err := reqContext.ShouldBindJSON(&generateOTPInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	OTP, err := utils.GenerateRandomCode(6)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to generate OTP"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGenerateRand, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	err = mail.SendMail(generateOTPInput.Email, mail_contents.CreateOTPSubject(), mail_contents.CreateOTPMailText(OTP), mail_contents.CreateOTPMailHTML(OTP))
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to generate OTP"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSendEmail, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	err = saveOTP(generateOTPInput.Email, OTP)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to save OTP"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSaveOTP, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	err = cleanupExpiredOTPs()
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to cleanup expired OTPs"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCleanUpExpiredOTPs, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	if os.Getenv("ENVIRONMENT") == "development" {
-		reqContext.JSON(http.StatusCreated, gin.H{"OTP": OTP})
+		reqContext.JSON(http.StatusCreated, applogs.CreateJSONResponseByResponseCode(applogs.OTPGenerateSuccess, applogs.ResponseOptions{OTP: OTP}))
+		return
 	}
-	reqContext.Status(http.StatusCreated)
+	reqContext.JSON(http.StatusCreated, applogs.CreateJSONResponseByResponseCode(applogs.OTPGenerateSuccess, applogs.ResponseOptions{}))
 }
 
-func verifyOTP(Email string, OTP string) error {
+func verifyOTP(Email string, OTP string) (error, int) {
 	/*
 		OTPを認証する関数
 	*/
@@ -136,29 +139,33 @@ func verifyOTP(Email string, OTP string) error {
 
 	aOTPEntry, isExist := EmailOTPPairs[Email]
 	if !isExist {
-		return errors.New(fmt.Sprintf("Email %s does not exist", Email))
+		return errors.New(fmt.Sprintf("Email %s does not exist", Email)), applogs.EmailOTPPairsNotFound
 	}
 
 	if OTP != aOTPEntry.OTP {
-		return errors.New(fmt.Sprintf("OTP %s does not match", OTP))
+		return errors.New(fmt.Sprintf("OTP %s does not match", OTP)), applogs.OTPNotMatch
 	}
 
 	timeZone := os.Getenv("TIME_ZONE")
 	location, err := time.LoadLocation(timeZone)
 	if err != nil {
-		return err
+		return err, applogs.FailedToLoadTimeZone
 	}
-	elapsedTime := time.Now().In(location).Sub(aOTPEntry.CreatedAt)
-	if elapsedTime > 5*time.Minute {
+	elapsedTime := time.Now().In(location).Sub(aOTPEntry.CreatedAt) / time.Minute
+	otp_deadline, err := strconv.ParseFloat(os.Getenv("OTP_DEADLINE"), 64)
+	if err != nil {
+		return errors.New(fmt.Sprintf("OTP_DEADLINE=%s can't convert to int", os.Getenv("OTP_DEADLINE"))), applogs.FailedToConvertType
+	}
+	if elapsedTime > time.Duration(otp_deadline)*time.Minute {
 		delete(EmailOTPPairs, Email)
-		return errors.New(fmt.Sprintf("The OTP has already expired."))
+		return errors.New(fmt.Sprintf("The OTP has already expired.")), applogs.OTPAlreadyExpired
 	}
 
 	if aOTPEntry.IsVerified {
-		return errors.New(fmt.Sprintf("OTP %s is already verified.", aOTPEntry.OTP))
+		return errors.New(fmt.Sprintf("OTP %s is already verified.", aOTPEntry.OTP)), applogs.EmailAlreadyVerified
 	}
 	aOTPEntry.IsVerified = true
-	return nil
+	return nil, applogs.OTPVerifySuccess
 }
 
 type VerifyOTPInput struct {
@@ -176,37 +183,37 @@ func VerifyOTPHandler(reqContext *gin.Context) {
 	var verifyOTPInput VerifyOTPInput
 	err := reqContext.ShouldBindJSON(&verifyOTPInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	err = verifyOTP(verifyOTPInput.Email, verifyOTPInput.OTP)
+	err, responseCode := verifyOTP(verifyOTPInput.Email, verifyOTPInput.OTP)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to verify OTP"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.Status(http.StatusOK)
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.OTPVerifySuccess, applogs.ResponseOptions{}))
 }
 
-func IsEmailVerified(email string) (bool, error) {
+func IsEmailVerified(email string) (bool, error, int) {
 	/*
 		引数のemailがメール認証を完了しているかどうか
 	*/
 	if os.Getenv("ENVIRONMENT") == "development" {
-		return true, nil
+		return true, nil, applogs.EmailAlreadyVerified
 	}
 
 	aOTPEntry, isExist := EmailOTPPairs[email]
 	if !isExist {
-		return false, errors.New(fmt.Sprintf("Email %s does not exist", email))
+		return false, errors.New(fmt.Sprintf("Email %s does not exist", email)), applogs.EmailNotFound
 	}
 
 	if !aOTPEntry.IsVerified {
-		return false, errors.New(fmt.Sprintf("OTP %s is not verified", aOTPEntry.OTP))
+		return false, errors.New(fmt.Sprintf("OTP %s is not verified", aOTPEntry.OTP)), applogs.EmailNotVerified
 	}
 
-	return true, nil
+	return true, nil, applogs.EmailAlreadyVerified
 }
