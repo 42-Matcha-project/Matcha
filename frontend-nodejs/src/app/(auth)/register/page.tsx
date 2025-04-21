@@ -342,20 +342,14 @@ const Register = () => {
         },
       );
 
-      console.log("Verification response status:", response.status);
-
       // レスポンスボディが空かどうかをチェック
       let responseData: APIResponse = {};
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         try {
           responseData = await response.json();
-          console.log("Verification response data:", responseData);
-        } catch {
-          console.log("Empty or invalid JSON response");
-        }
+        } catch {}
       } else {
-        console.log("Response is not JSON or empty");
         const text = await response.text();
         console.log("Response text:", text.substring(0, 200)); // 最初の200文字だけログ出力
       }
@@ -372,7 +366,6 @@ const Register = () => {
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      console.error("Verification error:", error);
       setApiError(errorMessage);
       return false;
     } finally {
@@ -525,13 +518,10 @@ const Register = () => {
         },
       );
 
-      console.log("Generate OTP response status:", response.status);
-
       // レスポンスボディが空かどうかをチェック
       let responseData: APIResponse = {};
       try {
         responseData = await response.json();
-        console.log("Generate OTP response data:", responseData);
       } catch {
         // レスポンスがJSONでない場合（空のボディなど）はスキップ
       }
@@ -548,7 +538,6 @@ const Register = () => {
         error instanceof Error
           ? error.message
           : "認証コードの送信に失敗しました";
-      console.error("Generate OTP error:", error);
       setApiError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -583,21 +572,14 @@ const Register = () => {
         },
       );
 
-      console.log("Register response status:", response.status);
-
       let responseData: RegisterResponse = {};
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         try {
           responseData = await response.json();
-          console.log("Register response data:", responseData);
-        } catch (error) {
-          console.error("Failed to parse JSON response:", error);
-        }
+        } catch (error) {}
       } else {
-        console.log("Response is not JSON");
         const text = await response.text();
-        console.log("Response text:", text.substring(0, 200)); // 最初の200文字だけログ出力
       }
 
       if (!response.ok) {

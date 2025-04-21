@@ -70,11 +70,42 @@ export default function SettlementHeader({
         }
 
         const data = await response.json();
-        if (data.User && data.User.DisplayName) {
+
+        // データの構造を確認し、適切なフィールドからDisplayNameを取得
+        if (data.Me && data.Me.DisplayName) {
+          setDisplayName(data.Me.DisplayName);
+        } else if (data.User && data.User.DisplayName) {
           setDisplayName(data.User.DisplayName);
+        } else if (data.User && data.User.displayName) {
+          setDisplayName(data.User.displayName);
+        } else if (data.user && data.user.DisplayName) {
+          setDisplayName(data.user.DisplayName);
+        } else if (data.user && data.user.displayName) {
+          setDisplayName(data.user.displayName);
+        } else if (data.DisplayName) {
+          setDisplayName(data.DisplayName);
+        } else if (data.displayName) {
+          setDisplayName(data.displayName);
         }
-        if (data.User && data.User.IconImageURL) {
+
+        // 画像URLの取得も同様に修正
+        if (data.Me && data.Me.IconImageURL) {
+          setProfileImage(data.Me.IconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.User && data.User.IconImageURL) {
           setProfileImage(data.User.IconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.user && data.user.IconImageURL) {
+          setProfileImage(data.user.IconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.user && data.user.iconImageURL) {
+          setProfileImage(data.user.iconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.IconImageURL) {
+          setProfileImage(data.IconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.iconImageURL) {
+          setProfileImage(data.iconImageURL);
           setImageKey((prev) => prev + 1);
         }
       } catch (error) {

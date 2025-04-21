@@ -15,9 +15,11 @@ import {
 import FormField from "@/app/components/FormField";
 import Button from "@/app/components/Button";
 import { UserProfile } from "@/types/profile";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProfileEditPage() {
   const router = useRouter();
+  const { checkAuth: contextCheckAuth, token: authToken } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageKey, setImageKey] = useState<number>(0);
 
@@ -30,13 +32,30 @@ export default function ProfileEditPage() {
 
   // 認証チェック用のユーティリティ関数
   const checkAuth = useCallback(() => {
+    if (authToken) {
+      return authToken;
+    }
+
     const token = localStorage.getItem("token");
     if (!token) {
+      console.log(
+        "トークンが見つかりません。ログインページにリダイレクトします。",
+      );
       router.push("/login");
       return null;
     }
+
+    if (!token.trim() || token.length < 10) {
+      console.log(
+        "トークンの形式が無効です。ログインページにリダイレクトします。",
+      );
+      localStorage.removeItem("token");
+      router.push("/login");
+      return null;
+    }
+
     return token;
-  }, [router]);
+  }, [router, authToken]);
 
   // フォームの状態
   const [formData, setFormData] = useState({
@@ -51,62 +70,87 @@ export default function ProfileEditPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchProfile = async () => {
+    const checkAuthState = async () => {
       try {
-        setIsLoading(true);
-        const token = checkAuth();
-        if (!token) return; // checkAuth内でリダイレクト済み
-
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-              "Content-Type": "application/json",
-            },
-            cache: "no-store", // Prevent caching
-          },
-        );
-
-        if (!response.ok) {
-          // 認証エラーの場合はログインページにリダイレクト
-          if (response.status === 401) {
-            router.push("/login");
-            return;
-          }
-          throw new Error("プロフィールの取得に失敗しました");
-        }
-
-        const data = await response.json();
-        setProfile(data.User);
-
-        // フォームデータを初期化
-        setFormData({
-          displayName: data.User.DisplayName || "",
-          townName: data.User.TownName || "",
-          introduction: data.User.Introduction || "",
-          email: data.User.Email || "",
-          iconImage: null,
-        });
-
-        // 画像プレビューを設定
-        if (data.User.IconImageURL) {
-          setImagePreview(data.User.IconImageURL);
-          setImageKey((prev) => prev + 1); // Increment key to force image refresh
+        const isAuthenticated = await contextCheckAuth();
+        if (!isAuthenticated) {
+          console.log("認証状態の確認に失敗しました。");
+          return;
         }
       } catch (error) {
-        console.error("プロフィール取得エラー:", error);
-        setError(
-          error instanceof Error ? error.message : "不明なエラーが発生しました",
-        );
-      } finally {
-        setIsLoading(false);
+        console.error("認証チェックエラー:", error);
       }
+
+      const fetchProfile = async () => {
+        try {
+          setIsLoading(true);
+          const token = checkAuth();
+          if (!token) return;
+
+          const response = await fetch(
+            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+            {
+              method: "GET",
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+              cache: "no-store", // Prevent caching
+            },
+          );
+
+          if (!response.ok) {
+            if (response.status === 401) {
+              router.push("/login");
+              return;
+            }
+            throw new Error("プロフィールの取得に失敗しました");
+          }
+
+          const data = await response.json();
+
+          const userData = data.Me || data.User || data.user || data;
+
+          if (
+            !userData ||
+            (typeof userData === "object" && Object.keys(userData).length === 0)
+          ) {
+            throw new Error("プロフィールデータが見つかりません");
+          }
+          setProfile(userData);
+
+          const initialFormData = {
+            displayName: userData.DisplayName || userData.displayName || "",
+            townName: userData.TownName || userData.townName || "",
+            introduction: userData.Introduction || userData.introduction || "",
+            email: userData.Email || userData.email || "",
+            iconImage: null,
+          };
+
+
+          setFormData(initialFormData);
+
+          if (userData.IconImageURL || userData.iconImageURL) {
+            setImagePreview(userData.IconImageURL || userData.iconImageURL);
+            setImageKey((prev) => prev + 1);
+          }
+        } catch (error) {
+          console.error("プロフィール取得エラー:", error);
+          setError(
+            error instanceof Error
+              ? error.message
+              : "不明なエラーが発生しました",
+          );
+        } finally {
+          setIsLoading(false);
+        }
+      };
+
+      fetchProfile();
     };
 
-    fetchProfile();
-  }, [router, checkAuth]);
+    checkAuthState();
+  }, [router, checkAuth, contextCheckAuth]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -119,51 +163,16 @@ export default function ProfileEditPage() {
   };
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    // 画像アップロード機能が無効の場合はメッセージを表示
     const warningMsg =
       "画像のアップロード機能は現在準備中です。しばらくお待ちください。";
     setWarningMessage(warningMsg);
-    e.target.value = ""; // ファイル選択をリセット
-
-    // 以下の処理を一時的にコメントアウト
-    /*
-    if (e.target.files && e.target.files[0]) {
-      const file = e.target.files[0];
-
-      // Check file size
-      if (file.size > 5 * 1024 * 1024) {
-        // 5MB limit
-        setWarningMessage(
-          "画像サイズが大きすぎます（上限5MB）。より小さい画像を選択してください。",
-        );
-        return;
-      }
-
-      setFormData({
-        ...formData,
-        iconImage: file,
-      });
-
-      // プレビュー用URLを作成
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setImagePreview(reader.result as string);
-        setImageKey((prev) => prev + 1); // Increment key to force image refresh
-      };
-      reader.readAsDataURL(file);
-
-      // 警告メッセージをクリア
-      setWarningMessage(null);
-    }
-    */
+    e.target.value = "";
   };
 
   const handleImageButtonClick = () => {
-    // 画像アップロード機能が無効の場合はメッセージを表示
     const warningMsg =
       "画像のアップロード機能は現在準備中です。しばらくお待ちください。";
     setWarningMessage(warningMsg);
-    // fileInputRef.current?.click(); // 一時的にコメントアウト
   };
 
   const handleBackClick = () => {
@@ -180,45 +189,39 @@ export default function ProfileEditPage() {
       setWarningMessage(null);
 
       const token = checkAuth();
-      if (!token) return; // checkAuth内でリダイレクト済み
+      if (!token) return;
 
-      // 画像がアップロードされた場合は、先に画像をアップロードする
-      // 現在画像アップロード機能は無効化されているため、この処理は実行されない
       const imageUploaded = false;
 
       if (formData.iconImage) {
-        // 現在は画像アップロード機能を無効化しているため、警告メッセージを表示して処理を続行
         setWarningMessage(
           "画像のアップロード機能は現在準備中です。他のプロフィール情報のみ更新します。",
         );
       }
 
-      // プロフィール情報を更新 (画像をアップロードした場合は、IconImageUrlを送信しない)
-      const submitData = {
+      const submitData: {
+        DisplayName: string;
+        TownName: string;
+        Introduction: string | null;
+        IconImageUrl?: string;
+      } = {
         DisplayName: formData.displayName,
         TownName: formData.townName,
         Introduction: formData.introduction || null,
       };
 
-      // 画像をアップロードしなかった場合のみ、既存の画像URLを送信
       if (!imageUploaded && !formData.iconImage) {
-        // @ts-expect-error - TypeScriptのエラーを無視（動的にプロパティを追加）
         submitData.IconImageUrl = profile?.IconImageURL || "";
       }
 
-      console.log("Submitting profile update with data:", submitData);
-
-      // プロフィール更新エンドポイントにPUTリクエスト
       try {
         const updateUrl = `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/update`;
-        console.log("Profile update URL:", updateUrl);
 
-        // タイムアウト付きでリクエスト
         const updateController = new AbortController();
         const updateTimeoutId = setTimeout(
           () => updateController.abort(),
           30000,
-        ); // 30秒タイムアウト
+        );
 
         try {
           const updateResponse = await fetch(updateUrl, {
@@ -233,9 +236,7 @@ export default function ProfileEditPage() {
 
           clearTimeout(updateTimeoutId);
 
-          // 更新失敗時の処理
           if (!updateResponse.ok) {
-            // 認証エラーの場合はログインページにリダイレクト
             if (updateResponse.status === 401) {
               router.push("/login");
               return;
@@ -254,7 +255,6 @@ export default function ProfileEditPage() {
 
           console.log("Profile update successful");
 
-          // Clear caches for profile data
           if ("caches" in window) {
             try {
               const cache = await caches.open("next-data");
@@ -275,12 +275,9 @@ export default function ProfileEditPage() {
 
           setSuccessMessage("プロフィール情報を更新しました");
 
-          // 全ブラウザキャッシュをクリアするためにlocalStorageにタイムスタンプを保存
           localStorage.setItem("profileUpdated", Date.now().toString());
 
-          // 少し待ってからプロフィールページに戻る
           setTimeout(() => {
-            // 遷移時にキャッシュされたデータを使わないようにする
             router.push("/profile?t=" + Date.now());
           }, 2000);
         } catch (fetchError: unknown) {
@@ -300,7 +297,6 @@ export default function ProfileEditPage() {
       } catch (updateError: unknown) {
         console.error("Profile update error:", updateError);
 
-        // 認証エラーを示すメッセージが含まれているかをチェック
         if (
           updateError instanceof Error &&
           (updateError.message.includes("401") ||
@@ -320,7 +316,6 @@ export default function ProfileEditPage() {
     } catch (error: unknown) {
       console.error("Overall process error:", error);
 
-      // 認証エラーを示すメッセージが含まれているかをチェック
       if (
         error instanceof Error &&
         (error.message.includes("401") ||
@@ -341,7 +336,6 @@ export default function ProfileEditPage() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100">
       <div className="container mx-auto px-4 py-8 max-w-4xl">
-        {/* ヘッダー */}
         <div className="flex items-center mb-8">
           <button
             onClick={handleBackClick}
@@ -368,7 +362,6 @@ export default function ProfileEditPage() {
             onSubmit={handleSubmit}
             className="bg-white rounded-xl shadow-lg overflow-hidden"
           >
-            {/* フォームヘッダー（アイコン、名前） */}
             <div className="bg-gradient-to-r from-amber-500 to-amber-400 p-6 text-white">
               <div className="flex flex-col md:flex-row items-center gap-6">
                 <div className="relative w-32 h-32">
@@ -417,7 +410,7 @@ export default function ProfileEditPage() {
                       type="text"
                       value={formData.displayName}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                      className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
                       placeholder="表示名を入力"
                       maxLength={15}
                     />
@@ -441,9 +434,7 @@ export default function ProfileEditPage() {
               </div>
             </div>
 
-            {/* フォーム本体 */}
             <div className="p-6 space-y-6">
-              {/* 基本情報 */}
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold text-amber-800 border-b pb-2 border-amber-200">
                   基本情報
@@ -459,9 +450,9 @@ export default function ProfileEditPage() {
                         type="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-90 disabled:bg-amber-50 disabled:text-gray-700 disabled:font-medium"
                         placeholder="メールアドレスを入力"
-                        disabled // メールアドレスは変更不可
+                        disabled
                       />
                     </div>
                   </FormField>
@@ -498,7 +489,6 @@ export default function ProfileEditPage() {
                 </div>
               </div>
 
-              {/* 自己紹介 */}
               <div className="space-y-4">
                 <h3 className="text-xl font-semibold text-amber-800 border-b pb-2 border-amber-200">
                   自己紹介
@@ -528,7 +518,6 @@ export default function ProfileEditPage() {
                 )}
               </div>
 
-              {/* メッセージ表示エリア */}
               {error && (
                 <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative flex items-start">
                   <AlertCircle className="mr-2 h-5 w-5 flex-shrink-0 mt-0.5" />
@@ -549,7 +538,6 @@ export default function ProfileEditPage() {
                 </div>
               )}
 
-              {/* 送信ボタン */}
               <div className="flex justify-end mt-6">
                 <Button
                   type="button"
