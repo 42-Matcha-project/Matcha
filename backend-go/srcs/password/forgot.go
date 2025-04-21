@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+	"srcs/applogs"
 	"srcs/auth"
 	"srcs/mail"
 	"srcs/mail_contents"
@@ -78,38 +79,39 @@ func ForgotPasswordHandler(reqContext *gin.Context) {
 	*/
 	OTP, err := utils.GenerateRandomCode(6)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to generate OTP"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGenerateRand, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	var forgotPasswordInput ForgotPasswordInput
-	if err = reqContext.ShouldBind(&forgotPasswordInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+	if err = reqContext.ShouldBindJSON(&forgotPasswordInput); err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	if err = mail.SendMail(forgotPasswordInput.Email, mail_contents.CreatePasswordForgotSubject(), mail_contents.CreatePasswordForgotMailText(OTP), mail_contents.CreatePasswordForgotMailHTML(OTP)); err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to send email"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSendEmail, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	if err = saveOTP(OTP, forgotPasswordInput.Email); err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to save OTP"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSaveOTP, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	if err = cleanupExpiredOTPs(); err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to cleanup expired OTPs"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCleanUpExpiredOTPs, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	if os.Getenv("ENVIRONMENT") == "development" {
-		reqContext.JSON(http.StatusCreated, gin.H{"OTP": OTP})
+		reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{OTP: OTP}))
+		return
 	}
-	reqContext.Status(http.StatusCreated)
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{}))
 }

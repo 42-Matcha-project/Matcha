@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
@@ -46,59 +47,59 @@ func SendFriendRequestHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	var sendFriendRequestInput SendFriendRequestInput
-	if err := reqContext.ShouldBind(&sendFriendRequestInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+	err = reqContext.ShouldBindJSON(&sendFriendRequestInput)
+	if err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	if user.ID == sendFriendRequestInput.ReceiverID {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Cannot send to yourself"})
-		reqContext.Error(err)
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.CannotFriendRequestYourself, applogs.ResponseOptions{}))
 		return
 	}
 
 	var friendship models.TFriendship
 	err = models.DB.Where("requester_id = ? AND receiver_id = ?", user.ID, sendFriendRequestInput.ReceiverID).First(&friendship).Error
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in getting friendship"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	} else if err == nil {
-		reqContext.JSON(http.StatusOK, gin.H{"Friendship": friendship})
+		reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.FriendRequestAlreadySent, applogs.ResponseOptions{}))
 		return
 	}
 
 	var reverseFriendship models.TFriendship
 	err = models.DB.Where("requester_id = ? AND receiver_id = ?", sendFriendRequestInput.ReceiverID, user.ID).First(&reverseFriendship).Error
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in getting friendship"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		returnFriendship, err := sendFriendRequest(user.ID, sendFriendRequestInput.ReceiverID)
 		if err != nil {
-			reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in sending friendship"})
+			reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateFriendship, applogs.ResponseOptions{}))
 			reqContext.Error(err)
 			return
 		}
 
-		reqContext.JSON(http.StatusOK, gin.H{"Friendship": returnFriendship})
+		reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.SendFriendRequestSuccess, applogs.ResponseOptions{Friendship: returnFriendship}))
 		return
 	}
 
 	returnFriendship, err := acceptFriendRequest(reverseFriendship)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Error in accepting friendship"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateFriendship, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"Friendship": returnFriendship})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.FriendRequestAcceptSuccess, applogs.ResponseOptions{Friendship: returnFriendship}))
 }

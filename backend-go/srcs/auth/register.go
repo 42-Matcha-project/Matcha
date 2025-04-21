@@ -2,6 +2,7 @@ package auth
 
 import (
 	"net/http"
+	"srcs/applogs"
 	"srcs/buildings"
 	"srcs/models"
 
@@ -19,13 +20,13 @@ type RegisterInput struct {
 	IconImageUrl string `json:"IconImageUrl"`
 }
 
-func registerUser(registerInput RegisterInput) (*models.TUser, error) {
+func registerUser(registerInput RegisterInput) (models.TUser, error, int) {
 	/*
 		UserをDBに保存する関数。
 	*/
 	var err error
 
-	registerUser := &models.TUser{
+	registerUser := models.TUser{
 		Username:     registerInput.Username,
 		Email:        registerInput.Email,
 		Password:     registerInput.Password,
@@ -33,8 +34,8 @@ func registerUser(registerInput RegisterInput) (*models.TUser, error) {
 		IconImageURL: registerInput.IconImageUrl,
 	}
 
-	registerUser, err = registerUser.CreateUser()
-	return registerUser, err
+	registerUser, err, responseCode := registerUser.CreateUser()
+	return registerUser, err, responseCode
 }
 
 func Register(reqContext *gin.Context) {
@@ -47,33 +48,31 @@ func Register(reqContext *gin.Context) {
 	var registerInput RegisterInput
 
 	if err := reqContext.ShouldBindJSON(&registerInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	isVerified, err := IsEmailVerified(registerInput.Email)
+	isVerified, err, responseCode := IsEmailVerified(registerInput.Email)
 	if !isVerified && err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Email is not verified"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	user, err := registerUser(registerInput)
+	user, err, responseCode := registerUser(registerInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to create user"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	err = buildings.BuildDefaultBuilding(*user)
+	err = buildings.BuildDefaultBuilding(user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to create default building"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToBuildDefaultBuilding, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{
-		"User": user.PrepareOutput(),
-	})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.RegisterSuccess, applogs.ResponseOptions{}))
 }

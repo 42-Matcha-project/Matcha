@@ -20,7 +20,7 @@ func CreateAdminUser() {
 		Email:    os.Getenv("ADMIN_EMAIL"),
 		Password: os.Getenv("ADMIN_PASSWORD"),
 	}
-	_, err = adminUser.CreateUser()
+	_, err, _ = adminUser.CreateUser()
 	if err != nil {
 		log.Fatal("Error creating admin user: ", err)
 	}

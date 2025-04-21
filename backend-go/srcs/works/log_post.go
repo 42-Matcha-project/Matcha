@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"os"
+	"srcs/applogs"
 	"srcs/coins"
 	"srcs/models"
 	"srcs/utils"
@@ -21,6 +22,13 @@ func logWork(logWorkInput LogWorkInput, user models.TUser) (*models.TWorkLog, er
 		作業ログをDBに保存する関数。
 		StartAtが無ければMinutesから時刻を計算する
 	*/
+	workLog := &models.TWorkLog{
+		UserID:  user.ID,
+		WorkID:  logWorkInput.WorkID,
+		StartAt: logWorkInput.StartAt,
+		Minutes: logWorkInput.Minutes,
+	}
+
 	if logWorkInput.StartAt.IsZero() {
 		timeZone := os.Getenv("TIME_ZONE")
 		location, err := time.LoadLocation(timeZone)
@@ -28,12 +36,6 @@ func logWork(logWorkInput LogWorkInput, user models.TUser) (*models.TWorkLog, er
 			return nil, err
 		}
 		logWorkInput.StartAt = time.Now().In(location).Add(-time.Duration(logWorkInput.Minutes) * time.Minute)
-	}
-	workLog := &models.TWorkLog{
-		UserID:  user.ID,
-		WorkID:  logWorkInput.WorkID,
-		StartAt: logWorkInput.StartAt,
-		Minutes: logWorkInput.Minutes,
 	}
 
 	err := models.DB.Create(workLog).Error
@@ -46,32 +48,32 @@ func LogWorkHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	var logWorkInput LogWorkInput
-	err = reqContext.ShouldBind(&logWorkInput)
+	err = reqContext.ShouldBindJSON(&logWorkInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to bind request"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	workLog, err := logWork(logWorkInput, *user)
+	_, err = logWork(logWorkInput, *user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to get work log"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateWorkLog, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	err = coins.GiveUserCoins(*user, coins.CalculateCoinCountFromStudyMinutes(logWorkInput.Minutes))
+	err, responseCode := coins.GiveUserCoins(*user, coins.CalculateCoinCountFromStudyMinutes(logWorkInput.Minutes))
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to give user coins"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"WorkLog": workLog})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.LogWorkSuccess, applogs.ResponseOptions{}))
 }

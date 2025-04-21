@@ -3,6 +3,7 @@ package profile
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
@@ -51,24 +52,24 @@ func UpdateProfileHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "User not authenticated"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	var updateProfileInput UpdateProfileInput
-	if err := reqContext.BindJSON(&updateProfileInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Invalid json input"})
+	if err := reqContext.ShouldBindJSON(&updateProfileInput); err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
 	err = UpdateProfile(user, updateProfileInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "Failed to update profile"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToUpdateProfile, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, gin.H{"User": user.PrepareOutput()})
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.UpdateProfileSuccess, applogs.ResponseOptions{Me: user}))
 }

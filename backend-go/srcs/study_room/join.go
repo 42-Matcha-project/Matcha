@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
 	"net/http"
+	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 )
@@ -47,24 +48,23 @@ func JoinStudyRoomHandler(reqContext *gin.Context) {
 	roomCode := reqContext.Param("roomCode")
 	StudyRoomsMutex.Lock()
 	if _, isExist := StudyRooms[roomCode]; !isExist {
-		reqContext.JSON(http.StatusBadRequest, gin.H{"Error": "room code not exist"})
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.RoomCodeNotFound, applogs.ResponseOptions{}))
+		StudyRoomsMutex.Unlock()
 		return
 	}
 	room := StudyRooms[roomCode]
 	StudyRoomsMutex.Unlock()
 
-	// JWTトークンからuserIdを抽出し、userをDBから取り出す。
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
+		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
 
-	// Websocketへupgradeする。
 	conn, err := upgrader.Upgrade(reqContext.Writer, reqContext.Request, nil)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, gin.H{"Error": "Failed to upgrade connection"})
+		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToUpgradeConnectionToWS, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	}
