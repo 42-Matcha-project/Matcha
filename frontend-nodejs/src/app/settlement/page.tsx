@@ -43,7 +43,7 @@ export default function SettlementPage() {
   } = useAnimationState(isMounted);
 
   // 認証コンテキストを使用
-  const { token, checkAuth } = useAuth();
+  const { token, isAuthenticated, isLoading: authLoading } = useAuth();
   const router = useRouter();
 
   // ユーザー情報の状態
@@ -125,18 +125,22 @@ export default function SettlementPage() {
     const initializeUserData = async () => {
       setIsLoading(true);
       try {
-        // 認証チェックを実行（APIからユーザー情報も取得する）
-        const isAuth = await checkAuth();
+        // 認証ロード中は何もしない
+        if (authLoading) {
+          return;
+        }
 
-        if (!isAuth || !token) {
-          // 認証失敗ならログインページへリダイレクト
+        // 認証されていない場合のみリダイレクト
+        if (!isAuthenticated) {
+          setError("認証情報がありません。ログインしてください。");
           router.push("/login");
           return;
         }
 
-        // 認証成功したら、追加のユーザーデータを取得（必要な場合のみ）
+        // 認証済みならユーザーデータを取得
         await fetchUserStats();
-      } catch {
+      } catch (err) {
+        console.error("認証またはデータ取得中にエラー:", err);
         setError("認証またはデータ取得中にエラーが発生しました");
       } finally {
         setIsLoading(false);
@@ -144,7 +148,7 @@ export default function SettlementPage() {
     };
 
     initializeUserData();
-  }, [checkAuth, fetchUserStats, router, token]);
+  }, [fetchUserStats, router, isAuthenticated, authLoading]);
 
   // 初期化処理: 建物の状態を初期化
   useEffect(() => {

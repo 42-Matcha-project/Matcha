@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProfileEditPage() {
   const router = useRouter();
-  const { checkAuth: contextCheckAuth, token: authToken } = useAuth();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageKey, setImageKey] = useState<number>(0);
 
@@ -29,33 +29,6 @@ export default function ProfileEditPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
-
-  // 認証チェック用のユーティリティ関数
-  const checkAuth = useCallback(() => {
-    if (authToken) {
-      return authToken;
-    }
-
-    const token = localStorage.getItem("token");
-    if (!token) {
-      console.log(
-        "トークンが見つかりません。ログインページにリダイレクトします。",
-      );
-      router.push("/login");
-      return null;
-    }
-
-    if (!token.trim() || token.length < 10) {
-      console.log(
-        "トークンの形式が無効です。ログインページにリダイレクトします。",
-      );
-      localStorage.removeItem("token");
-      router.push("/login");
-      return null;
-    }
-
-    return token;
-  }, [router, authToken]);
 
   // フォームの状態
   const [formData, setFormData] = useState({
@@ -70,87 +43,92 @@ export default function ProfileEditPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    const checkAuthState = async () => {
-      try {
-        const isAuthenticated = await contextCheckAuth();
-        if (!isAuthenticated) {
-          console.log("認証状態の確認に失敗しました。");
-          return;
-        }
-      } catch (error) {
-        console.error("認証チェックエラー:", error);
+    // AuthContextの認証状態を監視し、未認証の場合はリダイレクト
+    // authLoadingがfalseになった後で判定する（初期ロード中は判定しない）
+    if (!authLoading && !isAuthenticated) {
+      router.push("/login");
+      return;
+    }
+
+    // 認証済みの場合のみプロフィール取得を実行
+    if (!authLoading && isAuthenticated) {
+      fetchProfile();
+    }
+  }, [isAuthenticated, authLoading, router]);
+
+  // プロフィール情報を取得する関数
+  const fetchProfile = async () => {
+    try {
+      setIsLoading(true);
+
+      // ローカルストレージからトークンを取得
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("認証情報がありません。ログインしてください。");
+        setIsLoading(false);
+        return;
       }
 
-      const fetchProfile = async () => {
-        try {
-          setIsLoading(true);
-          const token = checkAuth();
-          if (!token) return;
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          cache: "no-store", // Prevent caching
+        },
+      );
 
-          const response = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
-            {
-              method: "GET",
-              headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-              },
-              cache: "no-store", // Prevent caching
-            },
-          );
-
-          if (!response.ok) {
-            if (response.status === 401) {
-              router.push("/login");
-              return;
-            }
-            throw new Error("プロフィールの取得に失敗しました");
-          }
-
-          const data = await response.json();
-
-          const userData = data.Me || data.User || data.user || data;
-
-          if (
-            !userData ||
-            (typeof userData === "object" && Object.keys(userData).length === 0)
-          ) {
-            throw new Error("プロフィールデータが見つかりません");
-          }
-          setProfile(userData);
-
-          const initialFormData = {
-            displayName: userData.DisplayName || userData.displayName || "",
-            townName: userData.TownName || userData.townName || "",
-            introduction: userData.Introduction || userData.introduction || "",
-            email: userData.Email || userData.email || "",
-            iconImage: null,
-          };
-
-
-          setFormData(initialFormData);
-
-          if (userData.IconImageURL || userData.iconImageURL) {
-            setImagePreview(userData.IconImageURL || userData.iconImageURL);
-            setImageKey((prev) => prev + 1);
-          }
-        } catch (error) {
-          console.error("プロフィール取得エラー:", error);
-          setError(
-            error instanceof Error
-              ? error.message
-              : "不明なエラーが発生しました",
-          );
-        } finally {
+      if (!response.ok) {
+        if (response.status === 401) {
+          setError("認証が切れています。再度ログインしてください。");
           setIsLoading(false);
+          return;
         }
+        throw new Error("プロフィールの取得に失敗しました");
+      }
+
+      const data = await response.json();
+
+      // データの存在確認とフォーマット検証を柔軟に行う
+      const userData = data.Me || data.User || data.user || data;
+
+      if (
+        !userData ||
+        (typeof userData === "object" && Object.keys(userData).length === 0)
+      ) {
+        throw new Error("プロフィールデータが見つかりません");
+      }
+
+      setProfile(userData);
+
+      // フォームデータを初期化
+      const initialFormData = {
+        displayName: userData.DisplayName || userData.displayName || "",
+        townName: userData.TownName || userData.townName || "",
+        introduction: userData.Introduction || userData.introduction || "",
+        email: userData.Email || userData.email || "",
+        iconImage: null,
       };
 
-      fetchProfile();
-    };
+      setFormData(initialFormData);
 
-    checkAuthState();
-  }, [router, checkAuth, contextCheckAuth]);
+      // 画像プレビューを設定
+      if (userData.IconImageURL || userData.iconImageURL) {
+        setImagePreview(userData.IconImageURL || userData.iconImageURL);
+        setImageKey((prev) => prev + 1);
+      }
+    } catch (error) {
+      console.error("プロフィール取得エラー:", error);
+      setError(
+        error instanceof Error ? error.message : "不明なエラーが発生しました",
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -188,8 +166,12 @@ export default function ProfileEditPage() {
       setSuccessMessage(null);
       setWarningMessage(null);
 
-      const token = checkAuth();
-      if (!token) return;
+      const token = localStorage.getItem("token");
+      if (!token) {
+        setError("認証情報がありません。ログインしてください。");
+        setIsSaving(false);
+        return;
+      }
 
       const imageUploaded = false;
 
@@ -199,6 +181,7 @@ export default function ProfileEditPage() {
         );
       }
 
+      // プロフィール情報を更新
       const submitData: {
         DisplayName: string;
         TownName: string;
@@ -210,8 +193,8 @@ export default function ProfileEditPage() {
         Introduction: formData.introduction || null,
       };
 
-      if (!imageUploaded && !formData.iconImage) {
-        submitData.IconImageUrl = profile?.IconImageURL || "";
+      if (!imageUploaded && !formData.iconImage && profile?.IconImageURL) {
+        submitData.IconImageUrl = profile.IconImageURL;
       }
 
       try {
@@ -238,7 +221,8 @@ export default function ProfileEditPage() {
 
           if (!updateResponse.ok) {
             if (updateResponse.status === 401) {
-              router.push("/login");
+              setError("認証が切れています。再度ログインしてください。");
+              setIsSaving(false);
               return;
             }
 
