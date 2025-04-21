@@ -59,6 +59,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         setToken(storedToken);
 
         try {
+          // タイムアウト設定を追加してAPIリクエストが長時間ブロックされないようにする
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒タイムアウト
+
           // トークンを使ってAPIからユーザー情報を取得
           const response = await fetch(
             `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
@@ -66,9 +70,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               method: "GET",
               headers: {
                 Authorization: `Bearer ${storedToken}`,
+                "Content-Type": "application/json", // JSONレスポンスを期待することを明示
               },
+              signal: controller.signal, // AbortControllerシグナルを追加
             },
           );
+
+          clearTimeout(timeoutId); // タイムアウトタイマーをクリア
 
           if (!response.ok) {
             // 401や403などの認証エラーの場合
@@ -84,47 +92,66 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             throw new Error(`APIエラー: ${response.status}`);
           }
 
-          const responseText = await response.text();
-          if (!responseText || responseText.trim() === "") {
-            console.error("空のレスポンスを受信しました");
-            throw new Error("サーバーから空のレスポンスが返されました");
-          }
-
+          // JSONレスポンスを取得
+          let data;
           try {
-            const data = JSON.parse(responseText);
-            console.log("取得したユーザー情報:", data);
-
-            if (!data.User) {
-              throw new Error("ユーザー情報が見つかりません");
-            }
-
-            // APIから取得したユーザー情報をコンテキストに設定
-            setUser({
-              id: data.User.ID,
-              username: data.User.Username,
-              displayName: data.User.DisplayName,
-              email: data.User.Email,
-            });
-
-            setIsLoading(false);
-            return true;
+            data = await response.json();
+            // レスポンスの詳細をデバッグ出力
+            console.log("API応答の詳細:", JSON.stringify(data, null, 2));
           } catch (parseError) {
             console.error("JSONパースエラー:", parseError);
-            throw new Error(
-              `レスポンスの解析に失敗しました: ${(parseError as Error).message}`,
-            );
+            // JSONパースエラーは重大なエラーとして扱う
+            localStorage.removeItem("token");
+            setUser(null);
+            setToken(null);
+            setIsLoading(false);
+            return false;
           }
-        } catch (apiError) {
-          console.error("API呼び出しエラー:", apiError);
-          // APIエラーの場合は認証エラーとしては扱わず、ダミーデータをセットする（一時的な対応）
+
+          // APIレスポンスの形式を確認
+          console.log("取得したユーザー情報:", data);
+
+          // データの存在確認とフォーマット検証を柔軟に行う
+          const userData = data.User || data.user || data;
+
+          if (
+            !userData ||
+            (typeof userData === "object" && Object.keys(userData).length === 0)
+          ) {
+            console.error("有効なユーザー情報が見つかりません:", data);
+            // ユーザーデータが無いのは認証エラーとして扱う
+            localStorage.removeItem("token");
+            setUser(null);
+            setToken(null);
+            setIsLoading(false);
+            return false;
+          }
+
+          // APIから取得したユーザー情報をコンテキストに設定（プロパティ名のバリエーションに対応）
           setUser({
-            id: 1,
-            username: "user",
-            displayName: "ユーザー",
-            email: "user@example.com",
+            id: userData.ID || userData.Id || userData.id,
+            username: userData.Username || userData.username,
+            displayName: userData.DisplayName || userData.displayName,
+            email: userData.Email || userData.email,
           });
+
+          console.log("設定したユーザー情報:", {
+            id: userData.ID || userData.Id || userData.id,
+            username: userData.Username || userData.username,
+            displayName: userData.DisplayName || userData.displayName,
+            email: userData.Email || userData.email,
+          });
+
           setIsLoading(false);
           return true;
+        } catch (apiError) {
+          console.error("API呼び出しエラー:", apiError);
+          // APIエラーは認証エラーとして扱う
+          localStorage.removeItem("token");
+          setUser(null);
+          setToken(null);
+          setIsLoading(false);
+          return false;
         }
       } else {
         // サーバーサイドでの実行時は認証なしとする
@@ -147,7 +174,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (typeof window !== "undefined") {
       localStorage.setItem("token", tokenValue);
       setToken(tokenValue);
-      checkAuth();
+      // 少し遅延させてからcheckAuthを呼び出す（ローカルストレージの反映を待つ）
+      setTimeout(() => {
+        checkAuth();
+      }, 100);
     }
   };
 

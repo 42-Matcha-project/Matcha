@@ -278,6 +278,7 @@ const Login = () => {
           width={300}
           height={300}
           className="object-contain"
+          priority
         />
       </div>
 
@@ -289,6 +290,7 @@ const Login = () => {
           width={300}
           height={300}
           className="object-contain"
+          priority
         />
       </div>
 

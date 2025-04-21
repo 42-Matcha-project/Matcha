@@ -143,7 +143,12 @@ const DecorativeImage = ({
           width={width}
           height={height}
           className="object-contain pointer-events-none w-full h-auto"
-          priority={src.includes("flying") || src.includes("butterfly")}
+          priority={
+            src.includes("flying") ||
+            src.includes("butterfly") ||
+            src.includes("welcome-flower") ||
+            src.includes("macha-neko2.png")
+          }
           unoptimized={shouldNotOptimize}
         />
       </div>

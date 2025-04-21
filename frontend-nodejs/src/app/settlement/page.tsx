@@ -43,77 +43,120 @@ export default function SettlementPage() {
   } = useAnimationState(isMounted);
 
   // 認証コンテキストを使用
-  const { token, isAuthenticated, checkAuth } = useAuth();
+  const { token, checkAuth } = useAuth();
 
   // ユーザー情報の状態
   const [userStats, setUserStats] = useState<UserStats>(initialUserStats);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 初期ロード時に認証状態を確認
+  // 初期ロード時に認証状態を確認し、ユーザーデータを取得
   useEffect(() => {
-    const verifyAuth = async () => {
-      await checkAuth();
-    };
-    verifyAuth();
-  }, [checkAuth]);
-
-  // APIからユーザー情報を取得
-  useEffect(() => {
-    const fetchUserData = async () => {
-      // 認証されていない場合は何もしない
-      if (!isAuthenticated || !token) {
-        return;
-      }
-
+    const initializeUserData = async () => {
       setIsLoading(true);
-      setError(null);
-
       try {
-        // プロフィールAPIからユーザーデータを取得
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+        // 認証チェックを実行（APIからユーザー情報も取得する）
+        const isAuth = await checkAuth();
 
-        if (!response.ok) {
-          throw new Error(`APIエラー: ${response.status}`);
+        if (!isAuth || !token) {
+          // 認証失敗ならログインページへリダイレクト
+          router.push("/login");
+          return;
         }
 
-        const data = await response.json();
-
-        if (!data.User) {
-          throw new Error("ユーザー情報が見つかりません");
-        }
-
-        // APIから取得したデータでユーザー情報を更新
-        setUserStats({
-          level: data.User.Level || 1,
-          dayStreak: data.User.DayStreak || 0,
-          totalStudyHours: data.User.TotalStudyHours || 0,
-          username: data.User.Username || "開拓者",
-          coins: data.User.CoinCount || 0,
-        });
-      } catch (error) {
-        console.error("ユーザーデータ取得エラー:", error);
-        setError(
-          error instanceof Error ? error.message : "データ取得に失敗しました",
-        );
-
-        // エラー時はデフォルトデータを使用（既存の初期値を保持）
-        console.log("初期ユーザーデータを使用します");
+        // 認証成功したら、追加のユーザーデータを取得（必要な場合のみ）
+        await fetchUserStats();
+      } catch (err) {
+        console.error("初期化エラー:", err);
+        setError("認証またはデータ取得中にエラーが発生しました");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [isAuthenticated, token]);
+    initializeUserData();
+  }, []);
+
+  // ユーザーの統計情報を取得する関数
+  const fetchUserStats = async () => {
+    if (!token) return;
+
+    try {
+      // プロフィールAPIからユーザーデータを取得
+      // AbortControllerでタイムアウトを設定
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒タイムアウト
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          signal: controller.signal,
+        },
+      );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          // 認証エラーならログインページへ
+          router.push("/login");
+          return;
+        }
+        throw new Error(`APIエラー: ${response.status}`);
+      }
+
+      // JSONレスポンスを取得
+      const data = await response.json();
+      console.log("API応答の詳細 (settlement):", JSON.stringify(data, null, 2));
+
+      // データの存在確認とフォーマット検証を柔軟に行う
+      const userData = data.User || data.user || data;
+
+      if (
+        !userData ||
+        (typeof userData === "object" && Object.keys(userData).length === 0)
+      ) {
+        console.error("有効なユーザー情報が見つかりません (settlement):", data);
+        throw new Error("ユーザー情報が見つかりません");
+      }
+
+      // APIから取得したデータでユーザー情報を更新（プロパティ名のバリエーションに対応）
+      setUserStats({
+        level: userData.Level || userData.level || 1,
+        dayStreak: userData.DayStreak || userData.dayStreak || 0,
+        totalStudyHours:
+          userData.TotalStudyHours || userData.totalStudyHours || 0,
+        username: userData.Username || userData.username || "開拓者",
+        coins: userData.CoinCount || userData.coinCount || userData.coins || 0,
+      });
+
+      console.log("設定したユーザー統計情報:", {
+        level: userData.Level || userData.level || 1,
+        dayStreak: userData.DayStreak || userData.dayStreak || 0,
+        totalStudyHours:
+          userData.TotalStudyHours || userData.totalStudyHours || 0,
+        username: userData.Username || userData.username || "開拓者",
+        coins: userData.CoinCount || userData.coinCount || userData.coins || 0,
+      });
+    } catch (error) {
+      console.error("ユーザー統計データ取得エラー:", error);
+      setError(
+        error instanceof Error
+          ? error.message
+          : "ユーザーデータ取得に失敗しました",
+      );
+
+      // 深刻なエラーの場合はログインページへリダイレクト
+      setTimeout(() => {
+        router.push("/login");
+      }, 3000); // 3秒後にリダイレクト（エラーメッセージを見せるため）
+    }
+  };
 
   // 初期化処理: 建物の状態を初期化
   useEffect(() => {
@@ -167,14 +210,6 @@ export default function SettlementPage() {
       alert("コインが足りません！勉強を続けてコインを集めましょう。");
     }
   };
-
-  // ユーザーがログインしていない場合の処理
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      // ログインページへリダイレクト
-      router.push("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   return (
     <div
