@@ -96,8 +96,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           let data;
           try {
             data = await response.json();
-            // レスポンスの詳細をデバッグ出力
-            console.log("API応答の詳細:", JSON.stringify(data, null, 2));
           } catch (parseError) {
             console.error("JSONパースエラー:", parseError);
             // JSONパースエラーは重大なエラーとして扱う
@@ -107,9 +105,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             setIsLoading(false);
             return false;
           }
-
-          // APIレスポンスの形式を確認
-          console.log("取得したユーザー情報:", data);
 
           // データの存在確認とフォーマット検証を柔軟に行う
           const userData = data.User || data.user || data;
@@ -129,13 +124,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
           // APIから取得したユーザー情報をコンテキストに設定（プロパティ名のバリエーションに対応）
           setUser({
-            id: userData.ID || userData.Id || userData.id,
-            username: userData.Username || userData.username,
-            displayName: userData.DisplayName || userData.displayName,
-            email: userData.Email || userData.email,
-          });
-
-          console.log("設定したユーザー情報:", {
             id: userData.ID || userData.Id || userData.id,
             username: userData.Username || userData.username,
             displayName: userData.DisplayName || userData.displayName,

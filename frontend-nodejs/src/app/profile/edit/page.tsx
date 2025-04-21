@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import {
@@ -29,14 +29,14 @@ export default function ProfileEditPage() {
   const [warningMessage, setWarningMessage] = useState<string | null>(null);
 
   // 認証チェック用のユーティリティ関数
-  const checkAuth = () => {
+  const checkAuth = useCallback(() => {
     const token = localStorage.getItem("token");
     if (!token) {
       router.push("/login");
       return null;
     }
     return token;
-  };
+  }, [router]);
 
   // フォームの状態
   const [formData, setFormData] = useState({
@@ -106,7 +106,7 @@ export default function ProfileEditPage() {
     };
 
     fetchProfile();
-  }, [router]);
+  }, [router, checkAuth]);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,

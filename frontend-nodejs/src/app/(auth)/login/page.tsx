@@ -212,7 +212,6 @@ const Login = () => {
           }
 
           // 成功レスポンスの処理
-          console.log("Login successful:", data);
           const token = data.Token;
 
           if (!token) {

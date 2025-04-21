@@ -116,11 +116,7 @@ export default function BuildingCard({
                 : "hover:drop-shadow-[0_8px_24px_rgba(217,119,6,0.2)]",
             )}
             quality={95}
-            priority={
-              isLoaded &&
-              isMounted &&
-              (building.id === "house" || building.id === "cafe")
-            }
+            priority={building.id === "house" || building.id === "cafe"}
           />
 
           {/* 選択インジケーター */}

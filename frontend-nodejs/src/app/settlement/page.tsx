@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building, UserStats } from "../../types/settlement";
 import { useRouter } from "next/navigation";
@@ -44,41 +44,15 @@ export default function SettlementPage() {
 
   // 認証コンテキストを使用
   const { token, checkAuth } = useAuth();
+  const router = useRouter();
 
   // ユーザー情報の状態
   const [userStats, setUserStats] = useState<UserStats>(initialUserStats);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 初期ロード時に認証状態を確認し、ユーザーデータを取得
-  useEffect(() => {
-    const initializeUserData = async () => {
-      setIsLoading(true);
-      try {
-        // 認証チェックを実行（APIからユーザー情報も取得する）
-        const isAuth = await checkAuth();
-
-        if (!isAuth || !token) {
-          // 認証失敗ならログインページへリダイレクト
-          router.push("/login");
-          return;
-        }
-
-        // 認証成功したら、追加のユーザーデータを取得（必要な場合のみ）
-        await fetchUserStats();
-      } catch (err) {
-        console.error("初期化エラー:", err);
-        setError("認証またはデータ取得中にエラーが発生しました");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    initializeUserData();
-  }, []);
-
   // ユーザーの統計情報を取得する関数
-  const fetchUserStats = async () => {
+  const fetchUserStats = useCallback(async () => {
     if (!token) return;
 
     try {
@@ -112,7 +86,6 @@ export default function SettlementPage() {
 
       // JSONレスポンスを取得
       const data = await response.json();
-      console.log("API応答の詳細 (settlement):", JSON.stringify(data, null, 2));
 
       // データの存在確認とフォーマット検証を柔軟に行う
       const userData = data.User || data.user || data;
@@ -121,7 +94,6 @@ export default function SettlementPage() {
         !userData ||
         (typeof userData === "object" && Object.keys(userData).length === 0)
       ) {
-        console.error("有効なユーザー情報が見つかりません (settlement):", data);
         throw new Error("ユーザー情報が見つかりません");
       }
 
@@ -134,17 +106,7 @@ export default function SettlementPage() {
         username: userData.Username || userData.username || "開拓者",
         coins: userData.CoinCount || userData.coinCount || userData.coins || 0,
       });
-
-      console.log("設定したユーザー統計情報:", {
-        level: userData.Level || userData.level || 1,
-        dayStreak: userData.DayStreak || userData.dayStreak || 0,
-        totalStudyHours:
-          userData.TotalStudyHours || userData.totalStudyHours || 0,
-        username: userData.Username || userData.username || "開拓者",
-        coins: userData.CoinCount || userData.coinCount || userData.coins || 0,
-      });
     } catch (error) {
-      console.error("ユーザー統計データ取得エラー:", error);
       setError(
         error instanceof Error
           ? error.message
@@ -156,7 +118,33 @@ export default function SettlementPage() {
         router.push("/login");
       }, 3000); // 3秒後にリダイレクト（エラーメッセージを見せるため）
     }
-  };
+  }, [token, router]);
+
+  // 初期ロード時に認証状態を確認し、ユーザーデータを取得
+  useEffect(() => {
+    const initializeUserData = async () => {
+      setIsLoading(true);
+      try {
+        // 認証チェックを実行（APIからユーザー情報も取得する）
+        const isAuth = await checkAuth();
+
+        if (!isAuth || !token) {
+          // 認証失敗ならログインページへリダイレクト
+          router.push("/login");
+          return;
+        }
+
+        // 認証成功したら、追加のユーザーデータを取得（必要な場合のみ）
+        await fetchUserStats();
+      } catch {
+        setError("認証またはデータ取得中にエラーが発生しました");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initializeUserData();
+  }, [checkAuth, fetchUserStats, router, token]);
 
   // 初期化処理: 建物の状態を初期化
   useEffect(() => {
@@ -193,8 +181,6 @@ export default function SettlementPage() {
 
   // 雲のデータを使用
   const clouds = cloudEffects;
-
-  const router = useRouter();
 
   // 実際の購入処理（UI表示とメッセージ）
   const handlePurchase = (building: Building) => {
