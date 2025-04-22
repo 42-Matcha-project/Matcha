@@ -16,7 +16,6 @@ import {
   MessageSquare,
   BarChart2,
   Plus,
-  Target,
   LucideIcon,
 } from "lucide-react";
 import { ChatPanel } from "./components/ChatPanel";
@@ -217,50 +216,18 @@ export default function MyHousePage() {
         学習ステータス
       </h3>
 
-      <div className="mb-4">
-        <div className="text-sm text-gray-600 dark:text-gray-300 mb-2">
-          現在の学習時間
-        </div>
-        <div className="flex space-x-2 mb-4">
-          <motion.button
-            className={cn(
-              "px-6 py-2 rounded text-white font-medium",
-              isDarkMode
-                ? "bg-green-600 hover:bg-green-500"
-                : "bg-green-500 hover:bg-green-400",
-            )}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            スタート
-          </motion.button>
-          <motion.button
-            className={cn(
-              "px-6 py-2 rounded text-white font-medium",
-              isDarkMode
-                ? "bg-red-600 hover:bg-red-500"
-                : "bg-red-500 hover:bg-red-400",
-            )}
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-          >
-            終了
-          </motion.button>
-        </div>
-
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div className="bg-amber-50 dark:bg-amber-900 p-3 rounded border border-amber-200 dark:border-amber-700">
-            <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
-              今回の学習時間
-            </div>
-            <div className="text-xl font-bold">0分0秒</div>
+      <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className="bg-amber-50 dark:bg-amber-900 p-3 rounded border border-amber-200 dark:border-amber-700">
+          <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
+            今回の学習時間
           </div>
-          <div className="bg-amber-50 dark:bg-amber-900 p-3 rounded border border-amber-200 dark:border-amber-700">
-            <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
-              今日の累計
-            </div>
-            <div className="text-xl font-bold">0分0秒</div>
+          <div className="text-xl font-bold">0分0秒</div>
+        </div>
+        <div className="bg-amber-50 dark:bg-amber-900 p-3 rounded border border-amber-200 dark:border-amber-700">
+          <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
+            今日の累計
           </div>
+          <div className="text-xl font-bold">0分0秒</div>
         </div>
       </div>
     </div>
