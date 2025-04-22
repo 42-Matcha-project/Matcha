@@ -1,396 +1,208 @@
-import { useState, useEffect } from "react";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Calendar, CheckCircle, Clock, Medal } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+"use client";
+
+import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { format } from "date-fns";
+import { Clock, X } from "lucide-react";
 import { Task } from "./TaskManagement";
-import { formatTimeDisplay } from "@/lib/date-utils";
 
 interface CompletedTasksProps {
   tasks: Task[];
   isDarkMode: boolean;
+  onToggleComplete: (taskId: number) => void;
 }
 
-export function CompletedTasks({ tasks, isDarkMode }: CompletedTasksProps) {
-  const [completedTasks, setCompletedTasks] = useState<Task[]>([]);
-  const [timeFilter, setTimeFilter] = useState<
-    "all" | "today" | "week" | "month"
-  >("all");
+export function CompletedTasks({
+  tasks,
+  isDarkMode,
+  onToggleComplete,
+}: CompletedTasksProps) {
+  const [isOpen, setIsOpen] = useState<boolean>(true);
 
-  // 完了したタスクのみをフィルタリング
-  useEffect(() => {
-    const filtered = tasks.filter((task) => task.completed);
-
-    // 時間によるフィルタリング
-    if (timeFilter !== "all") {
-      const now = new Date();
-      const filteredByTime = filtered.filter((task) => {
-        // 完了時間がないタスクは除外（実際の実装ではこのような処理があるかもしれません）
-        if (!task.completedDate) return false;
-
-        const completedDate = new Date(task.completedDate);
-
-        switch (timeFilter) {
-          case "today":
-            return (
-              completedDate.getDate() === now.getDate() &&
-              completedDate.getMonth() === now.getMonth() &&
-              completedDate.getFullYear() === now.getFullYear()
-            );
-          case "week":
-            const oneWeekAgo = new Date();
-            oneWeekAgo.setDate(now.getDate() - 7);
-            return completedDate >= oneWeekAgo;
-          case "month":
-            const oneMonthAgo = new Date();
-            oneMonthAgo.setMonth(now.getMonth() - 1);
-            return completedDate >= oneMonthAgo;
-          default:
-            return true;
-        }
-      });
-
-      setCompletedTasks(filteredByTime);
-    } else {
-      setCompletedTasks(filtered);
-    }
-  }, [tasks, timeFilter]);
-
-  // 日付のフォーマット
-  const formatDeadline = (date: Date | undefined) => {
-    if (!date) return "期限なし";
-
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const deadlineDate = new Date(
-      date.getFullYear(),
-      date.getMonth(),
-      date.getDate(),
-    );
-
-    const diffTime = deadlineDate.getTime() - today.getTime();
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-    const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-    };
-
-    const formattedDate = date.toLocaleDateString("ja-JP", options);
-
-    if (diffDays < 0) {
-      return `${formattedDate} (期限切れ)`;
-    } else if (diffDays === 0) {
-      return `${formattedDate} (今日)`;
-    } else if (diffDays === 1) {
-      return `${formattedDate} (明日)`;
-    } else {
-      return formattedDate;
-    }
-  };
-
-  // 完了日時のフォーマット
-  const formatCompletedDate = (date: Date | undefined) => {
-    if (!date) return "不明";
-
-    const options: Intl.DateTimeFormatOptions = {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    };
-
-    return date.toLocaleDateString("ja-JP", options);
-  };
-
-  // 学習状況のサマリー計算
-  const calculateSummary = () => {
-    const totalTasks = completedTasks.length;
-    const totalTimeSpent = completedTasks.reduce(
-      (sum, task) => sum + (task.timeSpent || 0),
-      0,
-    );
-
-    // 今日完了したタスク
-    const now = new Date();
-    const todayTasks = completedTasks.filter((task) => {
-      if (!task.completedDate) return false;
-      const completedDate = new Date(task.completedDate);
-      return (
-        completedDate.getDate() === now.getDate() &&
-        completedDate.getMonth() === now.getMonth() &&
-        completedDate.getFullYear() === now.getFullYear()
-      );
+  // 完了済みタスクをソート (新しい順)
+  const completedTasks = tasks
+    .filter((task) => task.completed)
+    .sort((a, b) => {
+      // completedDateがある場合は新しい順に、なければIDで降順
+      if (a.completedDate && b.completedDate) {
+        return (
+          new Date(b.completedDate).getTime() -
+          new Date(a.completedDate).getTime()
+        );
+      }
+      return b.id - a.id;
     });
-
-    // 今週完了したタスク
-    const oneWeekAgo = new Date();
-    oneWeekAgo.setDate(now.getDate() - 7);
-    const weekTasks = completedTasks.filter((task) => {
-      if (!task.completedDate) return false;
-      const completedDate = new Date(task.completedDate);
-      return completedDate >= oneWeekAgo;
-    });
-
-    return {
-      totalTasks,
-      totalTimeSpent,
-      todayTasks: todayTasks.length,
-      weekTasks: weekTasks.length,
-    };
-  };
-
-  const summary = calculateSummary();
 
   return (
-    <Card
+    <div
       className={cn(
-        "border-2 shadow-md",
+        "p-4 rounded-xl border-2 shadow-md mb-4",
         isDarkMode
-          ? "bg-gray-800 border-gray-700 text-gray-200"
-          : "bg-white border-amber-200",
+          ? "bg-amber-800/30 border-amber-700"
+          : "bg-amber-50/80 border-amber-200",
       )}
     >
-      <CardHeader className="pb-3">
-        <CardTitle className="text-2xl font-bold flex items-center gap-2">
-          <CheckCircle
-            className={isDarkMode ? "text-green-400" : "text-green-500"}
-          />
-          <span>完了タスク</span>
-        </CardTitle>
-        <CardDescription
-          className={isDarkMode ? "text-gray-400" : "text-gray-600"}
-        >
-          完了したタスクの一覧と学習履歴
-        </CardDescription>
-      </CardHeader>
-
-      <CardContent>
-        {/* 学習サマリー */}
+      <div
+        className="flex items-center justify-between mb-4 cursor-pointer"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex items-center gap-2">
+          <div
+            className={cn(
+              "w-8 h-8 rounded-full flex items-center justify-center",
+              isDarkMode ? "bg-green-600" : "bg-green-500",
+            )}
+          >
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 24 24"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+              className="text-white"
+            >
+              <path
+                d="M12 2C13 2 14 2.2 14.5 2.5C15 2.8 15 3 15 3.5C15 4 15 4.2 14.5 4.5C14 4.8 13.5 5 12 5C10.5 5 10 4.8 9.5 4.5C9 4.2 9 4 9 3.5C9 3 9 2.8 9.5 2.5C10 2.2 11 2 12 2Z"
+                fill="currentColor"
+              />
+              <path
+                d="M14.3 5C17 6 19.7 9 20.5 12.5C21.3 16 20.5 20 17.2 21.8C13.8 23.6 9.7 23 6.8 21C4 19 2 15.7 2.3 12.7C2.6 9.7 4.3 7.3 6.7 5.8"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+              />
+            </svg>
+          </div>
+          <h3
+            className={cn(
+              "text-lg font-bold",
+              isDarkMode ? "text-amber-100" : "text-amber-800",
+            )}
+          >
+            完了したタスク
+          </h3>
+        </div>
         <div
           className={cn(
-            "grid grid-cols-2 sm:grid-cols-4 gap-4 mb-6",
-            isDarkMode ? "text-gray-200" : "text-gray-800",
+            "w-5 h-5 flex items-center justify-center rounded transition-transform",
+            isOpen ? "rotate-180" : "",
           )}
         >
-          <div
-            className={cn(
-              "p-4 rounded-xl border flex flex-col items-center justify-center",
-              isDarkMode
-                ? "bg-gray-700 border-gray-600"
-                : "bg-amber-50 border-amber-200",
-            )}
+          <svg
+            width="10"
+            height="6"
+            viewBox="0 0 10 6"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
           >
-            <span className="text-3xl font-bold">{summary.totalTasks}</span>
-            <span className="text-xs mt-1 text-center">完了タスク</span>
-          </div>
-
-          <div
-            className={cn(
-              "p-4 rounded-xl border flex flex-col items-center justify-center",
-              isDarkMode
-                ? "bg-gray-700 border-gray-600"
-                : "bg-amber-50 border-amber-200",
-            )}
-          >
-            <span className="text-3xl font-bold">
-              {formatTimeDisplay(summary.totalTimeSpent)}
-            </span>
-            <span className="text-xs mt-1 text-center">総学習時間</span>
-          </div>
-
-          <div
-            className={cn(
-              "p-4 rounded-xl border flex flex-col items-center justify-center",
-              isDarkMode
-                ? "bg-gray-700 border-gray-600"
-                : "bg-amber-50 border-amber-200",
-            )}
-          >
-            <span className="text-3xl font-bold">{summary.todayTasks}</span>
-            <span className="text-xs mt-1 text-center">今日の完了</span>
-          </div>
-
-          <div
-            className={cn(
-              "p-4 rounded-xl border flex flex-col items-center justify-center",
-              isDarkMode
-                ? "bg-gray-700 border-gray-600"
-                : "bg-amber-50 border-amber-200",
-            )}
-          >
-            <span className="text-3xl font-bold">{summary.weekTasks}</span>
-            <span className="text-xs mt-1 text-center">今週の完了</span>
-          </div>
+            <path
+              d="M1 1L5 5L9 1"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
         </div>
-
-        {/* フィルタータブ */}
-        <Tabs
-          defaultValue="all"
-          className="mb-4"
-          onValueChange={(value) =>
-            setTimeFilter(value as "all" | "today" | "week" | "month")
-          }
-        >
-          <TabsList
-            className={cn(
-              "grid w-full grid-cols-4 mb-6",
-              isDarkMode ? "bg-gray-700" : "bg-amber-100",
-            )}
-          >
-            <TabsTrigger
-              value="all"
-              className={cn(
-                isDarkMode
-                  ? "data-[state=active]:bg-amber-700 data-[state=active]:text-amber-100"
-                  : "data-[state=active]:bg-amber-500 data-[state=active]:text-white",
-              )}
-            >
-              すべて
-            </TabsTrigger>
-            <TabsTrigger
-              value="today"
-              className={cn(
-                isDarkMode
-                  ? "data-[state=active]:bg-amber-700 data-[state=active]:text-amber-100"
-                  : "data-[state=active]:bg-amber-500 data-[state=active]:text-white",
-              )}
-            >
-              今日
-            </TabsTrigger>
-            <TabsTrigger
-              value="week"
-              className={cn(
-                isDarkMode
-                  ? "data-[state=active]:bg-amber-700 data-[state=active]:text-amber-100"
-                  : "data-[state=active]:bg-amber-500 data-[state=active]:text-white",
-              )}
-            >
-              今週
-            </TabsTrigger>
-            <TabsTrigger
-              value="month"
-              className={cn(
-                isDarkMode
-                  ? "data-[state=active]:bg-amber-700 data-[state=active]:text-amber-100"
-                  : "data-[state=active]:bg-amber-500 data-[state=active]:text-white",
-              )}
-            >
-              今月
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="all" className="mt-0">
-            {renderTaskList()}
-          </TabsContent>
-          <TabsContent value="today" className="mt-0">
-            {renderTaskList()}
-          </TabsContent>
-          <TabsContent value="week" className="mt-0">
-            {renderTaskList()}
-          </TabsContent>
-          <TabsContent value="month" className="mt-0">
-            {renderTaskList()}
-          </TabsContent>
-        </Tabs>
-      </CardContent>
-    </Card>
-  );
-
-  function renderTaskList() {
-    if (completedTasks.length === 0) {
-      return (
-        <div
-          className={cn(
-            "text-center py-12 border rounded-xl",
-            isDarkMode
-              ? "bg-gray-700 border-gray-600 text-gray-300"
-              : "bg-amber-50 border-amber-200 text-amber-800",
-          )}
-        >
-          <Medal className="mx-auto h-12 w-12 mb-4 opacity-20" />
-          <p className="text-lg font-medium mb-2">完了したタスクはありません</p>
-          <p className="text-sm">
-            {timeFilter === "all"
-              ? "タスクを完了するとここに表示されます"
-              : "この期間に完了したタスクはありません"}
-          </p>
-        </div>
-      );
-    }
-
-    return (
-      <div className="space-y-4">
-        {completedTasks.map((task) => (
-          <div
-            key={task.id}
-            className={cn(
-              "border p-4 rounded-lg shadow-sm",
-              isDarkMode
-                ? "bg-gray-700 border-gray-600"
-                : "bg-white border-amber-200",
-            )}
-          >
-            <div className="flex justify-between items-start mb-2">
-              <h3 className="text-lg font-bold">{task.title}</h3>
-              <div
-                className={cn(
-                  "px-2 py-1 rounded-full text-xs",
-                  isDarkMode
-                    ? "bg-green-800 text-green-200"
-                    : "bg-green-100 text-green-800",
-                )}
-              >
-                完了
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-2 mb-3">
-              <div className="flex items-center text-sm">
-                <Clock className="h-4 w-4 mr-1 opacity-70" />
-                <span>学習時間: {formatTimeDisplay(task.timeSpent)}</span>
-              </div>
-
-              {task.deadline && (
-                <div className="flex items-center text-sm">
-                  <Calendar className="h-4 w-4 mr-1 opacity-70" />
-                  <span>期限: {formatDeadline(task.deadline)}</span>
-                </div>
-              )}
-
-              {task.completedDate && (
-                <div className="flex items-center text-sm col-span-2">
-                  <CheckCircle className="h-4 w-4 mr-1 opacity-70" />
-                  <span>
-                    完了日時: {formatCompletedDate(task.completedDate)}
-                  </span>
-                </div>
-              )}
-            </div>
-
-            {task.subject && (
-              <div
-                className={cn(
-                  "text-xs px-2 py-1 rounded-full inline-block",
-                  isDarkMode
-                    ? "bg-blue-800 text-blue-200"
-                    : "bg-blue-100 text-blue-800",
-                )}
-              >
-                {task.subject}
-              </div>
-            )}
-          </div>
-        ))}
       </div>
-    );
-  }
+
+      {isOpen && (
+        <div className="space-y-3 max-h-[calc(100vh-250px)] overflow-y-auto pr-2">
+          {completedTasks.length === 0 ? (
+            <div
+              className={cn(
+                "text-center py-6 rounded-lg border",
+                isDarkMode
+                  ? "bg-amber-900/30 border-amber-800 text-amber-200"
+                  : "bg-amber-100/50 border-amber-200 text-amber-700",
+              )}
+            >
+              <p className="text-sm">完了したタスクはまだありません</p>
+            </div>
+          ) : (
+            completedTasks.map((task) => (
+              <div
+                key={`completed-${task.id}`}
+                className={cn(
+                  "p-3 rounded-lg border-2 flex items-center gap-3",
+                  isDarkMode
+                    ? "bg-green-800/20 border-green-700"
+                    : "bg-green-50 border-green-200",
+                )}
+              >
+                <div
+                  className={cn(
+                    "w-6 h-6 rounded-full flex-shrink-0 flex items-center justify-center",
+                    isDarkMode ? "bg-green-600" : "bg-green-500",
+                  )}
+                >
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="text-white"
+                  >
+                    <path
+                      d="M12 2C13 2 14 2.2 14.5 2.5C15 2.8 15 3 15 3.5C15 4 15 4.2 14.5 4.5C14 4.8 13.5 5 12 5C10.5 5 10 4.8 9.5 4.5C9 4.2 9 4 9 3.5C9 3 9 2.8 9.5 2.5C10 2.2 11 2 12 2Z"
+                      fill="currentColor"
+                    />
+                    <path
+                      d="M14.3 5C17 6 19.7 9 20.5 12.5C21.3 16 20.5 20 17.2 21.8C13.8 23.6 9.7 23 6.8 21C4 19 2 15.7 2.3 12.7C2.6 9.7 4.3 7.3 6.7 5.8"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                    />
+                  </svg>
+                </div>
+                <div className="overflow-hidden">
+                  <div
+                    className={cn(
+                      "font-medium line-through text-sm truncate",
+                      isDarkMode ? "text-amber-200" : "text-amber-700",
+                    )}
+                  >
+                    {task.title}
+                  </div>
+                  {task.timeSpent > 0 && (
+                    <div
+                      className={cn(
+                        "text-xs mt-1 flex items-center",
+                        isDarkMode ? "text-amber-300" : "text-amber-600",
+                      )}
+                    >
+                      <Clock className="h-3 w-3 mr-1" />
+                      {Math.floor(task.timeSpent / 60)}分
+                    </div>
+                  )}
+                  {task.completedDate && (
+                    <div
+                      className={cn(
+                        "text-xs mt-1",
+                        isDarkMode ? "text-amber-300" : "text-amber-600",
+                      )}
+                    >
+                      完了: {format(task.completedDate, "yyyy/MM/dd")}
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => onToggleComplete(task.id)}
+                  className={cn(
+                    "ml-auto p-1.5 rounded-full",
+                    isDarkMode
+                      ? "hover:bg-amber-700/50 text-amber-300"
+                      : "hover:bg-amber-200/50 text-amber-600",
+                  )}
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
 }

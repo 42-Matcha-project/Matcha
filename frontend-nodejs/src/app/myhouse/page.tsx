@@ -17,11 +17,13 @@ import {
   BarChart2,
   Plus,
   LucideIcon,
+  CheckCircle,
+  X,
 } from "lucide-react";
 import { ChatPanel } from "./components/ChatPanel";
 import { Message } from "./types";
 
-type TabType = "tasks" | "chat" | "stats";
+type TabType = "tasks" | "chat" | "stats" | "completed";
 
 interface TabInfo {
   id: TabType;
@@ -55,6 +57,7 @@ export default function MyHousePage() {
 
   const tabs: TabInfo[] = [
     { id: "tasks", label: "タスク管理", icon: Plus },
+    { id: "completed", label: "完了したタスク", icon: CheckCircle },
     { id: "chat", label: "チャット", icon: MessageSquare },
     { id: "stats", label: "学習データ", icon: BarChart2 },
   ];
@@ -358,6 +361,140 @@ export default function MyHousePage() {
                       />
                     </div>
                   </>
+                )}
+
+                {activeTab === "completed" && (
+                  <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
+                    <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                      完了したタスク
+                    </h3>
+                    <div className="space-y-4">
+                      {tasks.filter((task) => task.completed).length === 0 ? (
+                        <div
+                          className={cn(
+                            "text-center py-12 rounded-lg border-2",
+                            isDarkMode
+                              ? "bg-amber-800/30 border-amber-700 text-amber-200"
+                              : "bg-amber-50/80 border-amber-200 text-amber-700",
+                          )}
+                        >
+                          <div className="mb-3">
+                            <CheckCircle
+                              className={cn(
+                                "h-10 w-10 mx-auto",
+                                isDarkMode
+                                  ? "text-amber-400"
+                                  : "text-amber-500",
+                              )}
+                            />
+                          </div>
+                          <p className="text-lg font-medium mb-2">
+                            完了したタスクはまだありません
+                          </p>
+                          <p className="text-sm">
+                            タスクを完了するとここに表示されます
+                          </p>
+                        </div>
+                      ) : (
+                        tasks
+                          .filter((task) => task.completed)
+                          .sort((a, b) => {
+                            // 完了日があれば新しい順に、なければIDで降順
+                            if (a.completedDate && b.completedDate) {
+                              return (
+                                new Date(b.completedDate).getTime() -
+                                new Date(a.completedDate).getTime()
+                              );
+                            }
+                            return b.id - a.id;
+                          })
+                          .map((task) => (
+                            <div
+                              key={`completed-${task.id}`}
+                              className={cn(
+                                "p-3 rounded-lg border-2 flex items-center gap-3",
+                                isDarkMode
+                                  ? "bg-green-800/20 border-green-700"
+                                  : "bg-green-50 border-green-200",
+                              )}
+                            >
+                              <div
+                                className={cn(
+                                  "w-8 h-8 rounded-full flex-shrink-0 flex items-center justify-center",
+                                  isDarkMode ? "bg-green-600" : "bg-green-500",
+                                )}
+                              >
+                                <CheckCircle className="h-5 w-5 text-white" />
+                              </div>
+                              <div className="overflow-hidden">
+                                <div
+                                  className={cn(
+                                    "font-medium line-through text-base truncate",
+                                    isDarkMode
+                                      ? "text-amber-200"
+                                      : "text-amber-700",
+                                  )}
+                                >
+                                  {task.title}
+                                </div>
+                                {task.timeSpent > 0 && (
+                                  <div
+                                    className={cn(
+                                      "text-xs mt-1 flex items-center",
+                                      isDarkMode
+                                        ? "text-amber-300"
+                                        : "text-amber-600",
+                                    )}
+                                  >
+                                    <Clock className="h-3 w-3 mr-1" />
+                                    {Math.floor(task.timeSpent / 60)}分
+                                  </div>
+                                )}
+                                {task.completedDate && (
+                                  <div
+                                    className={cn(
+                                      "text-xs mt-1",
+                                      isDarkMode
+                                        ? "text-amber-300"
+                                        : "text-amber-600",
+                                    )}
+                                  >
+                                    完了:{" "}
+                                    {new Date(
+                                      task.completedDate,
+                                    ).toLocaleDateString()}
+                                  </div>
+                                )}
+                              </div>
+                              <button
+                                onClick={() => {
+                                  // 完了済みタスクを未完了に戻す
+                                  setTasks(
+                                    tasks.map((t) =>
+                                      t.id === task.id
+                                        ? {
+                                            ...t,
+                                            completed: false,
+                                            completedDate: undefined,
+                                          }
+                                        : t,
+                                    ),
+                                  );
+                                }}
+                                className={cn(
+                                  "ml-auto p-1.5 rounded-full",
+                                  isDarkMode
+                                    ? "hover:bg-amber-700/50 text-amber-300"
+                                    : "hover:bg-amber-200/50 text-amber-600",
+                                )}
+                              >
+                                <X className="h-4 w-4" />
+                              </button>
+                            </div>
+                          ))
+                      )}
+                    </div>
+                  </div>
                 )}
 
                 {activeTab === "chat" && (
