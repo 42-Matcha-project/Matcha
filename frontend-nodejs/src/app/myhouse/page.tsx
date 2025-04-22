@@ -43,7 +43,7 @@ export default function MyHousePage() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 1,
-      sender: "システム",
+      sender: "オーナー",
       content:
         "マイスタディハウスへようこそ！ここで学習の記録や他のユーザーとのコミュニケーションができます。",
       time: new Date().toLocaleTimeString([], {
@@ -212,19 +212,19 @@ export default function MyHousePage() {
   // 学習ステータスコンポーネント
   const LearningStatus = () => (
     <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 mb-6 shadow-md border border-amber-200 dark:border-amber-700">
-      <h3 className="text-lg font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
         学習ステータス
       </h3>
 
       <div className="grid grid-cols-2 gap-4 mb-4">
         <div className="bg-amber-50 dark:bg-amber-900 p-3 rounded border border-amber-200 dark:border-amber-700">
-          <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
+          <div className="text-xl text-gray-600 dark:text-gray-300 mb-1">
             今回の学習時間
           </div>
           <div className="text-xl font-bold">0分0秒</div>
         </div>
         <div className="bg-amber-50 dark:bg-amber-900 p-3 rounded border border-amber-200 dark:border-amber-700">
-          <div className="text-xs text-gray-600 dark:text-gray-300 mb-1">
+          <div className="text-xl text-gray-600 dark:text-gray-300 mb-1">
             今日の累計
           </div>
           <div className="text-xl font-bold">0分0秒</div>
@@ -236,7 +236,7 @@ export default function MyHousePage() {
   // 作業時間分析コンポーネント
   const WorkTimeAnalysis = () => (
     <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 mb-6 shadow-md border border-amber-200 dark:border-amber-700">
-      <h3 className="text-lg font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
         作業時間分析
       </h3>
       {tasks.length > 0 ? (
@@ -348,7 +348,7 @@ export default function MyHousePage() {
                     <LearningStatus />
 
                     <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
-                      <h3 className="text-lg font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
                         タスク管理
                       </h3>
                       <TaskManagement

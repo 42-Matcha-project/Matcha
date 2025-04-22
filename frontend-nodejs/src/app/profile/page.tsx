@@ -21,6 +21,7 @@ import {
   Loader2,
   Check,
   Upload,
+  Calendar,
 } from "lucide-react";
 import { UserProfile } from "@/types/profile";
 import {
@@ -39,6 +40,7 @@ interface Task {
   IconImageURL: string;
   notes?: string;
   timeSpent?: number; // 秒単位での作業時間
+  deadline?: string; // 期限（締切日）
 }
 
 export default function ProfilePage() {
@@ -62,6 +64,7 @@ export default function ProfilePage() {
   const [formData, setFormData] = useState({
     workName: "",
     notes: "",
+    deadline: "", // 期限
     // iconImage: null as File | null, // 画像機能は現在準備中
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -125,9 +128,27 @@ export default function ProfilePage() {
         today += taskTime;
       });
 
+      // タスクを期限が近い順にソート
+      const sortedTasks = [...worksData].sort((a, b) => {
+        // 期限がないタスクは後ろに配置
+        if (!a.deadline) return 1;
+        if (!b.deadline) return -1;
+
+        // 日付文字列をDateオブジェクトに変換して比較
+        const dateA = new Date(a.deadline);
+        const dateB = new Date(b.deadline);
+
+        // 無効な日付の場合は後ろに配置
+        if (isNaN(dateA.getTime())) return 1;
+        if (isNaN(dateB.getTime())) return -1;
+
+        // 日付の比較（昇順）
+        return dateA.getTime() - dateB.getTime();
+      });
+
       setTotalTaskTime(total);
       setTodayTaskTime(today);
-      setTasks(worksData);
+      setTasks(sortedTasks);
     } catch (error) {
       console.error("タスク取得エラー:", error);
       setTasksError(
@@ -148,6 +169,49 @@ export default function ProfilePage() {
       return `${hours}時間${minutes}分${seconds}秒`;
     }
     return `${minutes}分${seconds}秒`;
+  };
+
+  // 期限日のフォーマット関数
+  const formatDeadline = (dateString: string) => {
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) {
+        return "無効な日付";
+      }
+
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const deadline = new Date(date);
+      deadline.setHours(0, 0, 0, 0);
+
+      const diffTime = deadline.getTime() - today.getTime();
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+      // 日付のフォーマット
+      const year = date.getFullYear();
+      const month = date.getMonth() + 1;
+      const day = date.getDate();
+      const formattedDate = `${year}/${month}/${day}`;
+
+      // 残り日数に応じて表示を変える
+      if (diffDays < 0) {
+        return `${formattedDate} (期限切れ)`;
+      } else if (diffDays === 0) {
+        return `${formattedDate} (今日)`;
+      } else if (diffDays === 1) {
+        return `${formattedDate} (明日)`;
+      } else if (diffDays <= 3) {
+        return `${formattedDate} (残り${diffDays}日！)`;
+      } else if (diffDays <= 7) {
+        return `${formattedDate} (残り${diffDays}日)`;
+      } else {
+        return formattedDate;
+      }
+    } catch (error) {
+      console.error("日付のフォーマットエラー:", error);
+      return "日付エラー";
+    }
   };
 
   const handleInputChange = (
@@ -230,6 +294,7 @@ export default function ProfilePage() {
       const taskData = {
         WorkName: formData.workName,
         Notes: formData.notes || null,
+        Deadline: formData.deadline || null,
         // IconImageURL: null // 画像機能は現在準備中
       };
 
@@ -271,6 +336,7 @@ export default function ProfilePage() {
       setFormData({
         workName: "",
         notes: "",
+        deadline: "", // 期限
         // iconImage: null, // 画像機能は現在準備中
       });
       // setImagePreview(null); // 画像機能は現在準備中
@@ -304,6 +370,7 @@ export default function ProfilePage() {
     setFormData({
       workName: "",
       notes: "",
+      deadline: "", // 期限
       // iconImage: null  // 画像機能は現在準備中
     });
     // setImagePreview(null); // 画像機能は現在準備中
@@ -585,19 +652,48 @@ export default function ProfilePage() {
             {tasks.slice(0, 5).map((task) => (
               <div
                 key={task.ID}
-                className="bg-white p-3 rounded-lg border border-[#e4cbac]"
+                className={`bg-white p-3 rounded-lg border-2 ${
+                  task.deadline && new Date(task.deadline) < new Date()
+                    ? "border-red-400 bg-red-50 shadow-md"
+                    : "border-[#e4cbac]"
+                } relative`}
               >
-                <div className="flex justify-between items-center mb-1">
-                  <div className="font-medium text-[#7b6c5d] truncate pr-2">
+                {task.deadline && new Date(task.deadline) < new Date() && (
+                  <div className="absolute -top-3 -right-3 bg-red-500 text-white text-sm px-3 py-1 rounded-full shadow-md border-2 border-white z-10 font-bold">
+                    期限切れ
+                  </div>
+                )}
+                <div className="flex justify-between items-center mb-2">
+                  <div className="font-bold text-[#7b6c5d] truncate pr-2 text-xl">
                     {task.WorkName}
                   </div>
-                  <div className="text-sm text-[#9b8e7e]">
+                  <div className="text-base text-[#9b8e7e] font-medium">
                     {formatTime(task.timeSpent || 0)}
                   </div>
                 </div>
-                <div className="w-full bg-[#f8f3ea] rounded-full h-2.5">
+                {task.deadline && (
+                  <div className="flex items-center mb-3 text-base">
+                    <Calendar
+                      className={`h-5 w-5 mr-2 ${new Date(task.deadline) < new Date() ? "text-red-600" : "text-blue-600"}`}
+                    />
+                    <span
+                      className={`flex items-center ${new Date(task.deadline) < new Date() ? "text-red-600 font-bold" : "text-[#7b6c5d] font-semibold"}`}
+                    >
+                      <span className="mr-1">期限:</span>
+                      <span
+                        className={`${new Date(task.deadline) < new Date() ? "bg-red-100 text-red-700 px-3 py-1 rounded-md" : ""}`}
+                      >
+                        {formatDeadline(task.deadline)}
+                      </span>
+                      {new Date(task.deadline) < new Date() && (
+                        <AlertTriangle className="h-5 w-5 ml-2 text-red-500" />
+                      )}
+                    </span>
+                  </div>
+                )}
+                <div className="w-full bg-[#f8f3ea] rounded-full h-4 mt-2">
                   <div
-                    className="bg-gradient-to-r from-amber-400 to-amber-500 h-2.5 rounded-full"
+                    className="bg-gradient-to-r from-amber-400 to-amber-500 h-4 rounded-full"
                     style={{
                       width: `${Math.min(100, ((task.timeSpent || 0) / (totalTaskTime || 1)) * 100)}%`,
                     }}
@@ -812,67 +908,53 @@ export default function ProfilePage() {
                   {tasks.map((task) => (
                     <div
                       key={task.ID}
-                      className={`bg-white rounded-xl border-2 ${task.notes ? "border-purple-200" : "border-[#e4cbac]"} p-3 flex items-center shadow-sm hover:shadow-md transition-shadow`}
+                      className={`bg-white p-3 rounded-lg border-2 ${
+                        task.deadline && new Date(task.deadline) < new Date()
+                          ? "border-red-400 bg-red-50 shadow-md"
+                          : "border-[#e4cbac]"
+                      } relative`}
                     >
-                      <div className="w-12 h-12 rounded-full overflow-hidden border-2 border-purple-200 bg-purple-100 relative flex-shrink-0 mr-3">
-                        {task.IconImageURL ? (
-                          <div className="relative w-full h-full">
-                            <Image
-                              src={`${task.IconImageURL}?t=${Date.now()}`}
-                              alt={task.WorkName}
-                              fill
-                              className="object-cover"
-                              unoptimized={true}
-                              onError={(e) => {
-                                // 画像読み込みエラー時にデフォルトアイコンを表示
-                                const target = e.target as HTMLImageElement;
-                                target.onerror = null; // エラーループ防止
-                                target.style.display = "none";
-                                const parent = target.parentElement;
-                                if (parent) {
-                                  parent.classList.add("bg-purple-100");
-                                  // デフォルトアイコンをDOMに追加
-                                  const iconDiv = document.createElement("div");
-                                  iconDiv.className =
-                                    "w-full h-full flex items-center justify-center";
-                                  iconDiv.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="h-6 w-6 text-purple-500"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>`;
-                                  parent.appendChild(iconDiv);
-                                }
-                              }}
-                            />
-                          </div>
-                        ) : (
-                          <div className="w-full h-full flex items-center justify-center">
-                            <FileText className="h-6 w-6 text-purple-500" />
+                      {task.deadline &&
+                        new Date(task.deadline) < new Date() && (
+                          <div className="absolute -top-3 -right-3 bg-red-500 text-white text-sm px-3 py-1 rounded-full shadow-md border-2 border-white z-10 font-bold">
+                            期限切れ
                           </div>
                         )}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-[#7b6c5d] truncate">
+                      <div className="flex justify-between items-center mb-2">
+                        <div className="font-bold text-[#7b6c5d] truncate pr-2 text-xl">
                           {task.WorkName}
-                        </h4>
-                        {task.notes && (
-                          <p className="text-xs text-[#9b8e7e] truncate mt-1 italic">
-                            <span className="inline-block mr-1 text-violet-500">
-                              📝
-                            </span>
-                            {task.notes}
-                          </p>
-                        )}
-                        <p className="text-xs text-[#9b8e7e] mt-1 flex items-center">
-                          <Clock className="h-3 w-3 mr-1 text-amber-500" />
-                          累計: {formatTime(task.timeSpent || 0)}
-                        </p>
+                        </div>
+                        <div className="text-base text-[#9b8e7e] font-medium">
+                          {formatTime(task.timeSpent || 0)}
+                        </div>
                       </div>
-
-                      <div
-                        className={`${task.notes ? "bg-purple-100 border-purple-200" : "bg-amber-100 border-amber-200"} px-2 py-1 rounded-full border text-xs flex items-center ml-2`}
-                      >
-                        <Check
-                          className={`h-3 w-3 mr-1 ${task.notes ? "text-purple-700" : "text-amber-700"}`}
-                        />
-                        {task.notes ? "メモあり" : "タスク"}
+                      {task.deadline && (
+                        <div className="flex items-center mb-3 text-base">
+                          <Calendar
+                            className={`h-5 w-5 mr-2 ${new Date(task.deadline) < new Date() ? "text-red-600" : "text-blue-600"}`}
+                          />
+                          <span
+                            className={`flex items-center ${new Date(task.deadline) < new Date() ? "text-red-600 font-bold" : "text-[#7b6c5d] font-semibold"}`}
+                          >
+                            <span className="mr-1">期限:</span>
+                            <span
+                              className={`${new Date(task.deadline) < new Date() ? "bg-red-100 text-red-700 px-3 py-1 rounded-md" : ""}`}
+                            >
+                              {formatDeadline(task.deadline)}
+                            </span>
+                            {new Date(task.deadline) < new Date() && (
+                              <AlertTriangle className="h-5 w-5 ml-2 text-red-500" />
+                            )}
+                          </span>
+                        </div>
+                      )}
+                      <div className="w-full bg-[#f8f3ea] rounded-full h-4 mt-2">
+                        <div
+                          className="bg-gradient-to-r from-amber-400 to-amber-500 h-4 rounded-full"
+                          style={{
+                            width: `${Math.min(100, ((task.timeSpent || 0) / (totalTaskTime || 1)) * 100)}%`,
+                          }}
+                        ></div>
                       </div>
                     </div>
                   ))}
@@ -1022,6 +1104,30 @@ export default function ProfilePage() {
                           文字数制限に達しました
                         </span>
                       )}
+                    </div>
+                    <div>
+                      <label
+                        htmlFor="deadline"
+                        className="text-base font-medium text-[#7b6c5d] flex items-center"
+                      >
+                        <Calendar className="h-5 w-5 mr-2 text-purple-700" />{" "}
+                        期限日時{" "}
+                        <span className="text-amber-500 ml-2 font-bold">
+                          （重要）
+                        </span>
+                      </label>
+                      <input
+                        type="datetime-local"
+                        id="deadline"
+                        name="deadline"
+                        value={formData.deadline}
+                        onChange={handleInputChange}
+                        className="mt-2 block w-full rounded-md border-2 border-[#e4cbac] p-4 text-[#7b6c5d] focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm text-lg"
+                      />
+                      <p className="text-sm text-amber-600 mt-1 flex items-center">
+                        <AlertTriangle className="h-4 w-4 mr-1" />
+                        期限を設定すると期限が近い順にタスクがソートされます
+                      </p>
                     </div>
                     <div>
                       <label

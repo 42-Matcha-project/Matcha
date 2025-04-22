@@ -83,7 +83,7 @@ export function ChatPanel({
             : "bg-amber-100 border-amber-200",
         )}
       >
-        <h3 className="font-medium text-sm">チャット</h3>
+        <h3 className="font-medium text-xl">メッセージ</h3>
         <span className="text-xs opacity-70">
           {messages.length}件のメッセージ
         </span>
@@ -112,7 +112,7 @@ export function ChatPanel({
               isDarkMode ? "bg-amber-800/50" : "bg-amber-100/50",
             )}
           >
-            <p className="text-sm">
+            <p className="text-2xl">
               まだメッセージがありません。チャットを始めましょう！
             </p>
           </div>

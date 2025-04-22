@@ -8,7 +8,6 @@ import {
   Clock,
   Plus,
   X,
-  Check,
   Timer,
   AlertTriangle,
   Clock3,
@@ -22,7 +21,6 @@ import {
 } from "@/components/ui/popover";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 
 // タスクの型定義
 export interface Task {
@@ -37,6 +35,7 @@ export interface Task {
   timerRunning?: boolean; // タイマー実行中かどうか
   currentTimerValue?: number; // 現在のタイマー値（秒単位）
   pausedTimerValue?: number; // 一時停止時の残り時間
+  completedDate?: Date; // タスク完了日時
 }
 
 interface TaskManagementProps {
@@ -357,9 +356,14 @@ export function TaskManagement({
               timeSpent:
                 task.timeSpent +
                 (task.pausedTimerValue || task.currentTimerValue || 0),
+              completedDate: !task.completed ? new Date() : undefined,
             };
           }
-          return { ...task, completed: !task.completed };
+          return {
+            ...task,
+            completed: !task.completed,
+            completedDate: !task.completed ? new Date() : undefined,
+          };
         }
         return task;
       }),
@@ -540,85 +544,81 @@ export function TaskManagement({
   };
 
   return (
-    <div
-      className={cn(
-        "rounded-2xl p-6 mb-8 shadow-md",
-        isDarkMode
-          ? "bg-amber-800/90 border border-amber-700 text-amber-50"
-          : "bg-white border border-amber-200 text-amber-900",
-      )}
-    >
-      <div className="flex justify-between items-center mb-4 border-b pb-2 border-amber-200">
-        <h3 className="text-xl font-bold">タスク管理</h3>
-      </div>
-
+    <div className="space-y-6">
       {/* タスク追加フォーム */}
       {isAddingTask ? (
-        <div className="space-y-4 mb-6 p-4 bg-amber-100/50 rounded-lg">
+        <div className="space-y-6 p-6 border-2 border-amber-200 dark:border-amber-700 rounded-xl bg-amber-50/50 dark:bg-amber-900/30 shadow-md">
           <div className="flex flex-col space-y-2">
-            <label className="text-sm font-medium">タスク名</label>
-            <input
-              type="text"
+            <label className="text-lg font-medium">タスク名</label>
+            <Input
+              placeholder="タスクを入力してください"
               value={newTask}
               onChange={(e) => setNewTask(e.target.value)}
-              placeholder="タスクを入力..."
               className={cn(
-                "px-3 py-2 rounded-md border",
+                "text-xl p-6",
                 isDarkMode
-                  ? "bg-amber-800 border-amber-700 text-amber-50"
-                  : "bg-white border-amber-200 text-amber-950",
+                  ? "bg-amber-800/70 border-amber-700 text-amber-50 placeholder-amber-400"
+                  : "bg-white border-amber-200 text-amber-950 placeholder-amber-300",
               )}
             />
           </div>
 
           <div className="flex flex-col space-y-2">
-            <label className="text-sm font-medium">締切日</label>
+            <label className="text-lg font-medium">締切日</label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
                   className={cn(
-                    "justify-start text-left font-normal",
+                    "justify-start text-left font-normal p-6 text-xl",
                     !selectedDate && "text-muted-foreground",
                     isDarkMode
-                      ? "bg-amber-800 border-amber-700 text-amber-50 hover:bg-amber-700"
+                      ? "bg-amber-800/70 border-amber-700 text-amber-50 hover:bg-amber-700 hover:text-amber-50"
                       : "bg-white border-amber-200 text-amber-950 hover:bg-amber-100",
                   )}
                 >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
+                  <CalendarIcon className="mr-4 h-6 w-6" />
                   {selectedDate ? (
                     format(selectedDate, "yyyy年MM月dd日")
                   ) : (
-                    <span>日付を選択...</span>
+                    <span>締切日を選択</span>
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
+              <PopoverContent
+                className={cn(
+                  "w-auto p-0",
+                  isDarkMode
+                    ? "bg-amber-800 border-amber-700"
+                    : "bg-white border-amber-200",
+                )}
+              >
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={setSelectedDate}
                   initialFocus
+                  className="p-4"
                 />
               </PopoverContent>
             </Popover>
           </div>
 
           <div className="flex flex-col space-y-2">
-            <label className="text-sm font-medium">アイコン画像</label>
+            <label className="text-lg font-medium">アイコン画像</label>
             <div className="flex items-center space-x-3">
               {iconImageURL ? (
                 <div className="relative group">
                   <img
                     src={iconImageURL}
                     alt="タスクアイコン"
-                    className="w-16 h-16 rounded-md object-cover border border-amber-200 dark:border-amber-700"
+                    className="w-24 h-24 rounded-md object-cover border-2 border-amber-200 dark:border-amber-700"
                   />
                   <button
                     onClick={() => setIconImageURL("")}
-                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                    className="absolute -top-3 -right-3 w-8 h-8 bg-red-500 rounded-full text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
                   >
-                    <X className="w-4 h-4" />
+                    <X className="w-5 h-5" />
                   </button>
                 </div>
               ) : (
@@ -634,7 +634,7 @@ export function TaskManagement({
                   <label
                     htmlFor="icon-upload"
                     className={cn(
-                      "cursor-pointer px-3 py-2 rounded-md border flex items-center space-x-2",
+                      "cursor-pointer px-5 py-4 rounded-md border-2 flex items-center space-x-2 text-lg",
                       isDarkMode
                         ? "bg-amber-800 border-amber-700 text-amber-50 hover:bg-amber-700"
                         : "bg-white border-amber-200 text-amber-950 hover:bg-amber-100",
@@ -644,7 +644,7 @@ export function TaskManagement({
                       <span>アップロード中...</span>
                     ) : (
                       <>
-                        <Plus className="h-4 w-4" />
+                        <Plus className="h-5 w-5" />
                         <span>アイコンを追加</span>
                       </>
                     )}
@@ -652,13 +652,13 @@ export function TaskManagement({
                 </div>
               )}
             </div>
-            <div className="space-y-1">
-              <p className="text-xs text-gray-500 dark:text-gray-400">
+            <div className="space-y-2">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 500KB以下の小さい画像ファイル（PNG、JPG）を使用してください
               </p>
               <div
                 className={cn(
-                  "p-2 text-xs rounded-md",
+                  "p-3 text-sm rounded-md",
                   isDarkMode
                     ? "bg-amber-700/50 text-amber-200"
                     : "bg-amber-100 text-amber-700",
@@ -669,7 +669,7 @@ export function TaskManagement({
             </div>
           </div>
 
-          <div className="flex justify-end space-x-2 pt-2">
+          <div className="flex justify-end space-x-4 pt-4">
             <Button
               variant="outline"
               onClick={() => {
@@ -677,25 +677,26 @@ export function TaskManagement({
                 setIconImageURL("");
               }}
               className={cn(
+                "text-lg py-6 px-8",
                 isDarkMode
                   ? "bg-amber-800 border-amber-700 text-amber-50 hover:bg-amber-700"
                   : "bg-white border-amber-200 text-amber-950 hover:bg-amber-100",
               )}
             >
-              <X className="h-4 w-4 mr-2" />
+              <X className="h-5 w-5 mr-2" />
               キャンセル
             </Button>
             <Button
               onClick={addTask}
               disabled={isUploading}
               className={cn(
-                "flex items-center",
+                "flex items-center text-lg py-6 px-8",
                 isDarkMode
                   ? "bg-amber-600 hover:bg-amber-500 text-white"
                   : "bg-amber-500 hover:bg-amber-400 text-white",
               )}
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className="h-5 w-5 mr-2" />
               追加
             </Button>
           </div>
@@ -703,23 +704,23 @@ export function TaskManagement({
       ) : (
         <Button
           className={cn(
-            "w-full mb-4",
+            "w-full mb-6 text-xl py-8",
             isDarkMode
               ? "bg-amber-700 hover:bg-amber-600 text-white"
               : "bg-amber-500 hover:bg-amber-600 text-white",
           )}
           onClick={() => setIsAddingTask(true)}
         >
-          <Plus className="mr-2 h-4 w-4" /> 新しいタスクを追加
+          <Plus className="mr-3 h-6 w-6" /> 新しいタスクを追加
         </Button>
       )}
 
       {/* タスクリスト */}
-      <div className="space-y-3">
+      <div className="space-y-6">
         {tasks.length === 0 ? (
           <p
             className={cn(
-              "text-center py-4 italic",
+              "text-center py-8 text-xl italic",
               isDarkMode ? "text-amber-300" : "text-amber-600",
             )}
           >
@@ -730,37 +731,80 @@ export function TaskManagement({
             <div
               key={task.id}
               className={cn(
-                "p-3 rounded-lg",
+                "p-6 rounded-xl border-2 shadow-md",
                 task.completed
                   ? isDarkMode
-                    ? "bg-amber-800/40 border border-amber-700"
-                    : "bg-amber-100/40 border border-amber-200"
+                    ? "bg-amber-800/40 border-amber-700"
+                    : "bg-amber-100/40 border-amber-200"
                   : isDarkMode
-                    ? "bg-amber-800/60 border border-amber-700"
-                    : "bg-white border border-amber-200",
+                    ? "bg-amber-800/60 border-amber-700"
+                    : "bg-white border-amber-200",
               )}
             >
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center">
                   <button
                     onClick={() => toggleTaskComplete(task.id)}
                     className={cn(
-                      "w-5 h-5 rounded-full mr-3 flex items-center justify-center",
+                      "w-8 h-8 rounded-full mr-4 flex items-center justify-center transition-all transform hover:scale-110",
                       task.completed
                         ? isDarkMode
-                          ? "bg-green-700 text-green-100"
-                          : "bg-green-500 text-white"
+                          ? "bg-green-700 text-green-100 shadow-md border-2 border-green-600"
+                          : "bg-green-500 text-white shadow-md border-2 border-green-400"
                         : isDarkMode
-                          ? "border-2 border-amber-600"
-                          : "border-2 border-amber-300",
+                          ? "border-2 border-amber-600 bg-amber-800/50"
+                          : "border-2 border-amber-300 bg-amber-50",
                     )}
                   >
-                    {task.completed && <Check className="h-3 w-3" />}
+                    {task.completed ? (
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="text-white"
+                      >
+                        <path
+                          d="M12 2C13 2 14 2.2 14.5 2.5C15 2.8 15 3 15 3.5C15 4 15 4.2 14.5 4.5C14 4.8 13.5 5 12 5C10.5 5 10 4.8 9.5 4.5C9 4.2 9 4 9 3.5C9 3 9 2.8 9.5 2.5C10 2.2 11 2 12 2Z"
+                          fill="currentColor"
+                        />
+                        <path
+                          d="M14.3 5C17 6 19.7 9 20.5 12.5C21.3 16 20.5 20 17.2 21.8C13.8 23.6 9.7 23 6.8 21C4 19 2 15.7 2.3 12.7C2.6 9.7 4.3 7.3 6.7 5.8"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    ) : (
+                      <svg
+                        width="16"
+                        height="16"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                        className={
+                          isDarkMode ? "text-amber-500" : "text-amber-600"
+                        }
+                      >
+                        <path
+                          d="M12 2C13 2 14 2.2 14.5 2.5C15 2.8 15 3 15 3.5C15 4 15 4.2 14.5 4.5C14 4.8 13.5 5 12 5C10.5 5 10 4.8 9.5 4.5C9 4.2 9 4 9 3.5C9 3 9 2.8 9.5 2.5C10 2.2 11 2 12 2Z"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                        />
+                        <path
+                          d="M14.3 5C17 6 19.7 9 20.5 12.5C21.3 16 20.5 20 17.2 21.8C13.8 23.6 9.7 23 6.8 21C4 19 2 15.7 2.3 12.7C2.6 9.7 4.3 7.3 6.7 5.8"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    )}
                   </button>
                   <div>
                     <div
                       className={cn(
-                        "font-medium flex items-center",
+                        "font-bold flex items-center text-xl",
                         task.completed && "line-through opacity-70",
                       )}
                     >
@@ -768,12 +812,12 @@ export function TaskManagement({
                         <img
                           src={task.iconImageURL}
                           alt=""
-                          className="w-8 h-8 mr-2 rounded-md object-cover border border-amber-200 dark:border-amber-700 flex-shrink-0"
+                          className="w-12 h-12 mr-3 rounded-md object-cover border-2 border-amber-200 dark:border-amber-700 flex-shrink-0"
                         />
                       )}
                       <span>{task.title}</span>
                     </div>
-                    <div className="text-xs mt-1 flex flex-wrap gap-2">
+                    <div className="text-base mt-2 flex flex-wrap gap-3">
                       {task.deadline &&
                         (() => {
                           const deadlineStatus = getDeadlineStatus(
@@ -795,18 +839,18 @@ export function TaskManagement({
                           };
 
                           return (
-                            <div className="flex flex-col space-y-1 w-full">
+                            <div className="flex flex-col space-y-2 w-full">
                               <span
                                 className={cn(
-                                  "px-2 py-1 rounded-md flex items-center border shadow-sm",
+                                  "px-4 py-2 rounded-md flex items-center border-2 shadow-sm text-base",
                                   deadlineStatus &&
                                     colorClasses[
                                       deadlineStatus.color as keyof typeof colorClasses
                                     ],
                                 )}
                               >
-                                <CalendarIcon className="h-3.5 w-3.5 mr-1.5 text-amber-500" />
-                                <span className="font-medium mr-1">締切:</span>
+                                <CalendarIcon className="h-5 w-5 mr-2 text-amber-500" />
+                                <span className="font-medium mr-2">締切:</span>
                                 {format(task.deadline, "yyyy/MM/dd")}
                               </span>
 
@@ -819,7 +863,7 @@ export function TaskManagement({
                                 ].includes(deadlineStatus.status) && (
                                   <span
                                     className={cn(
-                                      "px-2 py-1 rounded-md flex items-center border shadow-sm text-center justify-center",
+                                      "px-4 py-2 rounded-md flex items-center border-2 shadow-sm text-center justify-center text-base font-bold",
                                       deadlineStatus.status === "expired"
                                         ? isDarkMode
                                           ? "bg-red-700/80 text-red-50 border-red-600"
@@ -830,11 +874,11 @@ export function TaskManagement({
                                     )}
                                   >
                                     {deadlineStatus.status === "expired" ? (
-                                      <AlertTriangle className="h-3.5 w-3.5 mr-1.5 text-red-400" />
+                                      <AlertTriangle className="h-5 w-5 mr-2 text-red-400" />
                                     ) : (
-                                      <Clock3 className="h-3.5 w-3.5 mr-1.5 text-orange-400" />
+                                      <Clock3 className="h-5 w-5 mr-2 text-orange-400" />
                                     )}
-                                    <span className="font-medium">
+                                    <span className="font-bold">
                                       {deadlineStatus.message}
                                     </span>
                                   </span>
@@ -845,13 +889,13 @@ export function TaskManagement({
                       {task.timeSpent > 0 && (
                         <span
                           className={cn(
-                            "px-2 py-0.5 rounded-full flex items-center",
+                            "px-4 py-2 rounded-full flex items-center text-base font-medium border",
                             isDarkMode
-                              ? "bg-amber-700/70 text-amber-100"
-                              : "bg-amber-100 text-amber-800",
+                              ? "bg-amber-700/70 text-amber-100 border-amber-600"
+                              : "bg-amber-100 text-amber-800 border-amber-200",
                           )}
                         >
-                          <Clock className="h-3 w-3 mr-1" />
+                          <Clock className="h-5 w-5 mr-2" />
                           {Math.floor(task.timeSpent / 60)}分
                         </span>
                       )}
@@ -863,7 +907,7 @@ export function TaskManagement({
                   !task.timerRunning &&
                   !task.currentTimerValue &&
                   !task.pausedTimerValue && (
-                    <div className="flex flex-wrap items-center gap-1">
+                    <div className="flex flex-wrap items-center gap-2">
                       <Popover
                         open={
                           customTimerOpen && taskToStartTimer?.id === task.id
@@ -879,31 +923,29 @@ export function TaskManagement({
                       >
                         <PopoverTrigger asChild>
                           <Button
-                            size="sm"
+                            size="lg"
                             className={cn(
-                              "text-xs",
+                              "text-base px-6 py-6 rounded-xl border-2 shadow-md transition-all transform hover:scale-105",
                               isDarkMode
-                                ? "bg-green-600 hover:bg-green-500 text-white"
-                                : "bg-green-500 hover:bg-green-400 text-white",
+                                ? "bg-blue-600 hover:bg-blue-500 text-white border-blue-500"
+                                : "bg-blue-500 hover:bg-blue-400 text-white border-blue-400",
                             )}
                           >
-                            <Timer className="h-3 w-3 mr-1" />
-                            タイマー設定
+                            <Timer className="h-6 w-6 mr-2" />
+                            <span className="font-bold">タイマー設定</span>
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent
                           className={cn(
-                            "w-60 p-3",
+                            "w-80 p-6 rounded-xl border-2 shadow-lg",
                             isDarkMode
                               ? "bg-amber-800 border-amber-700 text-amber-50"
                               : "bg-white border-amber-200",
                           )}
                         >
-                          <div className="space-y-2">
-                            <h4 className="text-sm font-medium">
-                              タイマー設定
-                            </h4>
-                            <div className="flex items-center gap-2">
+                          <div className="space-y-4">
+                            <h4 className="text-lg font-bold">タイマー設定</h4>
+                            <div className="flex items-center gap-4">
                               <div className="flex items-center">
                                 <Input
                                   type="number"
@@ -913,13 +955,13 @@ export function TaskManagement({
                                     setCustomTimerHours(e.target.value)
                                   }
                                   className={cn(
-                                    "w-16 text-center",
+                                    "w-20 text-center text-lg p-6",
                                     isDarkMode
                                       ? "bg-amber-700 border-amber-600 text-amber-50"
                                       : "bg-white border-amber-200",
                                   )}
                                 />
-                                <span className="mx-1">時間</span>
+                                <span className="mx-2 text-lg">時間</span>
                               </div>
                               <div className="flex items-center">
                                 <Input
@@ -931,20 +973,21 @@ export function TaskManagement({
                                     setCustomTimerMinutes(e.target.value)
                                   }
                                   className={cn(
-                                    "w-16 text-center",
+                                    "w-20 text-center text-lg p-6",
                                     isDarkMode
                                       ? "bg-amber-700 border-amber-600 text-amber-50"
                                       : "bg-white border-amber-200",
                                   )}
                                 />
-                                <span className="mx-1">分</span>
+                                <span className="mx-2 text-lg">分</span>
                               </div>
                             </div>
-                            <div className="flex justify-between gap-2 mt-2">
+                            <div className="flex justify-between gap-3 mt-4">
                               <Button
-                                size="sm"
+                                size="lg"
                                 onClick={() => startTaskTimer(task, 25)}
                                 className={cn(
+                                  "text-base",
                                   isDarkMode
                                     ? "bg-amber-600 hover:bg-amber-500"
                                     : "bg-amber-400 hover:bg-amber-300",
@@ -953,9 +996,10 @@ export function TaskManagement({
                                 25分
                               </Button>
                               <Button
-                                size="sm"
+                                size="lg"
                                 onClick={() => startTaskTimer(task, 15)}
                                 className={cn(
+                                  "text-base",
                                   isDarkMode
                                     ? "bg-amber-600 hover:bg-amber-500"
                                     : "bg-amber-400 hover:bg-amber-300",
@@ -964,9 +1008,10 @@ export function TaskManagement({
                                 15分
                               </Button>
                               <Button
-                                size="sm"
+                                size="lg"
                                 onClick={() => startTaskTimer(task, 5)}
                                 className={cn(
+                                  "text-base",
                                   isDarkMode
                                     ? "bg-amber-600 hover:bg-amber-500"
                                     : "bg-amber-400 hover:bg-amber-300",
@@ -975,12 +1020,13 @@ export function TaskManagement({
                                 5分
                               </Button>
                             </div>
-                            <div className="flex justify-end gap-2 mt-2">
+                            <div className="flex justify-end gap-3 mt-4">
                               <Button
-                                size="sm"
+                                size="lg"
                                 variant="outline"
                                 onClick={() => setCustomTimerOpen(false)}
                                 className={cn(
+                                  "text-base",
                                   isDarkMode
                                     ? "border-amber-600 hover:bg-amber-700"
                                     : "border-amber-300 hover:bg-amber-100",
@@ -989,7 +1035,7 @@ export function TaskManagement({
                                 キャンセル
                               </Button>
                               <Button
-                                size="sm"
+                                size="lg"
                                 onClick={() => {
                                   if (
                                     taskToStartTimer &&
@@ -999,6 +1045,7 @@ export function TaskManagement({
                                   }
                                 }}
                                 className={cn(
+                                  "text-base",
                                   isDarkMode
                                     ? "bg-amber-600 hover:bg-amber-500"
                                     : "bg-amber-500 hover:bg-amber-400",
@@ -1010,6 +1057,44 @@ export function TaskManagement({
                           </div>
                         </PopoverContent>
                       </Popover>
+
+                      <Button
+                        size="lg"
+                        className={cn(
+                          "text-base px-6 py-6 rounded-full transition-all transform hover:scale-105",
+                          isDarkMode
+                            ? "bg-green-600 hover:bg-green-500 text-white shadow-md border-2 border-green-500"
+                            : "bg-green-500 hover:bg-green-400 text-white shadow-md border-2 border-green-400",
+                        )}
+                        onClick={() => toggleTaskComplete(task.id)}
+                      >
+                        <div className="flex items-center">
+                          <div
+                            className={cn(
+                              "w-8 h-8 rounded-full flex items-center justify-center mr-2",
+                              isDarkMode ? "bg-green-500" : "bg-green-400",
+                            )}
+                          >
+                            <svg
+                              width="16"
+                              height="16"
+                              viewBox="0 0 24 24"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                              className="text-white"
+                            >
+                              <path
+                                d="M6.5 12.5L10.5 16.5L17.5 9.5"
+                                stroke="currentColor"
+                                strokeWidth="2.5"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              />
+                            </svg>
+                          </div>
+                          <span className="font-medium">完了！</span>
+                        </div>
+                      </Button>
                     </div>
                   )}
               </div>
@@ -1019,15 +1104,15 @@ export function TaskManagement({
                 !task.completed && (
                   <div
                     className={cn(
-                      "mt-2 p-3 rounded-lg",
+                      "mt-4 p-6 rounded-xl",
                       isDarkMode ? "bg-amber-700/70" : "bg-amber-100/70",
                     )}
                   >
                     <div className="text-center">
-                      <div className="relative mb-3">
+                      <div className="relative mb-6">
                         <div
                           className={cn(
-                            "w-24 h-24 rounded-full mx-auto border-4 flex items-center justify-center",
+                            "w-40 h-40 rounded-full mx-auto border-8 flex items-center justify-center",
                             isDarkMode
                               ? "border-amber-500 bg-amber-800/60"
                               : "border-amber-400 bg-amber-50",
@@ -1037,7 +1122,7 @@ export function TaskManagement({
                           <div className="text-center">
                             <div
                               className={cn(
-                                "text-2xl font-mono",
+                                "text-4xl font-mono font-bold",
                                 isDarkMode
                                   ? "text-amber-100"
                                   : "text-amber-800",
@@ -1051,7 +1136,7 @@ export function TaskManagement({
                             </div>
                             <div
                               className={cn(
-                                "text-xs mt-1",
+                                "text-base mt-2 font-medium",
                                 isDarkMode
                                   ? "text-amber-200"
                                   : "text-amber-600",
@@ -1062,11 +1147,12 @@ export function TaskManagement({
                           </div>
                         </div>
                       </div>
-                      <div className="flex flex-wrap justify-center gap-2 mb-1">
+                      <div className="flex flex-wrap justify-center gap-4 mb-2">
                         {task.timerRunning ? (
                           <Button
-                            size="sm"
+                            size="lg"
                             className={cn(
+                              "text-base px-6 py-6",
                               isDarkMode
                                 ? "bg-amber-600 hover:bg-amber-500 text-white"
                                 : "bg-amber-500 hover:bg-amber-400 text-white",
@@ -1077,8 +1163,9 @@ export function TaskManagement({
                           </Button>
                         ) : (
                           <Button
-                            size="sm"
+                            size="lg"
                             className={cn(
+                              "text-base px-6 py-6",
                               isDarkMode
                                 ? "bg-green-600 hover:bg-green-500 text-white"
                                 : "bg-green-500 hover:bg-green-400 text-white",
@@ -1089,8 +1176,9 @@ export function TaskManagement({
                           </Button>
                         )}
                         <Button
-                          size="sm"
+                          size="lg"
                           className={cn(
+                            "text-base px-6 py-6",
                             isDarkMode
                               ? "bg-red-700 hover:bg-red-600 text-white"
                               : "bg-red-500 hover:bg-red-600 text-white",
@@ -1099,55 +1187,103 @@ export function TaskManagement({
                         >
                           終了
                         </Button>
-                      </div>
-                      <div className="flex items-center justify-center gap-1 mt-2">
-                        <div className="flex items-center">
-                          <Input
-                            type="number"
-                            min="0"
-                            value={extendTimerHours}
-                            onChange={(e) =>
-                              setExtendTimerHours(e.target.value)
-                            }
-                            className={cn(
-                              "w-14 text-center text-xs",
-                              isDarkMode
-                                ? "bg-amber-700 border-amber-600 text-amber-50"
-                                : "bg-white border-amber-200",
-                            )}
-                          />
-                          <span className="mx-1 text-xs">時間</span>
-                        </div>
-                        <div className="flex items-center">
-                          <Input
-                            type="number"
-                            min="0"
-                            max="59"
-                            value={extendTimerMinutes}
-                            onChange={(e) =>
-                              setExtendTimerMinutes(e.target.value)
-                            }
-                            className={cn(
-                              "w-14 text-center text-xs",
-                              isDarkMode
-                                ? "bg-amber-700 border-amber-600 text-amber-50"
-                                : "bg-white border-amber-200",
-                            )}
-                          />
-                          <span className="mx-1 text-xs">分</span>
-                        </div>
-                        <Button
-                          size="sm"
-                          className={cn(
-                            "text-xs px-2 py-1 h-7",
-                            isDarkMode
-                              ? "bg-amber-600 hover:bg-amber-500 text-white"
-                              : "bg-amber-500 hover:bg-amber-400 text-white",
-                          )}
-                          onClick={() => extendTimer(task.id)}
-                        >
-                          追加
-                        </Button>
+                        {task.timerRunning && (
+                          <div className="mt-4 w-full">
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Button
+                                  size="lg"
+                                  className={cn(
+                                    "w-full text-base",
+                                    isDarkMode
+                                      ? "bg-blue-600 hover:bg-blue-500 text-white"
+                                      : "bg-blue-500 hover:bg-blue-400 text-white",
+                                  )}
+                                >
+                                  タイマー延長
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent
+                                className={cn(
+                                  "w-80 p-6",
+                                  isDarkMode
+                                    ? "bg-amber-800 border-amber-700 text-amber-50"
+                                    : "bg-white border-amber-200",
+                                )}
+                              >
+                                <div className="space-y-4">
+                                  <h4 className="text-lg font-bold">
+                                    タイマー延長
+                                  </h4>
+                                  <div className="flex items-center gap-4">
+                                    <div className="flex items-center">
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        value={extendTimerHours}
+                                        onChange={(e) =>
+                                          setExtendTimerHours(e.target.value)
+                                        }
+                                        className={cn(
+                                          "w-20 text-center text-lg p-6",
+                                          isDarkMode
+                                            ? "bg-amber-700 border-amber-600 text-amber-50"
+                                            : "bg-white border-amber-200",
+                                        )}
+                                      />
+                                      <span className="mx-2 text-lg">時間</span>
+                                    </div>
+                                    <div className="flex items-center">
+                                      <Input
+                                        type="number"
+                                        min="0"
+                                        max="59"
+                                        value={extendTimerMinutes}
+                                        onChange={(e) =>
+                                          setExtendTimerMinutes(e.target.value)
+                                        }
+                                        className={cn(
+                                          "w-20 text-center text-lg p-6",
+                                          isDarkMode
+                                            ? "bg-amber-700 border-amber-600 text-amber-50"
+                                            : "bg-white border-amber-200",
+                                        )}
+                                      />
+                                      <span className="mx-2 text-lg">分</span>
+                                    </div>
+                                  </div>
+                                  <div className="flex justify-between gap-3 mt-4">
+                                    <Button
+                                      size="lg"
+                                      onClick={() => extendTimer(task.id)}
+                                      className={cn(
+                                        "text-base",
+                                        isDarkMode
+                                          ? "bg-blue-600 hover:bg-blue-500"
+                                          : "bg-blue-400 hover:bg-blue-300",
+                                      )}
+                                    >
+                                      延長する
+                                    </Button>
+                                    <Button
+                                      size="lg"
+                                      variant="outline"
+                                      onClick={() => setCustomTimerOpen(false)}
+                                      className={cn(
+                                        "text-base",
+                                        isDarkMode
+                                          ? "border-amber-600 hover:bg-amber-700"
+                                          : "border-amber-300 hover:bg-amber-100",
+                                      )}
+                                    >
+                                      キャンセル
+                                    </Button>
+                                  </div>
+                                </div>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
