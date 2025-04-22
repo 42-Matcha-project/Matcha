@@ -29,6 +29,8 @@ export interface Task {
   subject: string;
   completed: boolean;
   timeSpent: number; // 秒単位
+  iconImageURL?: string; // アイコン画像URL
+  apiIconImageURL?: string; // API送信用のアイコン画像URL
 }
 
 interface TaskManagementProps {
@@ -52,6 +54,8 @@ export function TaskManagement({
   const [customTimerOpen, setCustomTimerOpen] = useState<boolean>(false);
   const [customTimerMinutes, setCustomTimerMinutes] = useState<string>("25");
   const [predefinedTimes] = useState<number[]>([25, 50]); // デフォルトのタイマー時間（固定値）
+  const [iconImageURL, setIconImageURL] = useState<string>("");
+  const [isUploading, setIsUploading] = useState<boolean>(false);
 
   // ローカルストレージからタスクを読み込む
   useEffect(() => {
@@ -68,9 +72,13 @@ export function TaskManagement({
             subject: string;
             completed: boolean;
             timeSpent: number;
+            iconImageURL?: string;
+            apiIconImageURL?: string;
           }) => ({
             ...task,
             deadline: task.deadline ? new Date(task.deadline) : undefined,
+            iconImageURL: task.iconImageURL || undefined,
+            apiIconImageURL: task.apiIconImageURL || "",
           }),
         );
         setTasks(tasksWithProperDates);
@@ -111,6 +119,15 @@ export function TaskManagement({
       return;
     }
 
+    // Base64画像URLが長すぎる場合の処理
+    let processedIconURL = iconImageURL;
+    if (iconImageURL && iconImageURL.length > 1000) {
+      // 長いBase64データURLの場合、ローカル表示用に保持するが
+      // API送信用には空文字列を使用（サーバー側の処理が整うまで）
+      console.log("画像URLが長すぎるため、API送信時には省略します");
+      processedIconURL = ""; // API送信用に空にする
+    }
+
     const newTaskObj: Task = {
       id: Date.now(),
       title: newTask,
@@ -118,15 +135,125 @@ export function TaskManagement({
       subject: "", // 空の文字列をデフォルト値として使用
       completed: false,
       timeSpent: 0,
+      iconImageURL: iconImageURL || undefined, // 表示用はそのまま保持
+      apiIconImageURL: processedIconURL || "", // API送信用
     };
 
     setTasks((prev) => [...prev, newTaskObj]);
     onTaskAdd(newTaskObj);
+
+    // APIにタスクを送信
+    if (localStorage.getItem("token")) {
+      sendTaskToAPI(newTaskObj);
+    }
+
     setNewTask("");
     setSelectedDate(undefined);
+    setIconImageURL("");
     setIsAddingTask(false);
 
     toast.success("タスクを追加しました");
+  };
+
+  // APIに作業内容を送信する
+  const sendTaskToAPI = async (task: Task) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      // 開発環境のみに表示するデバッグログ
+      if (process.env.NODE_ENV === "development") {
+        console.log("作業を保存しようとしています:", {
+          WorkName: task.title,
+          IconImageURL: task.apiIconImageURL ? "画像あり" : "画像なし",
+        });
+      }
+
+      // 開発中の機能のため、エラーハンドリングを強化
+      try {
+        const response = await fetch(
+          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              WorkName: task.title,
+              IconImageURL: task.apiIconImageURL || "",
+            }),
+          },
+        );
+
+        if (!response.ok) {
+          console.warn("API応答エラー:", response.status);
+          // APIエラーをログに記録するだけで、ユーザーには通知しない
+          return;
+        }
+
+        const data = await response.json();
+        if (process.env.NODE_ENV === "development") {
+          console.log("作業保存成功:", data);
+        }
+      } catch (apiError) {
+        console.error("API接続エラー:", apiError);
+        // 開発中のため、接続エラーはサイレント処理
+      }
+    } catch (error) {
+      console.error("処理エラー:", error);
+      // 開発中の機能であることをユーザーに通知
+      toast.info(
+        "タスクのサーバー保存機能は開発中です。現在はローカルに保存されています。",
+      );
+    }
+  };
+
+  // 画像アップロード処理
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // ファイルサイズチェック (500KB以下)
+    if (file.size > 500 * 1024) {
+      toast.error("ファイルサイズは500KB以下にしてください");
+      return;
+    }
+
+    // 画像形式チェック
+    if (!file.type.match("image.*")) {
+      toast.error("画像ファイルを選択してください");
+      return;
+    }
+
+    setIsUploading(true);
+
+    try {
+      // Base64エンコードしたデータURLを生成
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        if (typeof reader.result === "string") {
+          // 結果のサイズを確認（Base64エンコードされたデータは元のサイズより約33%大きくなる）
+          if (reader.result.length > 700000) {
+            // 約700KB
+            toast.error(
+              "画像サイズが大きすぎます。より小さい画像を選択してください",
+            );
+            setIsUploading(false);
+            return;
+          }
+
+          setIconImageURL(reader.result);
+          setIsUploading(false);
+          toast.success("アイコンをアップロードしました");
+        }
+      };
+      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error("アップロードエラー:", error);
+      toast.error("アイコンのアップロードに失敗しました");
+      setIsUploading(false);
+    }
   };
 
   // タスクの完了状態を切り替え
@@ -257,10 +384,78 @@ export function TaskManagement({
             </Popover>
           </div>
 
+          <div className="flex flex-col space-y-2">
+            <label className="text-sm font-medium">アイコン画像</label>
+            <div className="flex items-center space-x-3">
+              {iconImageURL ? (
+                <div className="relative group">
+                  <img
+                    src={iconImageURL}
+                    alt="タスクアイコン"
+                    className="w-16 h-16 rounded-md object-cover border border-amber-200 dark:border-amber-700"
+                  />
+                  <button
+                    onClick={() => setIconImageURL("")}
+                    className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 rounded-full text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="relative">
+                  <input
+                    type="file"
+                    id="icon-upload"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={isUploading}
+                  />
+                  <label
+                    htmlFor="icon-upload"
+                    className={cn(
+                      "cursor-pointer px-3 py-2 rounded-md border flex items-center space-x-2",
+                      isDarkMode
+                        ? "bg-amber-800 border-amber-700 text-amber-50 hover:bg-amber-700"
+                        : "bg-white border-amber-200 text-amber-950 hover:bg-amber-100",
+                    )}
+                  >
+                    {isUploading ? (
+                      <span>アップロード中...</span>
+                    ) : (
+                      <>
+                        <Plus className="h-4 w-4" />
+                        <span>アイコンを追加</span>
+                      </>
+                    )}
+                  </label>
+                </div>
+              )}
+            </div>
+            <div className="space-y-1">
+              <p className="text-xs text-gray-500 dark:text-gray-400">
+                500KB以下の小さい画像ファイル（PNG、JPG）を使用してください
+              </p>
+              <div
+                className={cn(
+                  "p-2 text-xs rounded-md",
+                  isDarkMode
+                    ? "bg-amber-700/50 text-amber-200"
+                    : "bg-amber-100 text-amber-700",
+                )}
+              >
+                <strong>※ 開発中の機能:</strong> アイコン画像は現在開発中です
+              </div>
+            </div>
+          </div>
+
           <div className="flex justify-end space-x-2 pt-2">
             <Button
               variant="outline"
-              onClick={() => setIsAddingTask(false)}
+              onClick={() => {
+                setIsAddingTask(false);
+                setIconImageURL("");
+              }}
               className={cn(
                 isDarkMode
                   ? "bg-amber-800 border-amber-700 text-amber-50 hover:bg-amber-700"
@@ -272,6 +467,7 @@ export function TaskManagement({
             </Button>
             <Button
               onClick={addTask}
+              disabled={isUploading}
               className={cn(
                 "flex items-center",
                 isDarkMode
@@ -306,7 +502,16 @@ export function TaskManagement({
             isDarkMode ? "bg-amber-700" : "bg-amber-100",
           )}
         >
-          <h4 className="font-bold mb-2">現在のタスク: {currentTask.title}</h4>
+          <div className="flex items-center mb-2">
+            {currentTask?.iconImageURL && (
+              <img
+                src={currentTask.iconImageURL}
+                alt=""
+                className="w-8 h-8 mr-2 rounded-md object-cover border border-amber-200 dark:border-amber-700 flex-shrink-0"
+              />
+            )}
+            <h4 className="font-bold">現在のタスク: {currentTask.title}</h4>
+          </div>
           <div className="text-center">
             <div
               className={cn(
@@ -397,11 +602,18 @@ export function TaskManagement({
                 <div>
                   <div
                     className={cn(
-                      "font-medium",
+                      "font-medium flex items-center",
                       task.completed && "line-through opacity-70",
                     )}
                   >
-                    {task.title}
+                    {task.iconImageURL && (
+                      <img
+                        src={task.iconImageURL}
+                        alt=""
+                        className="w-8 h-8 mr-2 rounded-md object-cover border border-amber-200 dark:border-amber-700 flex-shrink-0"
+                      />
+                    )}
+                    <span>{task.title}</span>
                   </div>
                   <div className="text-xs mt-1 flex flex-wrap gap-2">
                     {task.deadline && (

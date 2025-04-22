@@ -262,36 +262,6 @@ export default function MyHousePage() {
             <div className="text-xl font-bold">0分0秒</div>
           </div>
         </div>
-
-        <div className="mb-2">
-          <div className="flex justify-between items-center mb-1">
-            <span className="text-sm text-gray-600 dark:text-gray-300">
-              今日の目標達成度
-            </span>
-            <span className="text-sm font-bold">0%</span>
-          </div>
-          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
-            <div
-              className="bg-amber-500 h-2.5 rounded-full"
-              style={{ width: "0%" }}
-            ></div>
-          </div>
-        </div>
-      </div>
-
-      <div className="bg-amber-50 dark:bg-amber-900 p-4 rounded border border-amber-200 dark:border-amber-700">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <Target className="h-5 w-5 mr-2 text-amber-600 dark:text-amber-400" />
-            <div className="text-sm font-medium">今日の目標</div>
-          </div>
-          <motion.button
-            className="text-sm text-amber-600 dark:text-amber-400 hover:text-amber-500 font-medium"
-            whileHover={{ scale: 1.05 }}
-          >
-            目標を追加
-          </motion.button>
-        </div>
       </div>
     </div>
   );
