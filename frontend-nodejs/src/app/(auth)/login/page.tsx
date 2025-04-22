@@ -4,7 +4,7 @@ import React, { useState, ReactNode, useEffect } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
-import { useAuth } from "../../../contexts/auth-context";
+import { useAuth } from "../../../contexts/AuthContext";
 
 // 木の看板コンポーネント
 const WoodenSign = ({
@@ -112,7 +112,6 @@ const Login = () => {
       const emailParam = params.get("email");
 
       if (emailParam) {
-        console.log("URLパラメータからメールアドレスを取得:", emailParam);
         setUsernameOrEmail(emailParam);
       }
     }
@@ -195,7 +194,6 @@ const Login = () => {
 
           // 空のレスポンスチェック
           if (!responseText.trim()) {
-            console.error("空のレスポンスを受信しました");
             if (!response.ok) {
               throw new Error("ログインに失敗しました");
             }
@@ -207,12 +205,10 @@ const Login = () => {
 
           // エラーレスポンスの場合
           if (!response.ok) {
-            console.error("詳細エラー情報:", data);
             throw new Error("ログインに失敗しました");
           }
 
           // 成功レスポンスの処理
-          console.log("Login successful:", data);
           const token = data.Token;
 
           if (!token) {
@@ -227,15 +223,12 @@ const Login = () => {
             // Next.jsのルーターを使用してリダイレクト
             router.push("/settlement");
           }, 100);
-        } catch (error) {
-          // JSONパースエラーまたはその他のエラー
-          console.error("Login error:", error);
+        } catch {
           throw new Error("ログインに失敗しました");
         } finally {
           setIsLoading(false);
         }
       } catch (error: unknown) {
-        console.log("Login error:", error);
         let errorMessage = "ログインに失敗しました";
         if (error instanceof Error) {
           errorMessage = error.message;
@@ -278,6 +271,7 @@ const Login = () => {
           width={300}
           height={300}
           className="object-contain"
+          priority
         />
       </div>
 
@@ -289,6 +283,7 @@ const Login = () => {
           width={300}
           height={300}
           className="object-contain"
+          priority
         />
       </div>
 
@@ -393,7 +388,22 @@ const Login = () => {
                 onCompositionEnd={() => setIsComposing(false)}
                 className={getInputStyle("usernameOrEmail", usernameOrEmail)}
                 placeholder="例）taro または taro@example.com"
+                maxLength={100}
               />
+              <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                {usernameOrEmail.length}/100
+                {usernameOrEmail.length >= 90 &&
+                  usernameOrEmail.length < 100 && (
+                    <span className="text-amber-500 ml-2">
+                      制限に近づいています
+                    </span>
+                  )}
+                {usernameOrEmail.length >= 100 && (
+                  <span className="text-red-500 ml-2">
+                    文字数制限に達しました
+                  </span>
+                )}
+              </div>
             </div>
             {errors.usernameOrEmail && submitAttempted && (
               <BookmarkError message="ユーザー名またはメールアドレスを入力してね！" />
@@ -413,7 +423,7 @@ const Login = () => {
               </WoodenSign>
             </div>
 
-            <div className="relative mt-2 flex items-center">
+            <div className="relative mt-2">
               <input
                 type={showPassword ? "text" : "password"}
                 value={password}
@@ -421,6 +431,7 @@ const Login = () => {
                 onKeyDown={handleKeyDown}
                 className={getInputStyle("password", password)}
                 placeholder="例）taro1234"
+                maxLength={50}
               />
               <button
                 type="button"
@@ -429,6 +440,7 @@ const Login = () => {
                 aria-label={
                   showPassword ? "パスワードを隠す" : "パスワードを表示する"
                 }
+                style={{ top: "calc(50% - 10px)" }}
               >
                 {showPassword ? (
                   <EyeOff className="h-5 w-5" />
@@ -436,6 +448,19 @@ const Login = () => {
                   <Eye className="h-5 w-5" />
                 )}
               </button>
+              <div className="text-xs text-gray-600 mt-1 text-right">
+                {password.length}/50
+                {password.length >= 45 && password.length < 50 && (
+                  <span className="text-amber-500 ml-2">
+                    制限に近づいています
+                  </span>
+                )}
+                {password.length >= 50 && (
+                  <span className="text-red-500 ml-2">
+                    文字数制限に達しました
+                  </span>
+                )}
+              </div>
             </div>
             {errors.password && submitAttempted && (
               <BookmarkError message="パスワードを入力してね！" />

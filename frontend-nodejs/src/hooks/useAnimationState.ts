@@ -36,31 +36,21 @@ export function useAnimationState(isMounted: boolean) {
   useEffect(() => {
     if (!isMounted) return;
 
-    // ロード状態を確認するために少し遅延を入れる
-    setTimeout(() => {
-      // LocalStorageをチェックして初回訪問かどうか確認
-      const hasSeenAnimation = getHasSeenAnimation();
+    // LocalStorageをチェックして初回訪問かどうか確認
+    const hasSeenAnimation = getHasSeenAnimation();
 
-      if (!hasSeenAnimation) {
-        // 初回訪問時は演出を表示
-        setShouldShowAnimation(true);
-        setShowClouds(true);
+    // コンテンツは即座に表示して、画像のロードを最適化
+    setContentVisible(true);
 
-        // 少し遅延を入れてからコンテンツを表示
-        setTimeout(() => {
-          setContentVisible(true);
-        }, 300);
-      } else {
-        // 2回目以降は演出をスキップして直接コンテンツを表示
-        setIsLoaded(true);
-        setShowButtons(true);
-
-        // 少し遅延を入れてからコンテンツを表示
-        setTimeout(() => {
-          setContentVisible(true);
-        }, 300);
-      }
-    }, 200);
+    if (!hasSeenAnimation) {
+      // 初回訪問時は演出を表示するが、コンテンツは即時表示
+      setShouldShowAnimation(true);
+      setShowClouds(true);
+    } else {
+      // 2回目以降は演出をスキップして直接コンテンツを表示
+      setIsLoaded(true);
+      setShowButtons(true);
+    }
   }, [isMounted]);
 
   // ページロード時のアニメーション
@@ -69,20 +59,20 @@ export function useAnimationState(isMounted: boolean) {
 
     // ページロード時のアニメーションシーケンス
     const sequence = async () => {
-      // 最初に少し待機
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      // 最初に少し待機（短縮）
+      await new Promise((resolve) => setTimeout(resolve, 500));
 
       // ページがロードされたことを示す
       setIsLoaded(true);
 
-      // 雲が消えるまで待機
-      await new Promise((resolve) => setTimeout(resolve, 2500));
+      // 雲が消えるまで待機（短縮）
+      await new Promise((resolve) => setTimeout(resolve, 2000));
 
       // 雲を消す
       setShowClouds(false);
 
       // ボタンを表示
-      await new Promise((resolve) => setTimeout(resolve, 800));
+      await new Promise((resolve) => setTimeout(resolve, 500));
       setShowButtons(true);
 
       // アニメーションを見たことをローカルストレージに記録

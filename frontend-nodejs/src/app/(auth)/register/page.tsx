@@ -6,7 +6,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, Shield, Info, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "../../../contexts/auth-context";
+import { useAuth } from "../../../contexts/AuthContext";
 
 // 木の看板コンポーネント
 const WoodenSign = ({
@@ -228,6 +228,13 @@ const Register = () => {
       }));
       return false;
     }
+    if (value.length > 20) {
+      setErrors((prev) => ({
+        ...prev,
+        username: "ユーザー名は20文字以内で入力してください",
+      }));
+      return false;
+    }
     setErrors((prev) => ({ ...prev, username: "" }));
     return true;
   };
@@ -235,6 +242,13 @@ const Register = () => {
   const validateDisplayName = (value: string) => {
     if (!value) {
       setErrors((prev) => ({ ...prev, displayName: "表示名は必須です" }));
+      return false;
+    }
+    if (value.length > 15) {
+      setErrors((prev) => ({
+        ...prev,
+        displayName: "表示名は15文字以内で入力してください",
+      }));
       return false;
     }
     setErrors((prev) => ({ ...prev, displayName: "" }));
@@ -328,22 +342,13 @@ const Register = () => {
         },
       );
 
-      console.log("Verification response status:", response.status);
-
       // レスポンスボディが空かどうかをチェック
       let responseData: APIResponse = {};
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         try {
           responseData = await response.json();
-          console.log("Verification response data:", responseData);
-        } catch {
-          console.log("Empty or invalid JSON response");
-        }
-      } else {
-        console.log("Response is not JSON or empty");
-        const text = await response.text();
-        console.log("Response text:", text.substring(0, 200)); // 最初の200文字だけログ出力
+        } catch {}
       }
 
       if (!response.ok) {
@@ -358,7 +363,6 @@ const Register = () => {
       if (error instanceof Error) {
         errorMessage = error.message;
       }
-      console.error("Verification error:", error);
       setApiError(errorMessage);
       return false;
     } finally {
@@ -399,6 +403,28 @@ const Register = () => {
       }));
       return false;
     }
+    if (value.length > 50) {
+      setErrors((prev) => ({
+        ...prev,
+        password: "パスワードは50文字以内で入力してください",
+      }));
+      return false;
+    }
+    // 大文字・小文字、数字、記号を含むかどうか検証
+    const hasUppercase = /[A-Z]/.test(value);
+    const hasLowercase = /[a-z]/.test(value);
+    const hasNumber = /[0-9]/.test(value);
+    const hasSymbol = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value);
+
+    if (!(hasUppercase && hasLowercase && hasNumber && hasSymbol)) {
+      setErrors((prev) => ({
+        ...prev,
+        password:
+          "パスワードは大文字・小文字、数字、記号をそれぞれ1つ以上含む必要があります",
+      }));
+      return false;
+    }
+
     setErrors((prev) => ({ ...prev, password: "" }));
     return true;
   };
@@ -489,13 +515,10 @@ const Register = () => {
         },
       );
 
-      console.log("Generate OTP response status:", response.status);
-
       // レスポンスボディが空かどうかをチェック
       let responseData: APIResponse = {};
       try {
         responseData = await response.json();
-        console.log("Generate OTP response data:", responseData);
       } catch {
         // レスポンスがJSONでない場合（空のボディなど）はスキップ
       }
@@ -512,7 +535,6 @@ const Register = () => {
         error instanceof Error
           ? error.message
           : "認証コードの送信に失敗しました";
-      console.error("Generate OTP error:", error);
       setApiError(errorMessage);
     } finally {
       setIsLoading(false);
@@ -547,21 +569,12 @@ const Register = () => {
         },
       );
 
-      console.log("Register response status:", response.status);
-
       let responseData: RegisterResponse = {};
       const contentType = response.headers.get("content-type");
       if (contentType && contentType.includes("application/json")) {
         try {
           responseData = await response.json();
-          console.log("Register response data:", responseData);
-        } catch (error) {
-          console.error("Failed to parse JSON response:", error);
-        }
-      } else {
-        console.log("Response is not JSON");
-        const text = await response.text();
-        console.log("Response text:", text.substring(0, 200)); // 最初の200文字だけログ出力
+        } catch {}
       }
 
       if (!response.ok) {
@@ -823,6 +836,7 @@ const Register = () => {
           width={300}
           height={300}
           className="object-contain"
+          priority
         />
       </div>
 
@@ -834,6 +848,7 @@ const Register = () => {
           width={300}
           height={300}
           className="object-contain"
+          priority
         />
       </div>
 
@@ -895,49 +910,77 @@ const Register = () => {
 
               {/* ユーザー名フィールド */}
               <div className="mb-6">
-                <div className="relative">
-                  <WoodenSign width="w-full">
-                    <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                      ユーザー名
-                    </label>
-                  </WoodenSign>
-                </div>
+                <WoodenSign width="w-full" rotation="rotate-1">
+                  <label
+                    htmlFor="username"
+                    className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]"
+                  >
+                    ユーザー名
+                  </label>
+                </WoodenSign>
                 <div className="relative mt-2">
                   <input
                     type="text"
+                    id="username"
                     value={username}
                     onChange={handleUsername}
-                    onKeyDown={handleKeyDown}
                     className={getInputStyle("username")}
-                    placeholder="例）taro"
+                    placeholder="ユーザー名を設定"
+                    maxLength={100}
                   />
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {username.length}/100
+                    {username.length >= 90 && username.length < 100 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                    {username.length >= 100 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
+                  </div>
                 </div>
-                {errors.username && submitAttempted && (
-                  <BookmarkError message="ユーザー名を入力してね！" />
-                )}
+                {errors.username && <BookmarkError message={errors.username} />}
               </div>
 
               {/* 表示名フィールド */}
               <div className="mb-6">
-                <div className="relative">
-                  <WoodenSign width="w-full">
-                    <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                      ニックネーム
-                    </label>
-                  </WoodenSign>
-                </div>
+                <WoodenSign width="w-full" rotation="-rotate-1">
+                  <label
+                    htmlFor="displayName"
+                    className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]"
+                  >
+                    ニックネーム
+                  </label>
+                </WoodenSign>
                 <div className="relative mt-2">
                   <input
                     type="text"
+                    id="displayName"
                     value={displayName}
                     onChange={handleDisplayName}
-                    onKeyDown={handleKeyDown}
                     className={getInputStyle("displayName")}
-                    placeholder="例）たっちゃん"
+                    placeholder="表示される名前を設定"
+                    maxLength={100}
                   />
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {displayName.length}/100
+                    {displayName.length >= 90 && displayName.length < 100 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                    {displayName.length >= 100 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
+                  </div>
                 </div>
-                {errors.displayName && submitAttempted && (
-                  <BookmarkError message="ニックネームを入力してね！" />
+                {errors.displayName && (
+                  <BookmarkError message={errors.displayName} />
                 )}
               </div>
             </>
@@ -957,83 +1000,90 @@ const Register = () => {
 
               {/* メールアドレスフィールド */}
               <div className="mb-6">
-                <div className="relative">
-                  <WoodenSign width="w-full" rotation="-rotate-1">
-                    <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                      メールアドレス
-                    </label>
-                  </WoodenSign>
-                </div>
+                <WoodenSign width="w-full" rotation="rotate-1">
+                  <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                    メールアドレス
+                  </label>
+                </WoodenSign>
                 <div className="relative mt-2">
                   <input
                     type="email"
                     value={email}
                     onChange={handleEmail}
-                    onKeyDown={handleKeyDown}
                     className={getInputStyle("email")}
-                    placeholder="例）taro@example.com"
+                    placeholder="認証に使用するメールアドレス"
+                    maxLength={100}
                   />
-                </div>
-                {errors.email && submitAttempted && (
-                  <BookmarkError message="メールアドレスを入力してね！" />
-                )}
-
-                <div className="mt-2">
-                  <button
-                    type="button"
-                    onClick={sendVerificationCode}
-                    disabled={resendCountdown > 0 || !email}
-                    className={`relative w-full py-2 px-4 flex items-center justify-center ${
-                      codeSent
-                        ? "bg-green-600 hover:bg-green-700"
-                        : "bg-amber-600 hover:bg-amber-700"
-                    } text-white font-medium rounded-md transform transition-all focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-md ${
-                      resendCountdown > 0 || !email
-                        ? "opacity-70 cursor-not-allowed"
-                        : "hover:scale-[1.02]"
-                    }`}
-                    style={{
-                      textShadow: "0 1px 1px rgba(0,0,0,0.3)",
-                      boxShadow:
-                        "0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.2)",
-                    }}
-                  >
-                    {resendCountdown > 0 ? (
-                      <span className="flex items-center">
-                        <Mail className="mr-2 h-4 w-4" />
-                        {resendCountdown}秒後に再送信可能
-                      </span>
-                    ) : codeSent ? (
-                      <span className="flex items-center">
-                        <Shield className="mr-2 h-4 w-4" />
-                        認証コード送信済み（再送信する）
-                      </span>
-                    ) : (
-                      <span className="flex items-center">
-                        <Mail className="mr-2 h-4 w-4" />
-                        メールに認証コードを送信
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {email.length}/100
+                    {email.length >= 90 && email.length < 100 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
                       </span>
                     )}
-                  </button>
+                    {email.length >= 100 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
+                  </div>
                 </div>
-
-                <InfoMessage>
-                  登録を完了するには、メールアドレスの確認が必要です。
-                  「メールに認証コードを送信」ボタンをクリックして、
-                  メールに届いた認証コードを確認してください。
-                </InfoMessage>
+                {errors.email && <BookmarkError message={errors.email} />}
               </div>
+
+              <div className="mt-2">
+                <button
+                  type="button"
+                  onClick={sendVerificationCode}
+                  disabled={resendCountdown > 0 || !email}
+                  className={`relative w-full py-2 px-4 flex items-center justify-center ${
+                    codeSent
+                      ? "bg-green-600 hover:bg-green-700"
+                      : "bg-amber-600 hover:bg-amber-700"
+                  } text-white font-medium rounded-md transform transition-all focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-md ${
+                    resendCountdown > 0 || !email
+                      ? "opacity-70 cursor-not-allowed"
+                      : "hover:scale-[1.02]"
+                  }`}
+                  style={{
+                    textShadow: "0 1px 1px rgba(0,0,0,0.3)",
+                    boxShadow:
+                      "0 2px 4px rgba(0,0,0,0.2), inset 0 -1px 2px rgba(0,0,0,0.1), inset 0 1px 2px rgba(255,255,255,0.2)",
+                  }}
+                >
+                  {resendCountdown > 0 ? (
+                    <span className="flex items-center">
+                      <Mail className="mr-2 h-4 w-4" />
+                      {resendCountdown}秒後に再送信可能
+                    </span>
+                  ) : codeSent ? (
+                    <span className="flex items-center">
+                      <Shield className="mr-2 h-4 w-4" />
+                      認証コード送信済み（再送信する）
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      <Mail className="mr-2 h-4 w-4" />
+                      メールに認証コードを送信
+                    </span>
+                  )}
+                </button>
+              </div>
+
+              <InfoMessage>
+                登録を完了するには、メールアドレスの確認が必要です。
+                「メールに認証コードを送信」ボタンをクリックして、
+                メールに届いた認証コードを確認してください。
+              </InfoMessage>
 
               {/* 認証コード入力フィールド */}
               {codeSent && (
                 <div className="mt-4">
-                  <div className="relative">
-                    <WoodenSign width="w-full" rotation="rotate-1">
-                      <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-                        認証コード
-                      </label>
-                    </WoodenSign>
-                  </div>
+                  <WoodenSign width="w-full" rotation="rotate-1">
+                    <label className="text-yellow-950 text-lg font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
+                      認証コード
+                    </label>
+                  </WoodenSign>
                   <div className="relative mt-2">
                     <input
                       type="text"
@@ -1045,7 +1095,11 @@ const Register = () => {
                       } shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500`}
                       placeholder="例）123456"
                       disabled={isVerified}
+                      maxLength={6}
                     />
+                    <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                      {verificationCode.length}/6
+                    </div>
                     {isVerified && (
                       <div className="absolute right-3 top-3 text-green-500">
                         <Shield className="h-6 w-6" />
@@ -1141,16 +1195,36 @@ const Register = () => {
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={handlePassword}
-                    className="w-full px-4 py-3 pr-12 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
-                    placeholder="8文字以上の安全なパスワード"
+                    onKeyDown={handleKeyDown}
+                    className={`${
+                      errors.password && submitAttempted
+                        ? "bg-white border-red-500"
+                        : "bg-white"
+                    } h-10 block px-3 w-full border border-brown-300 rounded text-sm shadow-sm placeholder-brown-400 focus:outline-none focus:border-brown-500 focus:ring-1 focus:ring-brown-500`}
+                    placeholder="例）taro1234"
+                    maxLength={50}
                   />
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {password.length}/50
+                    {password.length >= 45 && password.length < 50 && (
+                      <span className="text-amber-500 ml-2">
+                        制限に近づいています
+                      </span>
+                    )}
+                    {password.length >= 50 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
+                  </div>
                   <button
                     type="button"
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-600 hover:text-gray-900"
                     onClick={togglePasswordVisibility}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-amber-800 focus:outline-none"
                     aria-label={
-                      showPassword ? "パスワードを隠す" : "パスワードを表示"
+                      showPassword ? "パスワードを隠す" : "パスワードを表示する"
                     }
+                    style={{ top: "calc(50% - 10px)" }}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -1180,7 +1254,22 @@ const Register = () => {
                     onChange={handleConfirmPassword}
                     className="w-full px-4 py-3 pr-12 bg-white bg-opacity-70 rounded-lg border-2 border-amber-800 shadow-md focus:outline-none focus:ring-2 focus:ring-amber-500 text-gray-900 dark:text-gray-900 placeholder-gray-500 dark:placeholder-gray-500"
                     placeholder="同じパスワードを再入力"
+                    maxLength={50}
                   />
+                  <div className="text-xs text-gray-600 mt-1 mb-2 text-right">
+                    {confirmPassword.length}/50
+                    {confirmPassword.length >= 45 &&
+                      confirmPassword.length < 50 && (
+                        <span className="text-amber-500 ml-2">
+                          制限に近づいています
+                        </span>
+                      )}
+                    {confirmPassword.length >= 50 && (
+                      <span className="text-red-500 ml-2">
+                        文字数制限に達しました
+                      </span>
+                    )}
+                  </div>
                   <button
                     type="button"
                     onClick={toggleConfirmPasswordVisibility}

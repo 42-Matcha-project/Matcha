@@ -102,7 +102,10 @@ export default function ProfilePage() {
       }
 
       const data = await response.json();
-      setTasks(data.Works || []);
+
+      // データの存在確認とフォーマット検証を柔軟に行う
+      const worksData = data.Works || data.works || [];
+      setTasks(worksData);
     } catch (error) {
       console.error("タスク取得エラー:", error);
       setTasksError(
@@ -117,9 +120,18 @@ export default function ProfilePage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+
+    // 文字数制限を設定
+    let limitedValue = value;
+    if (name === "workName" && value.length > 20) {
+      limitedValue = value.slice(0, 20);
+    } else if (name === "notes" && value.length > 100) {
+      limitedValue = value.slice(0, 100);
+    }
+
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: limitedValue,
     });
   };
 
@@ -302,11 +314,18 @@ export default function ProfilePage() {
         }
 
         const data = await response.json();
-        if (!data.User) {
+
+        // データの存在確認とフォーマット検証を柔軟に行う
+        const userData = data.User || data.user || data;
+
+        if (
+          !userData ||
+          (typeof userData === "object" && Object.keys(userData).length === 0)
+        ) {
           throw new Error("プロフィールデータが見つかりません");
         }
 
-        setProfile(data.User);
+        setProfile(userData);
         setImageKey((prev) => prev + 1);
       } catch (error) {
         console.error("プロフィール取得エラー:", error);
@@ -830,7 +849,22 @@ export default function ProfilePage() {
                         onChange={handleInputChange}
                         placeholder="プログラミングの勉強、英語、etc..."
                         className="mt-2 block w-full rounded-md border-2 border-[#e4cbac] p-3 text-[#7b6c5d] focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                        maxLength={20}
                       />
+                      <div className="text-xs text-gray-600 mt-1 text-right">
+                        {formData.workName.length}/20
+                      </div>
+                      {formData.workName.length >= 18 &&
+                        formData.workName.length < 20 && (
+                          <span className="text-amber-500 text-xs block mt-1">
+                            制限に近づいています
+                          </span>
+                        )}
+                      {formData.workName.length >= 20 && (
+                        <span className="text-red-500 text-xs block mt-1">
+                          文字数制限に達しました
+                        </span>
+                      )}
                     </div>
                     <div>
                       <label
@@ -848,7 +882,22 @@ export default function ProfilePage() {
                         onChange={handleInputChange}
                         placeholder="詰まっていることや、達成したい目標などを書いておきましょう..."
                         className="mt-2 block w-full rounded-md border-2 border-[#e4cbac] p-3 text-[#7b6c5d] focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                        maxLength={100}
                       />
+                      <div className="text-xs text-gray-600 mt-1 text-right">
+                        {formData.notes.length}/100
+                      </div>
+                      {formData.notes.length >= 90 &&
+                        formData.notes.length < 100 && (
+                          <span className="text-amber-500 text-xs block mt-1">
+                            制限に近づいています
+                          </span>
+                        )}
+                      {formData.notes.length >= 100 && (
+                        <span className="text-red-500 text-xs block mt-1">
+                          文字数制限に達しました
+                        </span>
+                      )}
                     </div>
                     <div>
                       <label

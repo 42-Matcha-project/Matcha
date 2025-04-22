@@ -47,6 +47,7 @@ export function SubjectList({
   const [deleteNoteConfirmSubjectId, setDeleteNoteConfirmSubjectId] = useState<
     number | null
   >(null);
+  const [noteError, setNoteError] = useState<string | null>(null);
 
   // タスクリストを取得する
   const fetchSubjects = async () => {
@@ -411,6 +412,11 @@ export function SubjectList({
   const saveNote = (subjectId: number) => {
     if (noteText.trim() === "") return;
 
+    if (noteText.length > 100) {
+      setNoteError("最大100文字までです");
+      return;
+    }
+
     // タスクリストを更新
     const updatedSubjects = subjects.map((subject) => {
       if (subject.ID === subjectId) {
@@ -442,6 +448,17 @@ export function SubjectList({
     // 編集モードを終了
     setEditingNoteId(null);
     setNoteText("");
+    setNoteError(null);
+  };
+
+  const handleNoteChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const value = e.target.value;
+    if (value.length > 100) {
+      setNoteError("最大100文字までです");
+    } else {
+      setNoteError(null);
+    }
+    setNoteText(value);
   };
 
   // ノートを削除する
@@ -756,10 +773,11 @@ export function SubjectList({
                         isDarkMode
                           ? "bg-amber-700 border-amber-600 text-amber-50"
                           : "bg-amber-50 border border-amber-200 text-amber-950",
+                        noteError ? "border-red-500" : "",
                       )}
                       placeholder="詰まっていること、わからないことなどをメモしておきましょう..."
                       value={noteText}
-                      onChange={(e) => setNoteText(e.target.value)}
+                      onChange={handleNoteChange}
                       onKeyDown={(e) => {
                         // Enterを押した場合（Shiftキーを押していない場合）は保存
                         if (e.key === "Enter" && !e.shiftKey) {
@@ -769,60 +787,73 @@ export function SubjectList({
                           }
                         }
                       }}
+                      maxLength={100}
                       autoFocus
                     />
                     <div className="flex justify-between mt-2">
-                      <div className="text-xs opacity-70">
-                        Enter: 保存　Shift+Enter: 改行
+                      <div className="flex items-center space-x-2">
+                        <div className="text-xs opacity-70">
+                          Enter: 保存　Shift+Enter: 改行
+                        </div>
+                        {noteError && (
+                          <div className="text-xs text-red-500">
+                            {noteError}
+                          </div>
+                        )}
                       </div>
-                      <div className="flex space-x-2">
-                        {subject.notes && (
+                      <div className="flex items-center space-x-2">
+                        <div className="text-xs text-gray-600">
+                          {noteText.length}/100
+                        </div>
+                        <div className="flex space-x-2">
+                          {subject.notes && (
+                            <button
+                              className={cn(
+                                "px-3 py-1 rounded-lg text-xs flex items-center",
+                                isDarkMode
+                                  ? "bg-red-800 hover:bg-red-700 text-red-100"
+                                  : "bg-red-100 hover:bg-red-200 text-red-700",
+                              )}
+                              onClick={() =>
+                                setDeleteNoteConfirmSubjectId(subject.ID)
+                              }
+                            >
+                              <Trash2 className="h-3 w-3 mr-1" />
+                              削除
+                            </button>
+                          )}
                           <button
                             className={cn(
-                              "px-3 py-1 rounded-lg text-xs flex items-center",
+                              "px-3 py-1 rounded-lg text-xs",
                               isDarkMode
-                                ? "bg-red-800 hover:bg-red-700 text-red-100"
-                                : "bg-red-100 hover:bg-red-200 text-red-700",
+                                ? "bg-amber-700 hover:bg-amber-600"
+                                : "bg-amber-100 hover:bg-amber-200",
                             )}
-                            onClick={() =>
-                              setDeleteNoteConfirmSubjectId(subject.ID)
-                            }
+                            onClick={() => {
+                              // メモが空なら閉じる、そうでなければ表示モードに切り替え
+                              if (!noteText.trim()) {
+                                setShowNotesMap((prev) => ({
+                                  ...prev,
+                                  [subject.ID]: false,
+                                }));
+                              }
+                              setEditingNoteId(null);
+                            }}
                           >
-                            <Trash2 className="h-3 w-3 mr-1" />
-                            削除
+                            キャンセル
                           </button>
-                        )}
-                        <button
-                          className={cn(
-                            "px-3 py-1 rounded-lg text-xs",
-                            isDarkMode
-                              ? "bg-amber-700 hover:bg-amber-600"
-                              : "bg-amber-100 hover:bg-amber-200",
-                          )}
-                          onClick={() => {
-                            // メモが空なら閉じる、そうでなければ表示モードに切り替え
-                            if (!noteText.trim()) {
-                              setShowNotesMap((prev) => ({
-                                ...prev,
-                                [subject.ID]: false,
-                              }));
-                            }
-                            setEditingNoteId(null);
-                          }}
-                        >
-                          キャンセル
-                        </button>
-                        <button
-                          className={cn(
-                            "px-3 py-1 rounded-lg text-xs",
-                            isDarkMode
-                              ? "bg-amber-600 hover:bg-amber-500"
-                              : "bg-amber-300 hover:bg-amber-400",
-                          )}
-                          onClick={() => saveNote(subject.ID)}
-                        >
-                          保存
-                        </button>
+                          <button
+                            className={cn(
+                              "px-3 py-1 rounded-lg text-xs",
+                              isDarkMode
+                                ? "bg-amber-600 hover:bg-amber-500"
+                                : "bg-amber-300 hover:bg-amber-400",
+                            )}
+                            onClick={() => saveNote(subject.ID)}
+                          >
+                            保存
+                          </button>
+                        </div>
                       </div>
                     </div>
                   </div>

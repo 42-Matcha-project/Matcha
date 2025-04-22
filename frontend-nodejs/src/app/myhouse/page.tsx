@@ -23,6 +23,7 @@ import {
   DialogFooter,
   DialogDescription,
 } from "@/components/ui/dialog";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // コンポーネントをインポート
 import { ChatPanel } from "./components/ChatPanel";
@@ -35,7 +36,7 @@ import { initialMessages } from "./data";
 
 export default function CozyRoomPage() {
   const router = useRouter();
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const { isDarkMode, toggleDarkMode } = useTheme();
   const [activeTab, setActiveTab] = useState("chat");
   const [isPanelExpanded, setIsPanelExpanded] = useState(true);
   const [participants, setParticipants] =
@@ -189,9 +190,6 @@ export default function CozyRoomPage() {
         });
     }
   };
-
-  // ダークモードの切り替え
-  const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
   // パネルの展開・収納を切り替え
   const togglePanel = () => setIsPanelExpanded(!isPanelExpanded);

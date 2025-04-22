@@ -46,9 +46,18 @@ export default function AddTaskPage() {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const { name, value } = e.target;
+
+    // 文字数制限を設定
+    let limitedValue = value;
+    if (name === "workName" && value.length > 20) {
+      limitedValue = value.slice(0, 20);
+    } else if (name === "notes" && value.length > 100) {
+      limitedValue = value.slice(0, 100);
+    }
+
     setFormData({
       ...formData,
-      [name]: value,
+      [name]: limitedValue,
     });
   };
 
@@ -260,8 +269,28 @@ export default function AddTaskPage() {
                       onChange={handleInputChange}
                       className="w-full px-4 py-2 rounded-md border border-violet-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500"
                       placeholder="タスク名を入力"
+                      maxLength={20}
                     />
+                    <div className="text-xs text-gray-500 mt-1 text-right">
+                      {formData.workName.length}/20
+                    </div>
                   </FormField>
+
+                  {/* タスク名の警告メッセージ */}
+                  <div className="mt-1">
+                    {formData.workName.length >= 18 &&
+                      formData.workName.length < 20 && (
+                        <span className="text-amber-500 text-xs block">
+                          制限に近づいています
+                        </span>
+                      )}
+                    {formData.workName.length >= 20 && (
+                      <span className="text-red-500 text-xs block">
+                        文字数制限に達しました
+                      </span>
+                    )}
+                  </div>
+
                   <p className="text-violet-100 mt-1">
                     アイコンは任意です。後からでも変更できます。
                   </p>
@@ -283,7 +312,26 @@ export default function AddTaskPage() {
                   onChange={handleInputChange}
                   className="w-full px-4 py-2 rounded-md border border-[#e4cbac] text-gray-800 focus:outline-none focus:ring-2 focus:ring-violet-500 min-h-[120px]"
                   placeholder="課題や詰まっていることなど、メモを残しておきましょう"
+                  maxLength={100}
                 />
+                <div className="text-xs text-gray-500 mt-1 text-right">
+                  {formData.notes.length}/100
+                </div>
+
+                {/* メモの警告メッセージ */}
+                <div className="mt-1">
+                  {formData.notes.length >= 90 &&
+                    formData.notes.length < 100 && (
+                      <span className="text-amber-500 text-xs block">
+                        制限に近づいています
+                      </span>
+                    )}
+                  {formData.notes.length >= 100 && (
+                    <span className="text-red-500 text-xs block">
+                      文字数制限に達しました
+                    </span>
+                  )}
+                </div>
               </div>
 
               {/* メッセージ表示エリア */}
