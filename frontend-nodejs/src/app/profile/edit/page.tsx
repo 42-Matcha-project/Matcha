@@ -19,7 +19,7 @@ import { useAuth } from "@/contexts/AuthContext";
 
 export default function ProfileEditPage() {
   const router = useRouter();
-  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const { isAuthenticated, isLoading: authLoading, token } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [imageKey, setImageKey] = useState<number>(0);
 
@@ -43,26 +43,26 @@ export default function ProfileEditPage() {
   const [imagePreview, setImagePreview] = useState<string | null>(null);
 
   useEffect(() => {
-    // AuthContextの認証状態を監視し、未認証の場合はリダイレクト
-    // authLoadingがfalseになった後で判定する（初期ロード中は判定しない）
-    if (!authLoading && !isAuthenticated) {
+    if (authLoading) {
+      return;
+    }
+
+    if (!isAuthenticated) {
       router.push("/login");
       return;
     }
 
     // 認証済みの場合のみプロフィール取得を実行
     if (!authLoading && isAuthenticated) {
-      fetchProfile();
+      fetchProfile(token);
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading, router, token]);
 
   // プロフィール情報を取得する関数
-  const fetchProfile = async () => {
+  const fetchProfile = async (token: string | null) => {
     try {
       setIsLoading(true);
 
-      // useAuthコンテキストからトークンを取得
-      const { token } = useAuth();
       if (!token) {
         setError("認証情報がありません。ログインしてください。");
         setIsLoading(false);

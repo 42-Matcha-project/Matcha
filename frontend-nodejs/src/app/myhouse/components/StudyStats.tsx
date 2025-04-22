@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { CirclePlus, LogOut, Play, Pause } from "lucide-react";
-import { SubjectRegistrationForm } from "./SubjectRegistrationForm";
-import { SubjectList } from "./SubjectList";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -33,7 +31,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const [newGoalText, setNewGoalText] = useState("");
   const [isAddingGoal, setIsAddingGoal] = useState(false);
   const [goalError, setGoalError] = useState<string | null>(null);
-  const [refreshSubjectsTrigger, setRefreshSubjectsTrigger] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
   const [studyTimeMinutes, setStudyTimeMinutes] = useState(0); // 作業時間（分）
@@ -216,11 +213,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         goal.id === id ? { ...goal, completed: !goal.completed } : goal,
       ),
     );
-  };
-
-  // タスクが追加されたときにタスクリストを更新
-  const handleSubjectAdded = () => {
-    setRefreshSubjectsTrigger((prev) => prev + 1);
   };
 
   // 自習終了ダイアログを表示
@@ -462,12 +454,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     return `${minutes}分${seconds}秒`;
   };
 
-  // 現在の作業セッション時間
-  const currentSessionTime = formatStudyTime(
-    studyTimeMinutes,
-    studyTimeSeconds,
-  );
-
   // 合計作業時間（現在のセッション + 過去のセッション）
   let displayTotalTime = totalStudyTimeSeconds;
   if (isStudying && studyTimeStarted) {
@@ -500,67 +486,95 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
   return (
     <div
       className={cn(
-        "rounded-2xl p-8 mb-8",
+        "rounded-2xl p-6 mb-8 shadow-md",
         isDarkMode
-          ? "bg-amber-900/90 border border-amber-800"
-          : "bg-amber-50/95 border border-amber-200",
+          ? "bg-amber-800/90 border border-amber-700 text-amber-50"
+          : "bg-white border border-amber-200 text-amber-900",
       )}
     >
-      {/* 勉強タイマーセクション */}
-      <div className="mb-6 p-4 bg-opacity-50 rounded-lg border border-amber-200 bg-amber-50">
-        <div className="text-center mb-4">
-          <h3 className="text-lg font-bold mb-1">作業タイマー</h3>
-          <div className="text-3xl font-bold mb-1">
-            {isStudying
-              ? currentSessionTime
-              : pauseTime
-                ? "一時停止中"
-                : "未開始"}
-          </div>
-          <div className="text-sm opacity-75">
-            合計作業時間: {formatTotalTime(displayTotalTime)}
+      <h3 className="text-xl font-bold mb-4 border-b pb-2 border-amber-200">
+        学習ステータス
+      </h3>
+
+      {/* タイマーと作業時間表示 */}
+      <div
+        className={cn(
+          "mb-6 p-4 rounded-lg",
+          isDarkMode ? "bg-amber-700/80" : "bg-amber-100/70",
+        )}
+      >
+        <div className="flex justify-between items-center mb-3">
+          <span className="font-semibold">現在の学習時間</span>
+          <div className="flex space-x-2">
+            {isStudying ? (
+              <button
+                onClick={pauseStudy}
+                className={cn(
+                  "flex items-center px-3 py-1 rounded text-white font-medium text-sm",
+                  "bg-amber-600 hover:bg-amber-500 transition-colors",
+                )}
+              >
+                <Pause className="h-4 w-4 mr-1" /> 一時停止
+              </button>
+            ) : (
+              <button
+                onClick={studyTimeStarted ? resumeStudy : startStudy}
+                className={cn(
+                  "flex items-center px-3 py-1 rounded text-white font-medium text-sm",
+                  "bg-green-600 hover:bg-green-500 transition-colors",
+                )}
+              >
+                <Play className="h-4 w-4 mr-1" />
+                {studyTimeStarted ? "再開" : "スタート"}
+              </button>
+            )}
+            <button
+              onClick={openEndSessionDialog}
+              className={cn(
+                "flex items-center px-3 py-1 rounded font-medium text-sm",
+                "bg-red-500 hover:bg-red-400 text-white transition-colors",
+              )}
+            >
+              <LogOut className="h-4 w-4 mr-1" /> 終了
+            </button>
           </div>
         </div>
 
-        <div className="flex justify-center gap-4">
-          {!isStudying ? (
-            <button
-              onClick={pauseTime ? resumeStudy : startStudy}
+        <div className="grid grid-cols-2 gap-3">
+          <div
+            className={cn(
+              "rounded-lg p-3 text-center",
+              isDarkMode ? "bg-amber-900/70" : "bg-white",
+            )}
+          >
+            <div className="text-sm mb-1">今回の学習時間</div>
+            <div
               className={cn(
-                "flex items-center justify-center px-5 py-2 rounded-lg font-medium",
-                "bg-green-100 text-green-700 hover:bg-green-200 transition-colors",
-                "border border-green-300",
+                "text-2xl font-mono",
+                isDarkMode ? "text-amber-100" : "text-amber-900",
               )}
             >
-              <Play className="h-4 w-4 mr-2" />
-              {pauseTime ? "再開する" : "勉強開始"}
-            </button>
-          ) : (
-            <button
-              onClick={pauseStudy}
-              className={cn(
-                "flex items-center justify-center px-5 py-2 rounded-lg font-medium",
-                "bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors",
-                "border border-amber-300",
-              )}
-            >
-              <Pause className="h-4 w-4 mr-2" />
-              一時停止
-            </button>
-          )}
-        </div>
-      </div>
+              {formatStudyTime(studyTimeMinutes, studyTimeSeconds)}
+            </div>
+          </div>
 
-      {/* タスク登録セクション */}
-      <div className="mb-8">
-        <SubjectRegistrationForm
-          isDarkMode={isDarkMode}
-          onSubjectAdded={handleSubjectAdded}
-        />
-        <SubjectList
-          isDarkMode={isDarkMode}
-          refreshTrigger={refreshSubjectsTrigger}
-        />
+          <div
+            className={cn(
+              "rounded-lg p-3 text-center",
+              isDarkMode ? "bg-amber-900/70" : "bg-white",
+            )}
+          >
+            <div className="text-sm mb-1">今日の累計</div>
+            <div
+              className={cn(
+                "text-2xl font-mono",
+                isDarkMode ? "text-amber-100" : "text-amber-900",
+              )}
+            >
+              {formatTotalTime(totalStudyTimeSeconds)}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* End Study Session Dialog */}
@@ -753,30 +767,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
           </button>
         )}
       </div>
-
-      {/* 自習を終了するボタン */}
-      <button
-        onClick={openEndSessionDialog}
-        className="w-full py-3 px-6 rounded-lg flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 transition-colors mt-4 border-2 border-red-300"
-      >
-        <LogOut className="h-5 w-5 mr-2" />
-        <span className="font-medium">自習を終了する</span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="ml-2 lucide lucide-arrow-right"
-        >
-          <path d="M5 12h14" />
-          <path d="m12 5 7 7-7 7" />
-        </svg>
-      </button>
     </div>
   );
 }

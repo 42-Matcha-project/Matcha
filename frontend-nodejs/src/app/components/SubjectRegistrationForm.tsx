@@ -2,13 +2,12 @@
 
 import { useState, useRef } from "react";
 import { cn } from "@/lib/utils";
-import { PlusCircle, X, Loader2, UploadCloud } from "lucide-react";
+import { PlusCircle } from "lucide-react";
 import { toast } from "sonner";
-import Image from "next/image";
 
 interface SubjectRegistrationFormProps {
   isDarkMode: boolean;
-  onSubjectAdded?: () => void;
+  onSubjectAdded: () => void;
 }
 
 export function SubjectRegistrationForm({
@@ -130,9 +129,10 @@ export function SubjectRegistrationForm({
     }
   };
 
-  // タスクを登録する
+  // フォーム送信ハンドラ
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
     if (!subjectName.trim()) {
       toast.error("タスク名を入力してください");
       return;
@@ -141,65 +141,31 @@ export function SubjectRegistrationForm({
     try {
       setIsSubmitting(true);
 
-      // ローカルストレージからトークンを取得
-      let token = localStorage.getItem("token");
+      // トークンを取得
+      const token = localStorage.getItem("token");
       if (!token) {
-        throw new Error("認証情報がありません");
+        toast.error("ログインが必要です");
+        return;
       }
 
-      // 認証テスト - トークンが有効か確認
-      try {
-        const testResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
+      // リクエストデータの作成
+      const requestData = {
+        WorkName: subjectName.trim(),
+        IconImageURL: iconDataUrl || "",
+      };
 
-        // 認証失敗した場合はログインし直す
-        if (!testResponse.ok) {
-          const loginResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                Username: "test", // テスト用の固定値
-                Password: "test", // テスト用の固定値
-              }),
-            },
-          );
+      // デバッグ用にコンソールログを追加
+      console.log("API Request:", {
+        url: `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: requestData,
+      });
 
-          if (loginResponse.ok) {
-            const data = await loginResponse.json();
-            // tokenが文字列であることを保証
-            if (typeof data.Token === "string") {
-              token = data.Token;
-              localStorage.setItem("token", data.Token);
-              toast.success("再認証しました");
-            } else {
-              throw new Error("認証トークンが無効です");
-            }
-          } else {
-            throw new Error("再認証に失敗しました");
-          }
-        }
-      } catch (error) {
-        console.error("認証テストエラー:", error);
-        throw new Error("認証に失敗しました");
-      }
-
-      // この時点でtokenは必ず存在する（エラーが発生していなければ）
-      if (!token) {
-        throw new Error("認証トークンが見つかりません");
-      }
-
-      // タスク登録APIを呼び出す
+      // APIリクエストの送信
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
         {
@@ -208,34 +174,40 @@ export function SubjectRegistrationForm({
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({
-            WorkName: subjectName,
-            // 画像URLが長すぎる場合は省略（サーバーの許容範囲内に制限）
-            IconImageURL: iconDataUrl
-              ? iconDataUrl.length > 100000
-                ? null
-                : iconDataUrl
-              : null,
-          }),
+          body: JSON.stringify(requestData),
         },
       );
 
+      // レスポンスのデバッグ
+      console.log("API Response Status:", response.status);
+      const responseData = await response.json();
+      console.log("API Response Data:", responseData);
+
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.Error || "タスク登録に失敗しました");
+        // エラーメッセージを詳細に設定
+        let errorMessage = "タスクの追加に失敗しました";
+        if (responseData && responseData.Message) {
+          errorMessage = responseData.Message;
+        } else if (response.status === 401 || response.status === 403) {
+          errorMessage =
+            "認証エラー: セッションが切れている可能性があります。再ログインしてください。";
+        } else if (response.status === 404) {
+          errorMessage = "APIエンドポイントが見つかりません。";
+        } else if (response.status >= 500) {
+          errorMessage =
+            "サーバーエラー: しばらく時間をおいて再試行してください。";
+        }
+        throw new Error(errorMessage);
       }
 
-      toast.success("タスクを登録しました");
+      // 成功時の処理
+      toast.success("タスクを追加しました");
       resetForm();
-
-      // コールバック関数があれば実行（親コンポーネントでタスクリストを更新するなど）
-      if (onSubjectAdded) {
-        onSubjectAdded();
-      }
+      onSubjectAdded(); // 親コンポーネントに通知
     } catch (error) {
-      console.error("タスク登録エラー:", error);
+      console.error("タスク追加エラー:", error);
       toast.error(
-        error instanceof Error ? error.message : "タスク登録に失敗しました",
+        error instanceof Error ? error.message : "タスクの追加に失敗しました",
       );
     } finally {
       setIsSubmitting(false);
@@ -261,7 +233,7 @@ export function SubjectRegistrationForm({
       />
 
       <h3 className="text-xl font-bold mb-4 border-b pb-2 border-amber-200">
-        科目登録
+        タスク登録
       </h3>
 
       {!isFormOpen ? (
@@ -275,7 +247,7 @@ export function SubjectRegistrationForm({
           )}
         >
           <PlusCircle className="h-5 w-5" />
-          <span className="font-medium">新しい科目を登録</span>
+          <span className="font-medium">新しいタスクを登録</span>
         </button>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-3">
@@ -321,77 +293,91 @@ export function SubjectRegistrationForm({
 
           <div>
             <label className="block text-sm font-medium mb-1">
-              アイコン画像（任意）
+              タスクアイコン
             </label>
-
-            {/* アイコンのプレビューまたはドロップエリア */}
             <div
               className={cn(
-                "w-full h-24 rounded-lg border-2 border-dashed transition-colors flex items-center justify-center",
+                "mt-2 border-2 border-dashed rounded-lg p-4 text-center transition-all",
                 isDarkMode
-                  ? "bg-amber-800/30 hover:bg-amber-800/50 border-amber-700"
-                  : "bg-amber-50 hover:bg-amber-100 border-amber-200",
-                isDragging && "border-amber-400 bg-amber-100",
-                "cursor-pointer",
+                  ? "border-amber-600/50 hover:border-amber-500"
+                  : "border-amber-300 hover:border-amber-400",
+                isDragging && "border-amber-400 bg-amber-100/20",
               )}
               onDragOver={handleDragOver}
               onDragLeave={handleDragLeave}
               onDrop={handleDrop}
-              onClick={handleSelectImageClick}
             >
               {iconDataUrl ? (
-                <div className="relative w-full h-full flex items-center justify-center">
-                  <div className="relative w-24 h-24 rounded-full overflow-hidden border-2 border-amber-300">
-                    <Image
+                <div className="space-y-2">
+                  <div className="w-20 h-20 mx-auto rounded-full overflow-hidden border-2 border-amber-300">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
                       src={iconDataUrl}
-                      alt="アイコンプレビュー"
-                      fill
-                      className="object-cover"
-                      unoptimized={true}
-                      onError={(e) => {
-                        // 画像読み込みエラー時にプレースホルダーを表示
-                        const target = e.target as HTMLImageElement;
-                        target.onerror = null; // エラーループ防止
-                        target.src = "/placeholder.svg";
-                      }}
+                      alt="タスクアイコン"
+                      className="w-full h-full object-cover"
                     />
                   </div>
-                  <button
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleRemoveImage();
-                    }}
-                    className="absolute top-1 right-1 w-7 h-7 rounded-full bg-red-500 flex items-center justify-center text-white hover:bg-red-600 shadow-md"
-                  >
-                    <X className="w-5 h-5" />
-                  </button>
+                  <div className="flex justify-center space-x-2">
+                    <button
+                      type="button"
+                      onClick={handleSelectImageClick}
+                      className={cn(
+                        "px-3 py-1 rounded text-xs",
+                        isDarkMode
+                          ? "bg-amber-700 hover:bg-amber-600 text-white"
+                          : "bg-amber-200 hover:bg-amber-300",
+                      )}
+                    >
+                      変更
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      className={cn(
+                        "px-3 py-1 rounded text-xs",
+                        isDarkMode
+                          ? "bg-red-700 hover:bg-red-600 text-white"
+                          : "bg-red-100 hover:bg-red-200 text-red-700",
+                      )}
+                    >
+                      削除
+                    </button>
+                  </div>
                 </div>
               ) : (
-                <div className="text-center">
-                  <UploadCloud
-                    className={cn(
-                      "w-8 h-8 mx-auto mb-1",
-                      isDarkMode ? "text-amber-400" : "text-amber-500",
-                    )}
-                  />
-                  <p className="text-xs">
-                    クリックするか画像をドロップしてアイコンを設定
+                <div
+                  onClick={handleSelectImageClick}
+                  className="cursor-pointer"
+                >
+                  <p className="text-sm opacity-70 mb-2">
+                    画像をドラッグ＆ドロップ
                   </p>
+                  <button
+                    type="button"
+                    className={cn(
+                      "px-3 py-1 rounded text-xs",
+                      isDarkMode
+                        ? "bg-amber-700 hover:bg-amber-600 text-white"
+                        : "bg-amber-200 hover:bg-amber-300",
+                    )}
+                  >
+                    画像を選択
+                  </button>
                 </div>
               )}
             </div>
+            <p className="text-xs opacity-60 mt-1">JPG、PNG、GIF（1MB以下）</p>
           </div>
 
-          <div className="flex justify-end space-x-2">
+          <div className="flex justify-end space-x-2 pt-3">
             <button
               type="button"
               onClick={resetForm}
               className={cn(
-                "px-3 py-1 rounded-lg text-xs",
+                "px-4 py-2 rounded-lg text-sm",
                 isDarkMode
-                  ? "bg-amber-700 hover:bg-amber-600"
-                  : "bg-amber-100 hover:bg-amber-200",
+                  ? "text-amber-200 hover:bg-amber-700/50"
+                  : "text-amber-800 hover:bg-amber-100",
               )}
               disabled={isSubmitting}
             >
@@ -400,17 +386,18 @@ export function SubjectRegistrationForm({
             <button
               type="submit"
               className={cn(
-                "px-3 py-1 rounded-lg text-xs flex items-center",
+                "px-6 py-2 rounded-lg text-sm flex items-center",
                 isDarkMode
-                  ? "bg-amber-600 hover:bg-amber-500"
-                  : "bg-amber-300 hover:bg-amber-400",
+                  ? "bg-amber-600 hover:bg-amber-500 text-white"
+                  : "bg-amber-500 hover:bg-amber-600 text-white",
+                isSubmitting && "opacity-70 cursor-not-allowed",
               )}
               disabled={isSubmitting}
             >
               {isSubmitting ? (
                 <>
-                  <Loader2 className="h-3 w-3 mr-1 animate-spin" />
-                  登録中...
+                  <span className="mr-2">送信中...</span>
+                  <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                 </>
               ) : (
                 "登録する"
