@@ -149,7 +149,6 @@ export default function AddTaskPage() {
 
       // 成功レスポンスの処理
       const responseData = await response.json();
-      console.log("Task created successfully:", responseData);
 
       // 画像アップロードの処理（もし画像があれば）
       if (formData.iconImage && responseData.WorkID) {

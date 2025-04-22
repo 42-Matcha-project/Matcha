@@ -154,17 +154,6 @@ export function SubjectRegistrationForm({
         IconImageURL: iconDataUrl || "",
       };
 
-      // デバッグ用にコンソールログを追加
-      console.log("API Request:", {
-        url: `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: requestData,
-      });
-
       // APIリクエストの送信
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
@@ -179,9 +168,7 @@ export function SubjectRegistrationForm({
       );
 
       // レスポンスのデバッグ
-      console.log("API Response Status:", response.status);
       const responseData = await response.json();
-      console.log("API Response Data:", responseData);
 
       if (!response.ok) {
         // エラーメッセージを詳細に設定
