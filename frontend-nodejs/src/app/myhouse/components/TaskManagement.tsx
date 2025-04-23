@@ -720,18 +720,7 @@ export function TaskManagement({
             </div>
           </div>
         ) : (
-          <Button
-            onClick={() => setIsAddingTask(true)}
-            className={cn(
-              "w-full py-3 text-base flex items-center justify-center",
-              isDarkMode
-                ? "bg-amber-700 hover:bg-amber-600 dark:text-amber-50"
-                : "bg-amber-500 hover:bg-amber-400 text-white",
-            )}
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            新しいタスクを追加
-          </Button>
+          <></>
         )}
 
         {/* タスク統計パネル */}
