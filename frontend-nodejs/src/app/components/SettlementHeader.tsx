@@ -70,11 +70,42 @@ export default function SettlementHeader({
         }
 
         const data = await response.json();
-        if (data.User && data.User.DisplayName) {
+
+        // データの構造を確認し、適切なフィールドからDisplayNameを取得
+        if (data.Me && data.Me.DisplayName) {
+          setDisplayName(data.Me.DisplayName);
+        } else if (data.User && data.User.DisplayName) {
           setDisplayName(data.User.DisplayName);
+        } else if (data.User && data.User.displayName) {
+          setDisplayName(data.User.displayName);
+        } else if (data.user && data.user.DisplayName) {
+          setDisplayName(data.user.DisplayName);
+        } else if (data.user && data.user.displayName) {
+          setDisplayName(data.user.displayName);
+        } else if (data.DisplayName) {
+          setDisplayName(data.DisplayName);
+        } else if (data.displayName) {
+          setDisplayName(data.displayName);
         }
-        if (data.User && data.User.IconImageURL) {
+
+        // 画像URLの取得も同様に修正
+        if (data.Me && data.Me.IconImageURL) {
+          setProfileImage(data.Me.IconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.User && data.User.IconImageURL) {
           setProfileImage(data.User.IconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.user && data.user.IconImageURL) {
+          setProfileImage(data.user.IconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.user && data.user.iconImageURL) {
+          setProfileImage(data.user.iconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.IconImageURL) {
+          setProfileImage(data.IconImageURL);
+          setImageKey((prev) => prev + 1);
+        } else if (data.iconImageURL) {
+          setProfileImage(data.iconImageURL);
           setImageKey((prev) => prev + 1);
         }
       } catch (error) {
@@ -167,27 +198,25 @@ export default function SettlementHeader({
         <div className="relative">
           <motion.button
             className="relative bg-gradient-to-br from-amber-500 to-amber-600 p-2 rounded-full shadow-md flex items-center justify-center group"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onMouseEnter={() => setShowStoreTooltip(true)}
             onMouseLeave={() => setShowStoreTooltip(false)}
             onClick={goToStore}
           >
-            <ShoppingBag className="h-5 w-5 text-white" />
-            {/* 光沢エフェクト */}
-            <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
+            <ShoppingBag className="h-6 w-6 text-white" />
           </motion.button>
 
           <AnimatePresence>
             {showStoreTooltip && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                className="absolute right-0 top-full mt-2 bg-amber-100 text-amber-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm"
+                className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-amber-900 text-amber-50 px-3 py-1 rounded text-sm shadow-lg"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
               >
-                ストアで建物を購入
-                <div className="absolute right-3 -top-1 w-2 h-2 bg-amber-100 transform rotate-45"></div>
+                ストア
               </motion.div>
             )}
           </AnimatePresence>
@@ -196,79 +225,68 @@ export default function SettlementHeader({
         {/* プレゼントボタン */}
         <div className="relative">
           <motion.button
-            className="relative bg-gradient-to-br from-red-400 to-red-500 p-2 rounded-full shadow-md flex items-center justify-center group"
-            whileHover={{
-              scale: 1.1,
-              rotate: [0, -5, 5, -5, 0],
-              transition: { rotate: { repeat: 0, duration: 0.5 } },
-            }}
-            whileTap={{ scale: 0.9 }}
+            className="relative bg-gradient-to-br from-amber-500 to-amber-600 p-2 rounded-full shadow-md flex items-center justify-center"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
             onMouseEnter={() => setShowGiftTooltip(true)}
             onMouseLeave={() => setShowGiftTooltip(false)}
             onClick={goToGifts}
           >
-            <Gift className="h-5 w-5 text-white" />
-            {/* 光沢エフェクト */}
-            <span className="absolute inset-0 rounded-full bg-gradient-to-tr from-white/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            {/* キラキラエフェクト */}
-            <span className="absolute -top-1 -right-0 w-2.5 h-2.5 rounded-full bg-yellow-300 animate-ping"></span>
+            <Gift className="h-6 w-6 text-white" />
           </motion.button>
 
           <AnimatePresence>
             {showGiftTooltip && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                className="absolute right-0 top-full mt-2 bg-red-100 text-red-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm"
+                className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-amber-900 text-amber-50 px-3 py-1 rounded text-sm shadow-lg"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
               >
-                プレゼントを受け取る
-                <div className="absolute right-3 -top-1 w-2 h-2 bg-red-100 transform rotate-45"></div>
+                ギフト
               </motion.div>
             )}
           </AnimatePresence>
         </div>
 
-        {/* プロフィールボタン - 改良版 */}
+        {/* プロフィールボタン */}
         <div className="relative">
           <motion.button
-            className="flex items-center gap-2 px-4 py-2 bg-gradient-to-br from-amber-500 to-amber-700 rounded-lg shadow-md hover:shadow-lg border border-amber-400 group"
+            className="relative overflow-hidden bg-gradient-to-br from-amber-500 to-amber-600 p-0.5 rounded-full shadow-md flex items-center justify-center"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={navigateToProfile}
             onMouseEnter={() => setShowProfileTooltip(true)}
             onMouseLeave={() => setShowProfileTooltip(false)}
-            aria-label="プロフィールページへ"
+            onClick={navigateToProfile}
           >
-            <div className="relative flex-shrink-0 w-8 h-8 bg-amber-300 rounded-full flex items-center justify-center overflow-hidden">
-              {profileImage ? (
+            {profileImage ? (
+              <div className="w-10 h-10 rounded-full overflow-hidden">
                 <Image
-                  src={profileImage}
-                  alt="ユーザーアイコン"
-                  fill
-                  className="object-cover"
-                  key={imageKey}
+                  src={`${profileImage}?key=${imageKey}`}
+                  alt={displayName}
+                  width={40}
+                  height={40}
+                  className="object-cover w-full h-full"
+                  priority={true}
+                  fetchPriority="high"
                 />
-              ) : (
-                <UserCircle className="h-7 w-7 text-amber-800" />
-              )}
-              {/* キラキラエフェクト */}
-              <span className="absolute inset-0 bg-gradient-to-tr from-amber-200/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-            </div>
-            <span className="text-white font-medium">{displayName}</span>
-            <span className="absolute -top-1 -right-1 w-3 h-3 bg-green-500 rounded-full border-2 border-amber-800"></span>
+              </div>
+            ) : (
+              <UserCircle className="h-10 w-10 text-white" />
+            )}
           </motion.button>
 
           <AnimatePresence>
             {showProfileTooltip && (
               <motion.div
-                initial={{ opacity: 0, y: 10, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 5, scale: 0.9 }}
-                className="absolute right-0 top-full mt-2 bg-amber-50 text-amber-900 px-3 py-1.5 rounded shadow-lg z-10 whitespace-nowrap font-medium text-sm border border-amber-200"
+                className="absolute -bottom-10 right-0 bg-amber-900 text-amber-50 px-3 py-1 rounded text-sm shadow-lg whitespace-nowrap"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
               >
-                プロフィールを表示・編集
-                <div className="absolute right-3 -top-1 w-2 h-2 bg-amber-50 transform rotate-45 border-t border-l border-amber-200"></div>
+                {displayName}
               </motion.div>
             )}
           </AnimatePresence>

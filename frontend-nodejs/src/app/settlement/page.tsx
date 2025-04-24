@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Building, UserStats } from "../../types/settlement";
 import { useRouter } from "next/navigation";
@@ -43,77 +43,112 @@ export default function SettlementPage() {
   } = useAnimationState(isMounted);
 
   // 認証コンテキストを使用
-  const { token, isAuthenticated, checkAuth } = useAuth();
+  const { token, isAuthenticated, isLoading: authLoading } = useAuth();
+  const router = useRouter();
 
   // ユーザー情報の状態
   const [userStats, setUserStats] = useState<UserStats>(initialUserStats);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 初期ロード時に認証状態を確認
-  useEffect(() => {
-    const verifyAuth = async () => {
-      await checkAuth();
-    };
-    verifyAuth();
-  }, [checkAuth]);
+  // ユーザーの統計情報を取得する関数
+  const fetchUserStats = useCallback(async () => {
+    if (!token) return;
 
-  // APIからユーザー情報を取得
-  useEffect(() => {
-    const fetchUserData = async () => {
-      // 認証されていない場合は何もしない
-      if (!isAuthenticated || !token) {
-        return;
+    try {
+      // プロフィールAPIからユーザーデータを取得
+      // AbortControllerでタイムアウトを設定
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 10000); // 10秒タイムアウト
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          signal: controller.signal,
+        },
+      );
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        if (response.status === 401 || response.status === 403) {
+          // 認証エラーならログインページへ
+          router.push("/login");
+          return;
+        }
+        throw new Error(`APIエラー: ${response.status}`);
       }
 
+      // JSONレスポンスを取得
+      const data = await response.json();
+
+      // データの存在確認とフォーマット検証を柔軟に行う
+      const userData = data.User || data.user || data;
+
+      if (
+        !userData ||
+        (typeof userData === "object" && Object.keys(userData).length === 0)
+      ) {
+        throw new Error("ユーザー情報が見つかりません");
+      }
+
+      // APIから取得したデータでユーザー情報を更新（プロパティ名のバリエーションに対応）
+      setUserStats({
+        level: userData.Level || userData.level || 1,
+        dayStreak: userData.DayStreak || userData.dayStreak || 0,
+        totalStudyHours:
+          userData.TotalStudyHours || userData.totalStudyHours || 0,
+        username: userData.Username || userData.username || "開拓者",
+        coins: userData.CoinCount || userData.coinCount || userData.coins || 0,
+      });
+    } catch (error) {
+      setError(
+        error instanceof Error
+          ? error.message
+          : "ユーザーデータ取得に失敗しました",
+      );
+
+      // 深刻なエラーの場合はログインページへリダイレクト
+      setTimeout(() => {
+        router.push("/login");
+      }, 3000); // 3秒後にリダイレクト（エラーメッセージを見せるため）
+    }
+  }, [token, router]);
+
+  // 初期ロード時に認証状態を確認し、ユーザーデータを取得
+  useEffect(() => {
+    const initializeUserData = async () => {
       setIsLoading(true);
-      setError(null);
-
       try {
-        // プロフィールAPIからユーザーデータを取得
-        const response = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        if (!response.ok) {
-          throw new Error(`APIエラー: ${response.status}`);
+        // 認証ロード中は何もしない
+        if (authLoading) {
+          return;
         }
 
-        const data = await response.json();
-
-        if (!data.User) {
-          throw new Error("ユーザー情報が見つかりません");
+        // 認証されていない場合のみリダイレクト
+        if (!isAuthenticated) {
+          setError("認証情報がありません。ログインしてください。");
+          router.push("/login");
+          return;
         }
 
-        // APIから取得したデータでユーザー情報を更新
-        setUserStats({
-          level: data.User.Level || 1,
-          dayStreak: data.User.DayStreak || 0,
-          totalStudyHours: data.User.TotalStudyHours || 0,
-          username: data.User.Username || "開拓者",
-          coins: data.User.CoinCount || 0,
-        });
-      } catch (error) {
-        console.error("ユーザーデータ取得エラー:", error);
-        setError(
-          error instanceof Error ? error.message : "データ取得に失敗しました",
-        );
-
-        // エラー時はデフォルトデータを使用（既存の初期値を保持）
-        console.log("初期ユーザーデータを使用します");
+        // 認証済みならユーザーデータを取得
+        await fetchUserStats();
+      } catch (err) {
+        console.error("認証またはデータ取得中にエラー:", err);
+        setError("認証またはデータ取得中にエラーが発生しました");
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchUserData();
-  }, [isAuthenticated, token]);
+    initializeUserData();
+  }, [fetchUserStats, router, isAuthenticated, authLoading]);
 
   // 初期化処理: 建物の状態を初期化
   useEffect(() => {
@@ -151,8 +186,6 @@ export default function SettlementPage() {
   // 雲のデータを使用
   const clouds = cloudEffects;
 
-  const router = useRouter();
-
   // 実際の購入処理（UI表示とメッセージ）
   const handlePurchase = (building: Building) => {
     const success = purchaseBuilding(building);
@@ -167,14 +200,6 @@ export default function SettlementPage() {
       alert("コインが足りません！勉強を続けてコインを集めましょう。");
     }
   };
-
-  // ユーザーがログインしていない場合の処理
-  useEffect(() => {
-    if (!isAuthenticated && !isLoading) {
-      // ログインページへリダイレクト
-      router.push("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
 
   return (
     <div
@@ -255,7 +280,20 @@ export default function SettlementPage() {
         >
           {/* 建物配置エリア */}
           <div className="relative h-[320vh] w-full z-10 mx-auto rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner pb-40">
-            {managedBuildings.map((building) => (
+            {/* LCPが7.58秒と遅いので、最初に表示される建物だけ優先レンダリングし、残りは遅延ロード */}
+            {managedBuildings.slice(0, 2).map((building) => (
+              <BuildingCard
+                key={building.id}
+                building={building}
+                isSelected={selectedBuilding === building.id}
+                isLoaded={isLoaded}
+                isMounted={isMounted}
+                shouldShowAnimation={shouldShowAnimation}
+                onClick={handleBuildingClick}
+                priority={true} // 優先的にレンダリング
+              />
+            ))}
+            {managedBuildings.slice(2).map((building) => (
               <BuildingCard
                 key={building.id}
                 building={building}

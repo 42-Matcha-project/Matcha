@@ -13,6 +13,7 @@ interface BuildingCardProps {
   isMounted: boolean;
   shouldShowAnimation: boolean;
   onClick: (buildingId: string, e: React.MouseEvent) => void;
+  priority?: boolean;
 }
 
 export default function BuildingCard({
@@ -22,6 +23,7 @@ export default function BuildingCard({
   isMounted,
   shouldShowAnimation,
   onClick,
+  priority = false,
 }: BuildingCardProps) {
   const scale = isSelected ? 1.25 : 1;
 
@@ -117,9 +119,7 @@ export default function BuildingCard({
             )}
             quality={95}
             priority={
-              isLoaded &&
-              isMounted &&
-              (building.id === "house" || building.id === "cafe")
+              priority || building.id === "house" || building.id === "cafe"
             }
           />
 

@@ -102,7 +102,10 @@ export default function ProfilePage() {
       }
 
       const data = await response.json();
-      setTasks(data.Works || []);
+
+      // データの存在確認とフォーマット検証を柔軟に行う
+      const worksData = data.Works || data.works || [];
+      setTasks(worksData);
     } catch (error) {
       console.error("タスク取得エラー:", error);
       setTasksError(
@@ -311,11 +314,18 @@ export default function ProfilePage() {
         }
 
         const data = await response.json();
-        if (!data.User) {
+
+        // データの存在確認とフォーマット検証を柔軟に行う
+        const userData = data.User || data.user || data;
+
+        if (
+          !userData ||
+          (typeof userData === "object" && Object.keys(userData).length === 0)
+        ) {
           throw new Error("プロフィールデータが見つかりません");
         }
 
-        setProfile(data.User);
+        setProfile(userData);
         setImageKey((prev) => prev + 1);
       } catch (error) {
         console.error("プロフィール取得エラー:", error);

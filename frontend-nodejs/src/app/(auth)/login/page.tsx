@@ -112,7 +112,6 @@ const Login = () => {
       const emailParam = params.get("email");
 
       if (emailParam) {
-        console.log("URLパラメータからメールアドレスを取得:", emailParam);
         setUsernameOrEmail(emailParam);
       }
     }
@@ -195,7 +194,6 @@ const Login = () => {
 
           // 空のレスポンスチェック
           if (!responseText.trim()) {
-            console.error("空のレスポンスを受信しました");
             if (!response.ok) {
               throw new Error("ログインに失敗しました");
             }
@@ -207,12 +205,10 @@ const Login = () => {
 
           // エラーレスポンスの場合
           if (!response.ok) {
-            console.error("詳細エラー情報:", data);
             throw new Error("ログインに失敗しました");
           }
 
           // 成功レスポンスの処理
-          console.log("Login successful:", data);
           const token = data.Token;
 
           if (!token) {
@@ -227,15 +223,12 @@ const Login = () => {
             // Next.jsのルーターを使用してリダイレクト
             router.push("/settlement");
           }, 100);
-        } catch (error) {
-          // JSONパースエラーまたはその他のエラー
-          console.error("Login error:", error);
+        } catch {
           throw new Error("ログインに失敗しました");
         } finally {
           setIsLoading(false);
         }
       } catch (error: unknown) {
-        console.log("Login error:", error);
         let errorMessage = "ログインに失敗しました";
         if (error instanceof Error) {
           errorMessage = error.message;
@@ -278,6 +271,7 @@ const Login = () => {
           width={300}
           height={300}
           className="object-contain"
+          priority
         />
       </div>
 
@@ -289,6 +283,7 @@ const Login = () => {
           width={300}
           height={300}
           className="object-contain"
+          priority
         />
       </div>
 
