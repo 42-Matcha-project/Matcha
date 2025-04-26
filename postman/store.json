@@ -289,7 +289,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"WorkID\": 1,\n    \"Minutes\": 1000\n}",
+          "raw": "{\n    \"WorkID\": 2,\n    \"Minutes\": 1000\n}",
           "options": {
             "raw": {
               "language": "json"
