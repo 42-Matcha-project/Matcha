@@ -13,7 +13,7 @@ import (
 
 type LogWorkInput struct {
 	WorkID  int       `json:"WorkID" binding:"required"`
-	Date    time.Time `json:"StartAt"`
+	Date    time.Time `json:"Date"`
 	Minutes int64     `json:"Minutes" binding:"required"`
 }
 
@@ -40,8 +40,9 @@ func logWork(logWorkInput LogWorkInput, user models.TUser) (*models.TWorkLog, er
 
 	if workLog == nil {
 		workLog = &models.TWorkLog{
+			UserID:  user.ID,
 			WorkID:  logWorkInput.WorkID,
-			Date:    logWorkInput.Date,
+			Date:    adjustedDate,
 			Minutes: logWorkInput.Minutes,
 		}
 		err = models.DB.Create(&workLog).Error

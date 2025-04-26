@@ -13,18 +13,18 @@ import (
 )
 
 func GetWorkLogByDate(date time.Time, user models.TUser) (*models.TWorkLog, error) {
-	var workLog *models.TWorkLog
-	err := models.DB.Where("date = ?", date).First(workLog).Error
+	var workLog models.TWorkLog
+	err := models.DB.Where("user_id = ? AND date = ?", user.ID, date).First(&workLog).Error
 	if errors.Is(err, gorm.ErrRecordNotFound) {
 		return nil, nil
 	}
-	return workLog, err
+	return &workLog, err
 }
 
 type WorkLogResponse struct {
 	WorkID   int       `json:"WorkID"`
 	WorkName string    `json:"WorkName"`
-	Date     time.Time `json:"StartAt"`
+	Date     time.Time `json:"Date"`
 	Minutes  int64     `json:"Minutes"`
 }
 
@@ -57,7 +57,7 @@ func getWorkLogs(user models.TUser) ([]WorkLogResponse, error) {
 	err = models.DB.
 		Preload("Work").
 		Where("user_id = ?", user.ID).
-		Where("date >= ? AND date <= ?", sevenDaysAgo, today.Add(-7*24*time.Hour)).
+		Where("date >= ? AND date <= ?", sevenDaysAgo, today).
 		Find(&workLogs).Error
 	if err != nil {
 		return nil, err
