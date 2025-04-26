@@ -74,5 +74,6 @@ func Register(reqContext *gin.Context) {
 		return
 	}
 
+	//err = characters.GetDefaultCharacter()
 	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.RegisterSuccess, applogs.ResponseOptions{}))
 }

@@ -36,6 +36,8 @@ type TUser struct {
 
 	FriendshipsSent     []TFriendship `gorm:"foreignKey:RequesterID;references:ID" json:"-"`
 	FriendshipsReceived []TFriendship `gorm:"foreignKey:ReceiverID;references:ID" json:"-"`
+
+	Characters []TCharacter `gorm:"many2many:t_user_characters" json:"-"`
 }
 
 func (TUser) TableName() string {

@@ -28,7 +28,6 @@ func setBuildingsInStore(setBuildingsInStoreInput SetBuildingsInStoreInput) erro
 			ExteriorImageURL:  inputBuilding.ExteriorImageURL,
 			InteriorImageURL:  inputBuilding.InteriorImageURL,
 			DefaultName:       inputBuilding.DefaultName,
-			CustomName:        "",
 			RequiredCoinCount: inputBuilding.RequiredCoinCount,
 			IsInStore:         utils.IsOnSale(inputBuilding.SaleStartTime, inputBuilding.SaleEndTime),
 			SaleStartTime:     utils.ConvertToNullTime(inputBuilding.SaleStartTime),

@@ -1,4 +1,4 @@
-package store
+package buildings
 
 import (
 	"github.com/gin-gonic/gin"

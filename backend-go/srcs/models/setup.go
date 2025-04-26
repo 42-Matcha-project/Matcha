@@ -43,9 +43,12 @@ func ConnectDataBase() {
 
 	DB.SetupJoinTable(&TUser{}, "Buildings", &TUserBuilding{})
 	DB.AutoMigrate(&TBuilding{})
+	DB.SetupJoinTable(&TUser{}, "Characters", &TUserCharacter{})
+	DB.AutoMigrate(&TCharacter{})
 	DB.AutoMigrate(&TWork{})
 	DB.AutoMigrate(&TWorkLog{})
 	DB.AutoMigrate(&TFriendship{})
+	DB.AutoMigrate(&TCharacter{})
 
 	if os.Getenv("ENVIRONMENT") == "production" {
 		postgresDB, err := DB.DB()

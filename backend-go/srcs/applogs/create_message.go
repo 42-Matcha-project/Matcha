@@ -10,7 +10,6 @@ type BuildingInfo interface {
 	GetExteriorImageURL() string
 	GetInteriorImageURL() string
 	GetDefaultName() string
-	GetCustomName() string
 }
 
 type UserBuildingInfo interface {
@@ -94,7 +93,6 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			"ExteriorImageURL": options.Building.GetExteriorImageURL(),
 			"InteriorImageURL": options.Building.GetInteriorImageURL(),
 			"DefaultName":      options.Building.GetDefaultName(),
-			"CustomName":       options.Building.GetCustomName(),
 		}
 	}
 
@@ -106,7 +104,6 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 				"ExteriorImageURL": buildingInfo.GetExteriorImageURL(),
 				"InteriorImageURL": buildingInfo.GetInteriorImageURL(),
 				"DefaultName":      buildingInfo.GetDefaultName(),
-				"CustomName":       buildingInfo.GetCustomName(),
 			})
 		}
 		JSONResponse["Buildings"] = buildings
@@ -119,7 +116,6 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			"ExteriorImageURL": building.GetExteriorImageURL(),
 			"InteriorImageURL": building.GetInteriorImageURL(),
 			"DefaultName":      building.GetDefaultName(),
-			"CustomName":       building.GetCustomName(),
 			"PlaceIndex":       options.UserBuilding.GetPlaceIndex(),
 		}
 	}
@@ -133,7 +129,6 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 				"ExteriorImageURL": building.GetExteriorImageURL(),
 				"InteriorImageURL": building.GetInteriorImageURL(),
 				"DefaultName":      building.GetDefaultName(),
-				"CustomName":       building.GetCustomName(),
 				"PlaceIndex":       userBuilding.GetPlaceIndex(),
 			})
 		}
