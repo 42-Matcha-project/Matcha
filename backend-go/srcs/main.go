@@ -119,6 +119,7 @@ func main() {
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middlewares.AdminJWTValidationMiddleware())
 	adminGroup.POST("/buildings/set-in-store", admin.SetBuildingsInStoreHandler)
+	adminGroup.POST("/characters/set-in-store", admin.SetCharactersInStoreHandler)
 
 	backendPort := os.Getenv("BACKEND_PORT")
 	router.Run(":" + backendPort)

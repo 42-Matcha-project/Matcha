@@ -78,3 +78,48 @@ func SetBuildingsInStoreHandler(reqContext *gin.Context) {
 
 	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.SetBuildingsInStoreSuccess, applogs.ResponseOptions{}))
 }
+
+func setCharactersInStore(setCharactersInStoreInput SetCharacterInStoreInput) error {
+	for _, inputCharacter := range setCharactersInStoreInput.Characters {
+		character := &models.TCharacter{
+			ImageURL:          inputCharacter.ImageURL,
+			DefaultName:       inputCharacter.DefaultName,
+			RequiredCoinCount: inputCharacter.RequiredCoinCount,
+			IsInStore:         inputCharacter.IsInStore,
+		}
+		err := models.DB.Create(character).Error
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+type CharacterInfo struct {
+	ImageURL          string `json:"ImageUrl" binding:"required"`
+	DefaultName       string `json:"DefaultName" binding:"required"`
+	RequiredCoinCount int    `json:"RequiredCoinCount" binding:"required"`
+	IsInStore         bool   `json:"IsInStore" binding:"required"`
+}
+
+type SetCharacterInStoreInput struct {
+	Characters []CharacterInfo `json:"Characters"`
+}
+
+func SetCharactersInStoreHandler(reqContext *gin.Context) {
+	var setCharactersInStoreInput SetCharacterInStoreInput
+	if err := reqContext.ShouldBindJSON(&setCharactersInStoreInput); err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
+		reqContext.Error(err)
+		return
+	}
+
+	err := setCharactersInStore(setCharactersInStoreInput)
+	if err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateCharacter, applogs.ResponseOptions{}))
+		reqContext.Error(err)
+		return
+	}
+
+	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.SetCharactersInStoreSuccess, applogs.ResponseOptions{}))
+}
