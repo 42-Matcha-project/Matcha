@@ -19,7 +19,7 @@ type TCharacter struct {
 	RequiredCoinCount int    `gorm:"type:int;not null;column:required_coin_count"`
 	IsInStore         bool   `gorm:"type:bool;not null;column:is_in_store"`
 
-	Users []TUser `gorm:"many2many:t_user_character" json:"-"`
+	Users []TUser `gorm:"many2many:t_user_characters" json:"-"`
 }
 
 func (TCharacter) TableName() string { return "t_characters" }

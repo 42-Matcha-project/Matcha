@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"srcs/applogs"
 	"srcs/buildings"
+	"srcs/characters"
 	"srcs/models"
 
 	"github.com/gin-gonic/gin"
@@ -74,6 +75,6 @@ func Register(reqContext *gin.Context) {
 		return
 	}
 
-	//err = characters.GetDefaultCharacter()
+	err = characters.GetDefaultCharacter(user)
 	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.RegisterSuccess, applogs.ResponseOptions{}))
 }

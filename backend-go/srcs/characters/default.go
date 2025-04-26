@@ -7,9 +7,16 @@ import (
 	"srcs/models"
 )
 
-//func GetDefaultCharacter() {
-//
-//}
+func GetDefaultCharacter(user models.TUser) error {
+	userCharacter := &models.TUserCharacter{
+		UserID:      user.ID,
+		CharacterID: 1,
+		IsMain:      true,
+	}
+
+	err := models.DB.Create(userCharacter).Error
+	return err
+}
 
 type CharacterJSON struct {
 	ImageURL          string `json:"ImageURL"`
