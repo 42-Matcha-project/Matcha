@@ -493,6 +493,130 @@
         }
       },
       "response": []
+    },
+    {
+      "name": "作業削除 Copy (JSONデータが正しくない)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=28 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(28);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/delete",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "delete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業削除 Copy (成功)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=28 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(28);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"WorkID\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/delete",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "delete"
+          ]
+        }
+      },
+      "response": []
     }
   ]
 }
