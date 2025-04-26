@@ -30,6 +30,7 @@ const (
 	GetWorkLogsSuccess                 = 25
 	SetBuildingsInStoreSuccess         = 26
 	LogWorkSuccess                     = 27
+	DeleteWorkSuccess                  = 28
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -80,6 +81,7 @@ const (
 	FailedToCreateBuilding       = 414
 	FailedToCreateWorkLog        = 415
 	FailedToSaveUser             = 416
+	FailedToDeleteWork           = 417
 )
 
 var Message = map[int]string{}
@@ -114,6 +116,7 @@ func init() {
 	Message[GetWorkLogsSuccess] = "タスクログ一覧の取得に成功しました。"
 	Message[SetBuildingsInStoreSuccess] = "ストアに建物をセットしました。"
 	Message[LogWorkSuccess] = "作業を記録しました。"
+	Message[DeleteWorkSuccess] = "タスクの削除に成功しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -163,4 +166,5 @@ func init() {
 	Message[FailedToCreateBuilding] = "データベースに建物を保存できませんでした。"
 	Message[FailedToCreateWorkLog] = "データベースにタスクログを保存できませんでした。"
 	Message[FailedToSaveUser] = "データベースのユーザー情報を更新できませんでした。"
+	Message[FailedToDeleteWork] = "データベースからタスクの削除に失敗しました。"
 }
