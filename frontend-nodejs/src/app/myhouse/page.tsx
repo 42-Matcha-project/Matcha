@@ -26,6 +26,16 @@ import { Message } from "./types";
 import { CompletedTasks } from "./components/CompletedTasks";
 import { formatTime, formatDeadline } from "./lib/timeUtils";
 
+// APIから取得するタスクの型定義
+interface ApiTask {
+  ID: number;
+  WorkName: string;
+  IconImageURL: string;
+  notes?: string;
+  timeSpent?: number;
+  deadline?: string;
+}
+
 type TabType = "tasks" | "chat" | "stats" | "completed";
 
 interface TabInfo {
@@ -43,6 +53,11 @@ export default function MyHousePage() {
     dayStreak: 0,
     totalStudyHours: 0,
   });
+
+  // APIから取得したタスク一覧
+  const [apiTasks, setApiTasks] = useState<ApiTask[]>([]);
+  const [isLoadingApiTasks, setIsLoadingApiTasks] = useState(false);
+  const [totalTasksCount, setTotalTasksCount] = useState(0);
 
   const [activeTab, setActiveTab] = useState<TabType>("tasks");
   const [messages, setMessages] = useState<Message[]>([
@@ -68,6 +83,58 @@ export default function MyHousePage() {
   // 全タスク表示モーダルを開く
   const openTasksModal = () => {
     setActiveTab("tasks");
+  };
+
+  // APIからタスク情報を取得する関数
+  const fetchApiTasks = async () => {
+    setIsLoadingApiTasks(true);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      // タイムスタンプを追加してキャッシュを回避
+      const timestamp = Date.now();
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/get?t=${timestamp}`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          cache: "no-store",
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error(`タスクの取得に失敗しました (${response.status})`);
+      }
+
+      const data = await response.json();
+
+      // データの存在確認とフォーマット検証を柔軟に行う
+      const worksData = data.Works || data.works || [];
+      setApiTasks(worksData);
+      setTotalTasksCount(worksData.length);
+
+      // DBから取得したタスクをTask型に変換
+      const convertedTasks = worksData.map((apiTask: ApiTask) => ({
+        id: apiTask.ID,
+        title: apiTask.WorkName,
+        deadline: apiTask.deadline ? new Date(apiTask.deadline) : undefined,
+        subject: apiTask.WorkName, // 科目部分がないため、タスク名を科目として使用
+        completed: false,
+        timeSpent: apiTask.timeSpent || 0,
+        iconImageURL: apiTask.IconImageURL || "",
+      }));
+
+      // ローカルのタスクに反映
+      setTasks(convertedTasks);
+    } catch (error) {
+      console.error("APIタスク取得エラー:", error);
+    } finally {
+      setIsLoadingApiTasks(false);
+    }
   };
 
   // ユーザー統計情報を取得
@@ -108,33 +175,7 @@ export default function MyHousePage() {
 
     if (isAuthenticated) {
       fetchUserStats();
-
-      // 保存されたタスクをロード
-      const loadSavedTasks = () => {
-        const savedTasks = localStorage.getItem("tasks");
-        if (savedTasks) {
-          try {
-            const parsedTasks = JSON.parse(savedTasks);
-            // 日付文字列をDate型に変換
-            const tasksWithProperDates = parsedTasks.map(
-              (task: {
-                id: number;
-                title: string;
-                deadline?: string;
-                subject: string;
-                completed: boolean;
-                timeSpent: number;
-              }) => ({
-                ...task,
-                deadline: task.deadline ? new Date(task.deadline) : undefined,
-              }),
-            );
-            setTasks(tasksWithProperDates);
-          } catch (e) {
-            console.error("タスクの読み込みエラー:", e);
-          }
-        }
-      };
+      fetchApiTasks(); // APIからタスクデータを取得
 
       // チャットメッセージをロード
       const loadSavedMessages = () => {
@@ -151,10 +192,16 @@ export default function MyHousePage() {
         }
       };
 
-      loadSavedTasks();
       loadSavedMessages();
     }
   }, [isAuthenticated, authLoading]);
+
+  // タブが変更されたときに再取得
+  useEffect(() => {
+    if (activeTab === "tasks" || activeTab === "stats") {
+      fetchApiTasks();
+    }
+  }, [activeTab]);
 
   // メッセージが変更されたらローカルストレージに保存
   useEffect(() => {
@@ -192,62 +239,39 @@ export default function MyHousePage() {
 
     // タスク状態を更新
     setTasks(updatedTasks);
-
-    // ローカルストレージに保存
-    localStorage.setItem("tasks", JSON.stringify(updatedTasks));
-
-    console.log(`Task ${taskId} completion status updated`);
   };
 
   const handleTaskAdd = (task: Task) => {
     setTasks((prev) => [...prev, task]);
+    // タスクが追加されたらAPIタスクも再取得
+    setTimeout(() => {
+      fetchApiTasks();
+    }, 500);
   };
 
-  // 学習データサマリーコンポーネント
+  // 学習データサマリーコンポーネント - Card コンポーネントを使用する形に変更
   const StudyDataSummary = () => (
     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-      <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg p-4 text-white shadow-md">
-        <div className="flex items-center mb-2">
-          <Calendar className="h-5 w-5 mr-2" />
-          <span className="font-medium">連続学習</span>
-        </div>
-        <p className="text-2xl font-bold text-center">
-          {userStats.dayStreak}日
-        </p>
-      </div>
-
-      <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg p-4 text-white shadow-md">
-        <div className="flex items-center mb-2">
-          <Clock className="h-5 w-5 mr-2" />
-          <span className="font-medium">完了タスク</span>
-        </div>
-        <p className="text-2xl font-bold text-center">
-          {tasks.filter((task) => task.completed).length}件
-        </p>
-      </div>
-
-      <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg p-4 text-white shadow-md">
-        <div className="flex items-center mb-2">
-          <BookOpen className="h-5 w-5 mr-2" />
-          <span className="font-medium">総学習時間</span>
-        </div>
-        <p className="text-2xl font-bold text-center">
-          {userStats.totalStudyHours}時間
-        </p>
-      </div>
-
-      <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-lg p-4 text-white shadow-md">
-        <div className="flex items-center mb-2">
-          <Clock className="h-5 w-5 mr-2" />
-          <span className="font-medium">今日の学習</span>
-        </div>
-        <p className="text-2xl font-bold text-center">
-          {Math.floor(
-            tasks.reduce((acc, task) => acc + task.timeSpent, 0) / 60,
-          )}
-          分
-        </p>
-      </div>
+      <Card
+        icon={<Calendar />}
+        label="連続学習"
+        value={`${userStats.dayStreak}日`}
+      />
+      <Card
+        icon={<Clock />}
+        label="総タスク数"
+        value={isLoadingApiTasks ? "読込中..." : `${totalTasksCount}件`}
+      />
+      <Card
+        icon={<BookOpen />}
+        label="総学習時間"
+        value={`${userStats.totalStudyHours}時間`}
+      />
+      <Card
+        icon={<Clock />}
+        label="今日の学習"
+        value={`${Math.floor(tasks.reduce((acc, task) => acc + task.timeSpent, 0) / 60)}分`}
+      />
     </div>
   );
 
@@ -373,73 +397,6 @@ export default function MyHousePage() {
               </div>
             </div>
 
-            {/* タスク別学習時間分析 */}
-            {tasks.length > 0 && (
-              <div className="mb-8 p-4 bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-md">
-                <div className="flex items-center mb-3">
-                  <div className="w-8 h-8 bg-[#8cc750] rounded-full flex items-center justify-center border-2 border-[#7ab145] shadow-sm">
-                    <FileText className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="ml-2 text-lg font-bold text-[#7b6c5d]">
-                    タスク別学習時間
-                  </h3>
-                </div>
-                <div className="space-y-3">
-                  {tasks.slice(0, 5).map((task) => (
-                    <div
-                      key={task.id}
-                      className={`bg-white p-3 rounded-lg border-2 ${
-                        task.deadline && new Date(task.deadline) < new Date()
-                          ? "border-red-400 bg-red-50"
-                          : "border-[#e4cbac]"
-                      } relative`}
-                    >
-                      {/* タスク名・時間・期限バッジ・進捗バー */}
-                      <div className="flex justify-between mb-2">
-                        <div className="font-bold text-[#7b6c5d] truncate">
-                          {task.title}
-                        </div>
-                        <div className="text-[#9b8e7e]">
-                          {formatTime(task.timeSpent || 0)}
-                        </div>
-                      </div>
-                      {task.deadline && (
-                        <div className="flex items-center mb-2">
-                          <Calendar
-                            className={`h-5 w-5 mr-1 ${new Date(task.deadline) < new Date() ? "text-red-600" : ""}`}
-                          />
-                          <span
-                            className={`${new Date(task.deadline) < new Date() ? "text-red-600 font-bold" : ""}`}
-                          >
-                            {formatDeadline(task.deadline)}
-                          </span>
-                          {new Date(task.deadline) < new Date() && (
-                            <AlertTriangle className="h-5 w-5 ml-1 text-red-500" />
-                          )}
-                        </div>
-                      )}
-                      <div className="w-full bg-[#f8f3ea] rounded-full h-4">
-                        <div
-                          className="bg-gradient-to-r from-amber-400 to-amber-500 h-4 rounded-full"
-                          style={{
-                            width: `${Math.min(100, ((task.timeSpent || 0) / (tasks.reduce((sum, t) => sum + (t.timeSpent || 0), 0) || 1)) * 100)}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-                  ))}
-                  {tasks.length > 5 && (
-                    <div
-                      onClick={openTasksModal}
-                      className="text-center text-[#9b8e7e] text-sm cursor-pointer"
-                    >
-                      他{tasks.length - 5}件を表示…
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-
             {/* タブコンテンツ */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -490,12 +447,107 @@ export default function MyHousePage() {
                   </div>
                 )}
 
-                {activeTab === "stats" && <></>}
+                {activeTab === "stats" && (
+                  <>
+                    {/* 学習ステータス */}
+                    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700 mb-6">
+                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                        学習統計
+                      </h3>
+                      <StudyTimeChart tasks={tasks} isDarkMode={isDarkMode} />
+                    </div>
+
+                    {/* タスク別分析 */}
+                    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
+                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                        タスク別分析
+                      </h3>
+                      <div className="space-y-4">
+                        {tasks.length === 0 ? (
+                          <div className="text-center py-8">
+                            <AlertTriangle className="h-12 w-12 mx-auto text-amber-500 mb-2" />
+                            <p className="text-lg text-amber-800 dark:text-amber-200">
+                              タスクがありません
+                            </p>
+                            <p className="text-sm text-amber-600 dark:text-amber-300">
+                              タスクを追加すると、ここに分析データが表示されます
+                            </p>
+                          </div>
+                        ) : (
+                          tasks.map((task) => (
+                            <div
+                              key={task.id}
+                              className="p-4 border border-amber-200 dark:border-amber-700 rounded-lg"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <h4 className="font-bold">{task.title}</h4>
+                                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                                    {task.subject}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-medium">
+                                    {formatTime(task.timeSpent || 0)}
+                                  </div>
+                                  {task.deadline && (
+                                    <div
+                                      className={cn(
+                                        "text-xs",
+                                        new Date() > task.deadline
+                                          ? "text-red-500"
+                                          : "text-amber-600 dark:text-amber-300",
+                                      )}
+                                    >
+                                      {formatDeadline(task.deadline)}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="w-full bg-amber-100 dark:bg-amber-700/30 h-2 rounded-full overflow-hidden">
+                                <div
+                                  className="bg-amber-500 h-full rounded-full"
+                                  style={{
+                                    width: `${Math.min(
+                                      100,
+                                      (task.timeSpent || 0) / 60,
+                                    )}%`,
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    </div>
+                  </>
+                )}
               </motion.div>
             </AnimatePresence>
           </div>
         </div>
       </div>
     </main>
+  );
+}
+
+// Card コンポーネント - 最初のコードのカード実装を利用
+function Card({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 text-white flex items-center space-x-3">
+      <div>{icon}</div>
+      <div>
+        <div className="text-sm opacity-80">{label}</div>
+        <div className="text-xl font-bold">{value}</div>
+      </div>
+    </div>
   );
 }
