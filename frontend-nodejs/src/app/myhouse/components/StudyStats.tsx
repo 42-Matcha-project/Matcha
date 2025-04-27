@@ -492,9 +492,9 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
           : "bg-white border border-amber-200 text-amber-900",
       )}
     >
-      <h3 className="text-xl font-bold mb-4 border-b pb-2 border-amber-200">
+      {/* <h3 className="text-xl font-bold mb-4 border-b pb-2 border-amber-200">
         学習ステータス
-      </h3>
+      </h3> */}
 
       {/* タイマーと作業時間表示 */}
       <div

@@ -18,10 +18,13 @@ import {
   Plus,
   LucideIcon,
   CheckCircle,
+  FileText,
+  AlertTriangle,
 } from "lucide-react";
 import { ChatPanel } from "./components/ChatPanel";
 import { Message } from "./types";
 import { CompletedTasks } from "./components/CompletedTasks";
+import { formatTime, formatDeadline } from "./lib/timeUtils";
 
 type TabType = "tasks" | "chat" | "stats" | "completed";
 
@@ -61,6 +64,11 @@ export default function MyHousePage() {
     { id: "chat", label: "チャット", icon: MessageSquare },
     { id: "stats", label: "学習データ", icon: BarChart2 },
   ];
+
+  // 全タスク表示モーダルを開く
+  const openTasksModal = () => {
+    setActiveTab("tasks");
+  };
 
   // ユーザー統計情報を取得
   const fetchUserStats = async () => {
@@ -243,46 +251,6 @@ export default function MyHousePage() {
     </div>
   );
 
-  // 学習ステータスコンポーネント
-  const LearningStatus = () => (
-    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 mb-6 shadow-md border border-amber-200 dark:border-amber-700">
-      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
-        学習ステータス
-      </h3>
-
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="bg-amber-50 dark:bg-amber-900 p-3 rounded border border-amber-200 dark:border-amber-700">
-          <div className="text-xl text-gray-600 dark:text-gray-300 mb-1">
-            今回の学習時間
-          </div>
-          <div className="text-xl font-bold">0分0秒</div>
-        </div>
-        <div className="bg-amber-50 dark:bg-amber-900 p-3 rounded border border-amber-200 dark:border-amber-700">
-          <div className="text-xl text-gray-600 dark:text-gray-300 mb-1">
-            今日の累計
-          </div>
-          <div className="text-xl font-bold">0分0秒</div>
-        </div>
-      </div>
-    </div>
-  );
-
-  // 作業時間分析コンポーネント
-  const WorkTimeAnalysis = () => (
-    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 mb-6 shadow-md border border-amber-200 dark:border-amber-700">
-      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
-        作業時間分析
-      </h3>
-      {tasks.length > 0 ? (
-        <StudyTimeChart isDarkMode={isDarkMode} tasks={tasks} />
-      ) : (
-        <div className="text-center p-6 text-gray-500 dark:text-gray-400">
-          まだ記録された作業時間がありません。タスクに取り組んで記録を作成してください。
-        </div>
-      )}
-    </div>
-  );
-
   return (
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 dark:from-amber-900 dark:to-amber-800">
       <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between z-50 sticky top-0 left-0 right-0 font-sans">
@@ -368,6 +336,110 @@ export default function MyHousePage() {
             {/* 学習データサマリー - 常に表示 */}
             <StudyDataSummary />
 
+            {/* 学習ステータス */}
+            <div className="mb-8 p-4 bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-md">
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 bg-[#8cc750] rounded-full flex items-center justify-center border-2 border-[#7ab145] shadow-sm">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="ml-2 text-lg font-bold text-[#7b6c5d]">
+                  学習ステータス
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded-lg border border-[#e4cbac]">
+                  <div className="text-xs text-[#9b8e7e] mb-1">
+                    累計学習時間
+                  </div>
+                  <div className="text-xl font-bold text-[#7b6c5d]">
+                    {formatTime(
+                      tasks.reduce((sum, t) => sum + (t.timeSpent || 0), 0),
+                    )}
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-[#e4cbac]">
+                  <div className="text-xs text-[#9b8e7e] mb-1">
+                    今日の学習時間
+                  </div>
+                  <div className="text-xl font-bold text-[#7b6c5d]">
+                    {formatTime(
+                      tasks.reduce(
+                        (sum, task) => sum + (task.timeSpent || 0),
+                        0,
+                      ),
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* タスク別学習時間分析 */}
+            {tasks.length > 0 && (
+              <div className="mb-8 p-4 bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-md">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-[#8cc750] rounded-full flex items-center justify-center border-2 border-[#7ab145] shadow-sm">
+                    <FileText className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="ml-2 text-lg font-bold text-[#7b6c5d]">
+                    タスク別学習時間
+                  </h3>
+                </div>
+                <div className="space-y-3">
+                  {tasks.slice(0, 5).map((task) => (
+                    <div
+                      key={task.id}
+                      className={`bg-white p-3 rounded-lg border-2 ${
+                        task.deadline && new Date(task.deadline) < new Date()
+                          ? "border-red-400 bg-red-50"
+                          : "border-[#e4cbac]"
+                      } relative`}
+                    >
+                      {/* タスク名・時間・期限バッジ・進捗バー */}
+                      <div className="flex justify-between mb-2">
+                        <div className="font-bold text-[#7b6c5d] truncate">
+                          {task.title}
+                        </div>
+                        <div className="text-[#9b8e7e]">
+                          {formatTime(task.timeSpent || 0)}
+                        </div>
+                      </div>
+                      {task.deadline && (
+                        <div className="flex items-center mb-2">
+                          <Calendar
+                            className={`h-5 w-5 mr-1 ${new Date(task.deadline) < new Date() ? "text-red-600" : ""}`}
+                          />
+                          <span
+                            className={`${new Date(task.deadline) < new Date() ? "text-red-600 font-bold" : ""}`}
+                          >
+                            {formatDeadline(task.deadline)}
+                          </span>
+                          {new Date(task.deadline) < new Date() && (
+                            <AlertTriangle className="h-5 w-5 ml-1 text-red-500" />
+                          )}
+                        </div>
+                      )}
+                      <div className="w-full bg-[#f8f3ea] rounded-full h-4">
+                        <div
+                          className="bg-gradient-to-r from-amber-400 to-amber-500 h-4 rounded-full"
+                          style={{
+                            width: `${Math.min(100, ((task.timeSpent || 0) / (tasks.reduce((sum, t) => sum + (t.timeSpent || 0), 0) || 1)) * 100)}%`,
+                          }}
+                        ></div>
+                      </div>
+                    </div>
+                  ))}
+                  {tasks.length > 5 && (
+                    <div
+                      onClick={openTasksModal}
+                      className="text-center text-[#9b8e7e] text-sm cursor-pointer"
+                    >
+                      他{tasks.length - 5}件を表示…
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* タブコンテンツ */}
             <AnimatePresence mode="wait">
               <motion.div
@@ -379,8 +451,6 @@ export default function MyHousePage() {
               >
                 {activeTab === "tasks" && (
                   <>
-                    <LearningStatus />
-
                     <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
                       <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
                         タスク管理
@@ -420,12 +490,7 @@ export default function MyHousePage() {
                   </div>
                 )}
 
-                {activeTab === "stats" && (
-                  <>
-                    <LearningStatus />
-                    <WorkTimeAnalysis />
-                  </>
-                )}
+                {activeTab === "stats" && <></>}
               </motion.div>
             </AnimatePresence>
           </div>
