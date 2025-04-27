@@ -431,6 +431,7 @@ export default function MyHousePage() {
     }, 3000);
   };
 
+  // handleTaskAdd 関数を追加
   const handleTaskAdd = (task: Task) => {
     setTasks((prev) => [...prev, task]);
     // タスクが追加されたらAPIタスクも再取得
@@ -438,6 +439,34 @@ export default function MyHousePage() {
       fetchApiTasks();
     }, 500);
   };
+
+  // 完了済みタスクを維持するための処理を追加
+  useEffect(() => {
+    // ローカルストレージから完了済みタスクIDのリストを取得
+    const loadCompletedTasksFromStorage = () => {
+      const completedTaskIds = JSON.parse(
+        localStorage.getItem("completedTasks") || "[]",
+      );
+
+      // 既存のタスクに完了状態を適用
+      if (completedTaskIds.length > 0 && tasks.length > 0) {
+        const updatedTasks = tasks.map((task) => {
+          if (completedTaskIds.includes(task.id)) {
+            return {
+              ...task,
+              completed: true,
+              completedDate: task.completedDate || new Date(), // 完了日時がなければ現在時刻を設定
+            };
+          }
+          return task;
+        });
+
+        setTasks(updatedTasks);
+      }
+    };
+
+    loadCompletedTasksFromStorage();
+  }, [tasks.length]); // タスクリストが変わったときだけ実行
 
   // 学習データサマリーコンポーネント - Card コンポーネントを使用する形に変更
   const StudyDataSummary = () => {
