@@ -91,6 +91,7 @@ func main() {
 	studyRoomRoutes.Use(middlewares.JWTValidationMiddleware())
 	worksRoutes.POST("/add", works.AddWorkHandler)
 	worksRoutes.GET("/get", works.GetWorksHandler)
+	worksRoutes.DELETE("/delete", works.DeleteWorkHandler)
 	worksRoutes.POST("/log", works.LogWorkHandler)
 	worksRoutes.GET("/log", works.GetWorkLogsHandler)
 
