@@ -274,7 +274,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"ReceiverID\": 2\n}",
+          "raw": "{\n    \"ReceiverName\": \"test\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -340,7 +340,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"ReceiverID\": 5\n}",
+          "raw": "{\n    \"ReceiverName\": \"test2\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -403,7 +403,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"ReceiverID\": 5\n}",
+          "raw": "{\n    \"ReceiverName\": \"test2\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -469,7 +469,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"ReceiverID\": 2\n}",
+          "raw": "{\n    \"ReceiverName\": \"test\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -611,7 +611,7 @@
       "response": []
     },
     {
-      "name": "フレンド削除 Copy",
+      "name": "フレンド削除 Copy (成功)",
       "event": [
         {
           "listen": "test",
@@ -650,7 +650,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"FriendIDToDelete\": 3\n}",
+          "raw": "{\n    \"FriendNameToDelete\": \"test2\"\n}",
           "options": {
             "raw": {
               "language": "json"

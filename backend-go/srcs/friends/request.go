@@ -38,7 +38,7 @@ type SendFriendRequestInput struct {
 	/*
 		フレンド申請リクエストに対するハンドラー関数
 	*/
-	ReceiverID int `json:"ReceiverID" binding:"required"`
+	ReceiverName string `json:"ReceiverName" binding:"required"`
 }
 
 func SendFriendRequestHandler(reqContext *gin.Context) {
@@ -60,13 +60,25 @@ func SendFriendRequestHandler(reqContext *gin.Context) {
 		return
 	}
 
-	if user.ID == sendFriendRequestInput.ReceiverID {
+	if user.Username == sendFriendRequestInput.ReceiverName {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.CannotFriendRequestYourself, applogs.ResponseOptions{}))
 		return
 	}
 
+	var receiver models.TUser
+	err = models.DB.Where("username = ?", sendFriendRequestInput.ReceiverName).First(&receiver).Error
+	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.OtherUserNotFound, applogs.ResponseOptions{}))
+		reqContext.Error(err)
+		return
+	} else if err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetUser, applogs.ResponseOptions{}))
+		reqContext.Error(err)
+		return
+	}
+
 	var friendship models.TFriendship
-	err = models.DB.Where("requester_id = ? AND receiver_id = ?", user.ID, sendFriendRequestInput.ReceiverID).First(&friendship).Error
+	err = models.DB.Where("requester_id = ? AND receiver_id = ?", user.ID, receiver.ID).First(&friendship).Error
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
 		reqContext.Error(err)
@@ -77,13 +89,13 @@ func SendFriendRequestHandler(reqContext *gin.Context) {
 	}
 
 	var reverseFriendship models.TFriendship
-	err = models.DB.Where("requester_id = ? AND receiver_id = ?", sendFriendRequestInput.ReceiverID, user.ID).First(&reverseFriendship).Error
+	err = models.DB.Where("requester_id = ? AND receiver_id = ?", receiver.ID, user.ID).First(&reverseFriendship).Error
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
 		reqContext.Error(err)
 		return
 	} else if errors.Is(err, gorm.ErrRecordNotFound) {
-		returnFriendship, err := sendFriendRequest(user.ID, sendFriendRequestInput.ReceiverID)
+		returnFriendship, err := sendFriendRequest(user.ID, receiver.ID)
 		if err != nil {
 			reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateFriendship, applogs.ResponseOptions{}))
 			reqContext.Error(err)

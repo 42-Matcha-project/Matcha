@@ -46,6 +46,7 @@ const (
 	EmailForUserAlreadyExists      = 111
 	UserNameForUserAlreadyExists   = 112
 	NotEnoughCoins                 = 113
+	OtherUserNotFound              = 114
 	// 200~ フロントエンドレベル
 	InvalidJSONInput            = 200
 	UserDoesNotOwnBuilding      = 201
@@ -81,6 +82,7 @@ const (
 	FailedToCreateBuilding       = 414
 	FailedToCreateWorkLog        = 415
 	FailedToSaveUser             = 416
+	FailedToGetUser              = 417
 	FailedToDeleteWork           = 417
 )
 
@@ -132,6 +134,7 @@ func init() {
 	Message[EmailForUserAlreadyExists] = "入力されたメールアドレスはすでに使用されています。ログインを試みてください。"
 	Message[UserNameForUserAlreadyExists] = "入力されたユーザー名はすでに使用されています。"
 	Message[NotEnoughCoins] = "コインが不足しています。"
+	Message[OtherUserNotFound] = "ユーザーが見つかりませんでした。"
 	// 200~ フロントエンドレベル
 	Message[InvalidJSONInput] = "JSONデータの形式にエラーがあります。"
 	Message[UserDoesNotOwnBuilding] = "ユーザーは建物を所有していません。"
@@ -166,5 +169,6 @@ func init() {
 	Message[FailedToCreateBuilding] = "データベースに建物を保存できませんでした。"
 	Message[FailedToCreateWorkLog] = "データベースにタスクログを保存できませんでした。"
 	Message[FailedToSaveUser] = "データベースのユーザー情報を更新できませんでした。"
+	Message[FailedToGetUser] = "データベースからユーザーの取得に失敗しました。"
 	Message[FailedToDeleteWork] = "データベースからタスクの削除に失敗しました。"
 }
