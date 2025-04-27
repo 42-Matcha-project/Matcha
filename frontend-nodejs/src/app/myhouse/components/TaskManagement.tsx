@@ -310,22 +310,6 @@ export const TaskManagement = ({
                 </div>
                 <div>
                   <label
-                    htmlFor="subject"
-                    className="block text-sm font-medium mb-1"
-                  >
-                    科目・カテゴリー
-                  </label>
-                  <Input
-                    id="subject"
-                    value={newTask.subject}
-                    onChange={(e) =>
-                      setNewTask({ ...newTask, subject: e.target.value })
-                    }
-                    placeholder="例: 数学"
-                  />
-                </div>
-                <div>
-                  <label
                     htmlFor="deadline"
                     className="block text-sm font-medium mb-1"
                   >
