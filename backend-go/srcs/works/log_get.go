@@ -1,25 +1,37 @@
 package works
 
 import (
+	"errors"
 	"github.com/gin-gonic/gin"
+	"gorm.io/gorm"
 	"net/http"
+	"os"
 	"srcs/applogs"
 	"srcs/models"
 	"srcs/utils"
 	"time"
 )
 
+func GetWorkLogByDate(date time.Time, user models.TUser) (*models.TWorkLog, error) {
+	var workLog models.TWorkLog
+	err := models.DB.Where("user_id = ? AND date = ?", user.ID, date).First(&workLog).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, nil
+	}
+	return &workLog, err
+}
+
 type WorkLogResponse struct {
 	WorkID   int       `json:"WorkID"`
 	WorkName string    `json:"WorkName"`
-	StartAt  time.Time `json:"StartAt"`
+	Date     time.Time `json:"Date"`
 	Minutes  int64     `json:"Minutes"`
 }
 
-func (w WorkLogResponse) GetWorkID() int        { return w.WorkID }
-func (w WorkLogResponse) GetWorkName() string   { return w.WorkName }
-func (w WorkLogResponse) GetStartAt() time.Time { return w.StartAt }
-func (w WorkLogResponse) GetMinutes() int64     { return w.Minutes }
+func (w WorkLogResponse) GetWorkID() int      { return w.WorkID }
+func (w WorkLogResponse) GetWorkName() string { return w.WorkName }
+func (w WorkLogResponse) GetDate() time.Time  { return w.Date }
+func (w WorkLogResponse) GetMinutes() int64   { return w.Minutes }
 func ConvertToWorkLogInfos(workLogResponses []WorkLogResponse) []applogs.WorkLogInfo {
 	workLogInfos := make([]applogs.WorkLogInfo, len(workLogResponses))
 	for i, workLogResponse := range workLogResponses {
@@ -33,12 +45,19 @@ func getWorkLogs(user models.TUser) ([]WorkLogResponse, error) {
 		リクエストを送っているユーザーの作業ログ一覧をDBから取得する関数
 		StartAtが新しい順に10件まで取得する。
 	*/
+	timeZone := os.Getenv("TIME_ZONE")
+	location, err := time.LoadLocation(timeZone)
+	if err != nil {
+		return nil, err
+	}
+	today := time.Now().In(location)
+	sevenDaysAgo := today.AddDate(0, 0, -7)
+
 	var workLogs []models.TWorkLog
-	err := models.DB.
+	err = models.DB.
 		Preload("Work").
 		Where("user_id = ?", user.ID).
-		Order("start_at DESC").
-		Limit(10).
+		Where("date >= ? AND date <= ?", sevenDaysAgo, today).
 		Find(&workLogs).Error
 	if err != nil {
 		return nil, err
@@ -49,7 +68,7 @@ func getWorkLogs(user models.TUser) ([]WorkLogResponse, error) {
 		workLogsResponse = append(workLogsResponse, WorkLogResponse{
 			WorkID:   workLog.WorkID,
 			WorkName: workLog.Work.WorkName,
-			StartAt:  workLog.StartAt,
+			Date:     workLog.Date,
 			Minutes:  workLog.Minutes,
 		})
 	}

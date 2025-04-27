@@ -47,12 +47,14 @@ type WorkInfo interface {
 	GetID() int
 	GetWorkName() string
 	GetIconImageURL() string
+	GetColor() uint32
+	GetMemo() string
 }
 
 type WorkLogInfo interface {
 	GetWorkID() int
 	GetWorkName() string
-	GetStartAt() time.Time
+	GetDate() time.Time
 	GetMinutes() int64
 }
 
@@ -182,6 +184,8 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			"ID":           options.Work.GetID(),
 			"WorkName":     options.Work.GetWorkName(),
 			"IconImageURL": options.Work.GetIconImageURL(),
+			"Color":        options.Work.GetColor(),
+			"Memo":         options.Work.GetMemo(),
 		}
 	}
 
@@ -192,6 +196,8 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 				"ID":           work.GetID(),
 				"WorkName":     work.GetWorkName(),
 				"IconImageURL": work.GetIconImageURL(),
+				"Color":        work.GetColor(),
+				"Memo":         work.GetMemo(),
 			})
 		}
 		JSONResponse["Works"] = works
@@ -203,7 +209,7 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			workLogs = append(workLogs, gin.H{
 				"ID":       workLog.GetWorkID(),
 				"WorkName": workLog.GetWorkName(),
-				"StartAt":  workLog.GetStartAt(),
+				"Date":     workLog.GetDate(),
 				"Minutes":  workLog.GetMinutes(),
 			})
 		}

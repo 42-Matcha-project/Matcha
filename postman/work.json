@@ -174,7 +174,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"WorkName\": \"C言語\",\n    \"IconImageURL\": \"url\"\n}",
+          "raw": "{\n    \"WorkName\": \"C言語\",\n    \"IconImageURL\": \"url\",\n    \"Color\": 16711680,\n    \"Memo\": \"毎日取り組む\"\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -377,6 +377,68 @@
       "response": []
     },
     {
+      "name": "作業ログ記録 Copy (Date指定成功)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=27 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(27);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"WorkID\": 1,\n    \"Date\": \"2025-04-26T12:03:00Z\",\n    \"Minutes\": 10\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/log",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "log"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "作業ログ取得 Copy (成功)",
       "event": [
         {
@@ -427,6 +489,195 @@
           "path": [
             "works",
             "log"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業削除 Copy (JSONデータが正しくない)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが400であることを確認",
+              "pm.test(\"レスポンスが 400 であることを確認\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=200 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(200);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/delete",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "delete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業削除 Copy (成功)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=28 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(28);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"WorkID\": 1\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/delete",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "delete"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "作業追加 Copy (成功) Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=23 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(23);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"Work\")",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"WorkName\": \"C言語\",\n    \"IconImageURL\": \"url\",\n    \"Color\": 16711680,\n    \"Memo\": \"毎日取り組む\"\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/works/add",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "works",
+            "add"
           ]
         }
       },

@@ -11,6 +11,8 @@ import (
 type AddWorkInput struct {
 	WorkName     string `json:"WorkName" binding:"required"`
 	IconImageURL string `json:"IconImageURL"`
+	Color        uint32 `json:"Color" binding:"required"`
+	Memo         string `json:"Memo"`
 }
 
 func addWork(addWorkInput AddWorkInput, user models.TUser) (*models.TWork, error) {
@@ -21,6 +23,8 @@ func addWork(addWorkInput AddWorkInput, user models.TUser) (*models.TWork, error
 		UserID:       user.ID,
 		WorkName:     addWorkInput.WorkName,
 		IconImageURL: addWorkInput.IconImageURL,
+		Color:        addWorkInput.Color,
+		Memo:         addWorkInput.Memo,
 	}
 
 	err := models.DB.Create(work).Error
