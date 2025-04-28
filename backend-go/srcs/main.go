@@ -114,7 +114,8 @@ func main() {
 
 	storeRoutes := router.Group("/store")
 	storeRoutes.Use(middlewares.JWTValidationMiddleware())
-	storeRoutes.POST("/buy", buildings.BuyBuildingHandler)
+	storeRoutes.POST("/buy-building", buildings.BuyBuildingHandler)
+	storeRoutes.POST("/buy-character", characters.BuyCharacterHandler)
 
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middlewares.AdminJWTValidationMiddleware())

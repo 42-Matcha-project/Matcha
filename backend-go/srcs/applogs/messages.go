@@ -31,6 +31,7 @@ const (
 	SetBuildingsInStoreSuccess         = 26
 	LogWorkSuccess                     = 27
 	SetCharactersInStoreSuccess        = 28
+	BuyCharacterSuccess                = 29
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -54,6 +55,7 @@ const (
 	InvalidJWTToken             = 203
 	UnknownReportType           = 204
 	BuildingAlreadyOwned        = 205
+	CharacterAlreadyOwned       = 206
 	// 300~ バックエンドレベル
 	FailedToLoadTimeZone          = 301
 	FailedToSendEmail             = 302
@@ -84,6 +86,7 @@ const (
 	FailedToSaveUser             = 416
 	FailedToGetUser              = 417
 	FailedToCreateCharacter      = 418
+	FailedToGetCharacter         = 419
 )
 
 var Message = map[int]string{}
@@ -119,6 +122,7 @@ func init() {
 	Message[SetBuildingsInStoreSuccess] = "ストアに建物をセットしました。"
 	Message[LogWorkSuccess] = "作業を記録しました。"
 	Message[SetCharactersInStoreSuccess] = "ストアにキャラクターをセットしました。"
+	Message[BuyCharacterSuccess] = "キャラクターの購入が完了しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -142,6 +146,7 @@ func init() {
 	Message[InvalidJWTToken] = "JWTトークンが無効です。ログインし直してください。"
 	Message[UnknownReportType] = "報告タイプが認識できません。"
 	Message[BuildingAlreadyOwned] = "すでに所有している建物です。"
+	Message[CharacterAlreadyOwned] = "すでに所有しているキャラクターです。"
 	// 300~ バックエンドレベル
 	Message[FailedToLoadTimeZone] = "タイムゾーンの取得に失敗しました。"
 	Message[FailedToSendEmail] = "メールの送信に失敗しました。"
@@ -171,4 +176,5 @@ func init() {
 	Message[FailedToSaveUser] = "データベースのユーザー情報を更新できませんでした。"
 	Message[FailedToGetUser] = "データベースからユーザーの取得に失敗しました。"
 	Message[FailedToCreateCharacter] = "データベースにキャラクターを保存できませんでした。"
+	Message[FailedToGetCharacter] = "データベースからキャラクターの取得に失敗しました。"
 }
