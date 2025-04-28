@@ -126,6 +126,62 @@
       "response": []
     },
     {
+      "name": "ストアにあるキャラクター一覧 Copy",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=32 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(32);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "",
+              "    pm.expect(jsonData).to.have.property",
+              "        (\"Characters\")",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "url": {
+          "raw": "http://localhost:8080/characters/get-store",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "characters",
+            "get-store"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
       "name": "建物購入 Copy (JSONデータが正しくない)",
       "event": [
         {
@@ -173,7 +229,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/store/buy",
+          "raw": "http://localhost:8080/store/buy-building",
           "protocol": "http",
           "host": [
             "localhost"
@@ -181,7 +237,7 @@
           "port": "8080",
           "path": [
             "store",
-            "buy"
+            "buy-building"
           ]
         }
       },
@@ -235,7 +291,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/store/buy",
+          "raw": "http://localhost:8080/store/buy-building",
           "protocol": "http",
           "host": [
             "localhost"
@@ -243,7 +299,69 @@
           "port": "8080",
           "path": [
             "store",
-            "buy"
+            "buy-building"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "キャラクター購入 Copy (コイン不足)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが400であることを確認",
+              "pm.test(\"レスポンスが 400 であることを確認\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=113 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(113);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"CharacterID\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/store/buy-character",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "store",
+            "buy-character"
           ]
         }
       },
@@ -289,7 +407,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"WorkID\": 1,\n    \"Minutes\": 1000\n}",
+          "raw": "{\n    \"WorkID\": 2,\n    \"Minutes\": 1000\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -359,7 +477,7 @@
           }
         },
         "url": {
-          "raw": "http://localhost:8080/store/buy",
+          "raw": "http://localhost:8080/store/buy-building",
           "protocol": "http",
           "host": [
             "localhost"
@@ -367,7 +485,193 @@
           "port": "8080",
           "path": [
             "store",
-            "buy"
+            "buy-building"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "キャラクター購入 Copy (JSONデータが正しくない)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが400であることを確認",
+              "pm.test(\"レスポンスが 400 であることを確認\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=200 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(200);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/store/buy-character",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "store",
+            "buy-character"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "キャラクター購入 Copy (成功)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが200であることを確認",
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=29 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(29);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"CharacterID\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/store/buy-character",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "store",
+            "buy-character"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "キャラクター購入 Copy (すでに購入済み)",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "// ステータスコードが400であることを確認",
+              "pm.test(\"レスポンスが 400 であることを確認\", function () {",
+              "    pm.response.to.have.status(400);",
+              "});",
+              "",
+              "// レスポンスを JSON として取得",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=206 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(206);",
+              "",
+              "    pm.expect(jsonData).to.have.property(\"Message\");",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"CharacterID\": 2\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/store/buy-character",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "store",
+            "buy-character"
           ]
         }
       },
