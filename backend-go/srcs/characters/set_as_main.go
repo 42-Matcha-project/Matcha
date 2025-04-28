@@ -23,7 +23,7 @@ func setAsMainCharacter(user *models.TUser, characterID int) error {
 }
 
 type SetAsMainCharacterInput struct {
-	CharacterID int `json:"CharacterID"`
+	CharacterID int `json:"CharacterID" binding:"required"`
 }
 
 func SetAsMainCharacterHandler(reqContext *gin.Context) {
