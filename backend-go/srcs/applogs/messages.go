@@ -35,6 +35,7 @@ const (
 	SetAsMainCharacterSuccess          = 30
 	GetOwnCharactersSuccess            = 31
 	GetNonOwnCharactersInStoreSuccess  = 32
+	DeleteWorkSuccess                  = 33
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -92,6 +93,7 @@ const (
 	FailedToCreateCharacter      = 418
 	FailedToGetCharacter         = 419
 	FailedToUpdateUserCharacter  = 420
+	FailedToDeleteWork           = 421
 )
 
 var Message = map[int]string{}
@@ -131,6 +133,7 @@ func init() {
 	Message[SetAsMainCharacterSuccess] = "メインキャラクターに設定しました。"
 	Message[GetOwnCharactersSuccess] = "所有しているキャラクター一覧の取得に成功しました。"
 	Message[GetNonOwnCharactersInStoreSuccess] = "ストアにあるキャラクターのうち所有していないキャラクター一覧の取得に成功しました。"
+	Message[DeleteWorkSuccess] = "タスクの削除に成功しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"
@@ -187,4 +190,5 @@ func init() {
 	Message[FailedToCreateCharacter] = "データベースにキャラクターを保存できませんでした。"
 	Message[FailedToGetCharacter] = "データベースからキャラクターの取得に失敗しました。"
 	Message[FailedToUpdateUserCharacter] = "データベースへのユーザーキャラクターの更新に失敗しました。"
+	Message[FailedToDeleteWork] = "データベースからタスクの削除に失敗しました。"
 }
