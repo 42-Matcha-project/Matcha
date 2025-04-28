@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"srcs/applogs"
+	"srcs/characters"
 	"srcs/models"
 	"srcs/utils"
 )
@@ -18,7 +19,7 @@ var upgrader = websocket.Upgrader{
 	},
 }
 
-func joinStudyRoom(room *StudyRoom, user *models.TUser, conn *websocket.Conn) {
+func joinStudyRoom(room *StudyRoom, user *models.TUser, mainCharacter models.TCharacter, conn *websocket.Conn) {
 	if _, ok := room.Clients[user.ID]; ok {
 		if room.Clients[user.ID].IsHost {
 			fmt.Println("Host JOIN")
@@ -28,12 +29,14 @@ func joinStudyRoom(room *StudyRoom, user *models.TUser, conn *websocket.Conn) {
 		}
 	} else {
 		newClient := &User{
-			UserId:   user.ID,
-			Username: user.DisplayName,
-			IconURL:  user.IconImageURL,
-			Status:   "Online",
-			IsHost:   false,
-			Conn:     conn,
+			UserId:            user.ID,
+			Username:          user.DisplayName,
+			IconURL:           user.IconImageURL,
+			CharacterImageURL: mainCharacter.ImageURL,
+			CharacterName:     mainCharacter.DefaultName,
+			Status:            "Online",
+			IsHost:            false,
+			Conn:              conn,
 		}
 		room.Clients[user.ID] = newClient
 	}
@@ -70,9 +73,16 @@ func JoinStudyRoomHandler(reqContext *gin.Context) {
 	}
 	defer conn.Close()
 
+	mainCharacter, err := characters.GetMainCharacter(*user)
+	if err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetUser, applogs.ResponseOptions{}))
+		reqContext.Error(err)
+		return
+	}
+
 	// ユーザー参加の処理をする(Clientsに追加)
 	room.Mutex.Lock()
-	joinStudyRoom(room, user, conn)
+	joinStudyRoom(room, user, mainCharacter, conn)
 
 	// 自分以外のユーザーのクライアントリストを作成し、自分自身に送る。
 	err = BroadcastClientsList(room.Clients)

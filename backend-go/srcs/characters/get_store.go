@@ -8,7 +8,7 @@ import (
 	"srcs/utils"
 )
 
-func getCharatersInStore() ([]models.TCharacter, error) {
+func getCharactersInStore() ([]models.TCharacter, error) {
 	var storeCharacters []models.TCharacter
 	err := models.DB.Where("is_in_store = true").Find(&storeCharacters).Error
 
@@ -16,7 +16,7 @@ func getCharatersInStore() ([]models.TCharacter, error) {
 }
 
 func GetNonOwnedCharactersInStore(user models.TUser) ([]models.TCharacter, error) {
-	charactersInStore, err := getCharatersInStore()
+	charactersInStore, err := getCharactersInStore()
 	if err != nil {
 		return nil, err
 	}

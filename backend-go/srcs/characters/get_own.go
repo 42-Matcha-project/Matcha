@@ -8,6 +8,15 @@ import (
 	"srcs/utils"
 )
 
+func GetMainCharacter(user models.TUser) (models.TCharacter, error) {
+	var userCharacter models.TUserCharacter
+	err := models.DB.
+		Preload("Character").
+		Where("t_user_id = ? AND is_main = ?", user.ID, true).First(&userCharacter).Error
+
+	return userCharacter.Character, err
+}
+
 func GetOwnCharacters(user models.TUser) ([]models.TUserCharacter, error) {
 	var ownCharacters []models.TUserCharacter
 	err := models.DB.Preload("Character").
