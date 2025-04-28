@@ -117,6 +117,10 @@ func main() {
 	storeRoutes.POST("/buy-building", buildings.BuyBuildingHandler)
 	storeRoutes.POST("/buy-character", characters.BuyCharacterHandler)
 
+	charactersRoutes := router.Group("/characters")
+	charactersRoutes.Use(middlewares.JWTValidationMiddleware())
+	charactersRoutes.POST("set-as-main", characters.SetAsMainCharacterHandler)
+
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middlewares.AdminJWTValidationMiddleware())
 	adminGroup.POST("/buildings/set-in-store", admin.SetBuildingsInStoreHandler)
