@@ -33,6 +33,8 @@ const (
 	SetCharactersInStoreSuccess        = 28
 	BuyCharacterSuccess                = 29
 	SetAsMainCharacterSuccess          = 30
+	GetOwnCharactersSuccess            = 31
+	GetNonOwnCharactersInStoreSuccess  = 32
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -127,6 +129,8 @@ func init() {
 	Message[SetCharactersInStoreSuccess] = "ストアにキャラクターをセットしました。"
 	Message[BuyCharacterSuccess] = "キャラクターの購入が完了しました。"
 	Message[SetAsMainCharacterSuccess] = "メインキャラクターに設定しました。"
+	Message[GetOwnCharactersSuccess] = "所有しているキャラクター一覧の取得に成功しました。"
+	Message[GetNonOwnCharactersInStoreSuccess] = "ストアにあるキャラクターのうち所有していないキャラクター一覧の取得に成功しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
 	Message[OTPNotMatch] = "入力されたワンタイムパスワードは正しくありません。"

@@ -119,7 +119,9 @@ func main() {
 
 	charactersRoutes := router.Group("/characters")
 	charactersRoutes.Use(middlewares.JWTValidationMiddleware())
-	charactersRoutes.POST("set-as-main", characters.SetAsMainCharacterHandler)
+	charactersRoutes.POST("/set-as-main", characters.SetAsMainCharacterHandler)
+	charactersRoutes.GET("/get-own", characters.GetOwnCharactersHandler)
+	charactersRoutes.GET("/get-store", characters.GetNonOwnedCharactersInStoreHandler)
 
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middlewares.AdminJWTValidationMiddleware())

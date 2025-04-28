@@ -5,8 +5,6 @@ import (
 	"net/http"
 	"srcs/applogs"
 	"srcs/models"
-	"srcs/utils"
-	"time"
 )
 
 func setBuildingsInStore(setBuildingsInStoreInput SetBuildingsInStoreInput) error {
@@ -14,27 +12,15 @@ func setBuildingsInStore(setBuildingsInStoreInput SetBuildingsInStoreInput) erro
 		DBに建物を保存する関数
 	*/
 	for _, inputBuilding := range setBuildingsInStoreInput.Buildings {
-		var err error
-		inputBuilding.SaleStartTime, err = utils.ConvertToMyTimeZone(inputBuilding.SaleStartTime)
-		if err != nil {
-			return err
-		}
-		inputBuilding.SaleEndTime, err = utils.ConvertToMyTimeZone(inputBuilding.SaleEndTime)
-		if err != nil {
-			return err
-		}
-
 		building := &models.TBuilding{
 			ExteriorImageURL:  inputBuilding.ExteriorImageURL,
 			InteriorImageURL:  inputBuilding.InteriorImageURL,
 			DefaultName:       inputBuilding.DefaultName,
 			RequiredCoinCount: inputBuilding.RequiredCoinCount,
-			IsInStore:         utils.IsOnSale(inputBuilding.SaleStartTime, inputBuilding.SaleEndTime),
-			SaleStartTime:     utils.ConvertToNullTime(inputBuilding.SaleStartTime),
-			SaleEndTime:       utils.ConvertToNullTime(inputBuilding.SaleEndTime),
+			IsInStore:         inputBuilding.IsInStore,
 		}
 
-		err = models.DB.Create(building).Error
+		err := models.DB.Create(building).Error
 		if err != nil {
 			return err
 		}
@@ -46,12 +32,11 @@ type BuildingInfo struct {
 	/*
 		管理者がストアに建物をセットするリクエスト時に抽出するJSONデータの構造体
 	*/
-	ExteriorImageURL  string    `json:"ExteriorImageUrl" binding:"required"`
-	InteriorImageURL  string    `json:"InteriorImageUrl" binding:"required"`
-	DefaultName       string    `json:"DefaultName" binding:"required"`
-	RequiredCoinCount int       `json:"RequiredCoinCount" binding:"required"`
-	SaleStartTime     time.Time `json:"SaleStartTime"`
-	SaleEndTime       time.Time `json:"SaleEndTime"`
+	ExteriorImageURL  string `json:"ExteriorImageUrl" binding:"required"`
+	InteriorImageURL  string `json:"InteriorImageUrl" binding:"required"`
+	DefaultName       string `json:"DefaultName" binding:"required"`
+	RequiredCoinCount int    `json:"RequiredCoinCount" binding:"required"`
+	IsInStore         bool   `json:"IsInStore" binding:"required"`
 }
 
 type SetBuildingsInStoreInput struct {
