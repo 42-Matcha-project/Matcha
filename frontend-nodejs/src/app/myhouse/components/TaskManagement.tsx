@@ -37,8 +37,8 @@ export interface Task {
 interface TaskRequest {
   WorkName: string;
   IconImageURL?: string;
-  Color: number;
-  Memo: string;
+  Color: number; // uint32
+  Memo?: string;
 }
 
 interface TaskManagementProps {
@@ -102,8 +102,8 @@ export const TaskManagement = ({
       const taskRequest: TaskRequest = {
         WorkName: newTask.title,
         IconImageURL: "https://placehold.co/32",
-        Color: parseInt(newTask.color.replace("#", ""), 16),
-        Memo: newTask.memo,
+        Color: Number(parseInt(newTask.color.replace("#", ""), 16)), // 確実に数値型に
+        Memo: newTask.memo || "",
       };
 
       const response = await fetch(
