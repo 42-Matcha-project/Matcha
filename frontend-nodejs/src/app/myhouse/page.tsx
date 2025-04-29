@@ -23,7 +23,6 @@ import {
 } from "lucide-react";
 import { ChatPanel } from "./components/ChatPanel";
 import { Message } from "./types";
-import { CompletedTasks } from "./components/CompletedTasks";
 import { formatTime, formatDeadline } from "./lib/timeUtils";
 
 // APIから取得するタスクの型定義
@@ -54,11 +53,6 @@ export default function MyHousePage() {
     totalStudyHours: 0,
   });
 
-  // APIから取得したタスク一覧
-  const [apiTasks, setApiTasks] = useState<ApiTask[]>([]);
-  const [isLoadingApiTasks, setIsLoadingApiTasks] = useState(false);
-  const [totalTasksCount, setTotalTasksCount] = useState(0);
-
   const [activeTab, setActiveTab] = useState<TabType>("tasks");
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -80,14 +74,8 @@ export default function MyHousePage() {
     { id: "stats", label: "学習データ", icon: BarChart2 },
   ];
 
-  // 全タスク表示モーダルを開く
-  const openTasksModal = () => {
-    setActiveTab("tasks");
-  };
-
   // APIからタスク情報を取得する関数
   const fetchApiTasks = async () => {
-    setIsLoadingApiTasks(true);
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
@@ -114,10 +102,6 @@ export default function MyHousePage() {
 
       // データの存在確認とフォーマット検証を柔軟に行う
       const worksData = data.Works || data.works || [];
-      setApiTasks(worksData);
-
-      // 総タスク数（完了・未完了含む）を更新
-      setTotalTasksCount(worksData.length);
 
       // DBから取得したタスクをTask型に変換
       const convertedTasks = worksData.map((apiTask: ApiTask) => ({
@@ -158,8 +142,6 @@ export default function MyHousePage() {
       });
     } catch (error) {
       console.error("APIタスク取得エラー:", error);
-    } finally {
-      setIsLoadingApiTasks(false);
     }
   };
 
@@ -239,14 +221,6 @@ export default function MyHousePage() {
   // モーダル表示用の状態
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completedTaskId, setCompletedTaskId] = useState<number | null>(null);
-
-  // モーダル外をクリックしたときの処理
-  const handleModalOutsideClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    // クリックされた要素がモーダルの背景の場合のみモーダルを閉じる
-    if ((e.target as HTMLElement).classList.contains("modal-backdrop")) {
-      setShowCompletionModal(false);
-    }
-  };
 
   const handleTaskComplete = (taskId: number) => {
     // タスク完了時の処理
@@ -334,7 +308,7 @@ export default function MyHousePage() {
             // バックエンドのAPIリクエスト形式に合わせる
             // APIが大文字キーを期待しているためここでも大文字を使用
             const response = await fetch(
-              `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/log`,
+              `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
               {
                 method: "POST",
                 headers: {
@@ -484,11 +458,7 @@ export default function MyHousePage() {
         <Card
           icon={<Clock />}
           label="総タスク数"
-          value={
-            isLoadingApiTasks
-              ? "読込中..."
-              : `${completedTasksCount + activeTasksCount}件`
-          }
+          value={`${completedTasksCount + activeTasksCount}件`}
         />
         <Card
           icon={<BookOpen />}
@@ -536,10 +506,7 @@ export default function MyHousePage() {
 
       {/* タスク完了モーダル */}
       {showCompletionModal && completedTaskId && (
-        <div
-          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop"
-          onClick={handleModalOutsideClick}
-        >
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop">
           <div className="bg-white dark:bg-amber-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all">
             <div className="text-center">
               <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -558,11 +525,10 @@ export default function MyHousePage() {
               <button
                 onClick={() => {
                   setShowCompletionModal(false);
-                  setActiveTab("completed");
                 }}
                 className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
               >
-                完了したタスク一覧を見る
+                いい調子！
               </button>
             </div>
           </div>
@@ -677,52 +643,10 @@ export default function MyHousePage() {
                         タスク管理
                       </h3>
                       <TaskManagement
-                        isDarkMode={isDarkMode}
+                        tasks={tasks}
                         onTaskComplete={handleTaskComplete}
                         onTaskAdd={handleTaskAdd}
                       />
-
-                      {/* タスク一覧と完了ボタン */}
-                      <div className="mt-6">
-                        <h4 className="text-lg font-semibold mb-3">
-                          現在のタスク
-                        </h4>
-                        {tasks.filter((task) => !task.completed).length ===
-                        0 ? (
-                          <p className="text-amber-600 dark:text-amber-300 text-center py-4">
-                            タスクがありません。新しいタスクを追加してください。
-                          </p>
-                        ) : (
-                          <div className="space-y-3">
-                            {tasks
-                              .filter((task) => !task.completed)
-                              .map((task) => (
-                                <div
-                                  key={task.id}
-                                  className="flex items-center justify-between bg-amber-50 dark:bg-amber-800/50 p-4 rounded-lg border border-amber-200 dark:border-amber-700"
-                                >
-                                  <div>
-                                    <h5 className="font-medium">
-                                      {task.title}
-                                    </h5>
-                                    {task.deadline && (
-                                      <p className="text-sm text-amber-600 dark:text-amber-300">
-                                        期限: {formatDeadline(task.deadline)}
-                                      </p>
-                                    )}
-                                  </div>
-                                  <button
-                                    onClick={() => handleTaskComplete(task.id)}
-                                    className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
-                                  >
-                                    <CheckCircle className="h-5 w-5" />
-                                    <span>完了</span>
-                                  </button>
-                                </div>
-                              ))}
-                          </div>
-                        )}
-                      </div>
                     </div>
                   </>
                 )}
@@ -804,8 +728,6 @@ export default function MyHousePage() {
                         </>
                       )}
                     </div>
-
-                    {/* CompletedTasks コンポーネントは削除し、上記のコードで置き換え */}
                   </div>
                 )}
 
