@@ -1,12 +1,21 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Clock, PlusCircle, Trash2, ListFilter, Save } from "lucide-react";
+import {
+  Clock,
+  PlusCircle,
+  Trash2,
+  ListFilter,
+  Save,
+  AlertTriangle,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence, motion } from "framer-motion";
 import { formatTime, formatDeadline } from "../lib/timeUtils";
+// Next.jsのImageを使う場合は以下を有効化
+// import Image from "next/image";
 
 // タスクの型定義
 export interface Task {
@@ -86,6 +95,7 @@ export const TaskManagement = ({
       const token = localStorage.getItem("token");
       if (!token) {
         toast.error("ログインしていません");
+        window.location.href = "/login";
         return;
       }
 
@@ -107,6 +117,12 @@ export const TaskManagement = ({
           body: JSON.stringify(taskRequest),
         },
       );
+
+      if (response.status === 401 || response.status === 403) {
+        toast.error("認証エラーです。再ログインしてください。");
+        window.location.href = "/login";
+        return;
+      }
 
       if (!response.ok) {
         throw new Error(`タスクの追加に失敗しました (${response.status})`);
@@ -165,6 +181,7 @@ export const TaskManagement = ({
       const token = localStorage.getItem("token");
       if (!token) {
         toast.error("ログインしていません");
+        window.location.href = "/login";
         setShowDeleteModal(false);
         return;
       }
@@ -177,6 +194,11 @@ export const TaskManagement = ({
           },
         },
       );
+      if (response.status === 401 || response.status === 403) {
+        toast.error("認証エラーです。再ログインしてください。");
+        window.location.href = "/login";
+        return;
+      }
       if (!response.ok) {
         throw new Error(`タスクの削除に失敗しました (${response.status})`);
       }
@@ -443,11 +465,11 @@ const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-start">
           {task.iconImageURL && (
-            <Image
+            <img
               src={task.iconImageURL}
               alt=""
               className="w-6 h-6 mr-2 rounded-full"
-              onError={(e) => {
+              onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                 const target = e.target as HTMLImageElement;
                 target.src = "https://placehold.co/32";
               }}
@@ -458,24 +480,32 @@ const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
               {task.title}
             </h4>
             <div className="flex flex-wrap gap-2 mt-1">
-              {task.deadline && deadlineStatus && (
-                <span
-                  className={`text-xs px-2 py-0.5 rounded flex items-center ${
-                    deadlineStatus.status === "expired"
-                      ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100"
-                      : deadlineStatus.status === "today" ||
-                          deadlineStatus.status === "tomorrow"
-                        ? "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-100"
-                        : deadlineStatus.status === "soon"
-                          ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100"
+              <span
+                className={`text-xs px-2 py-0.5 rounded flex items-center ${
+                  !task.deadline
+                    ? "bg-gray-100 text-gray-500"
+                    : deadlineStatus?.status === "expired"
+                      ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 font-bold animate-pulse"
+                      : deadlineStatus?.status === "today" ||
+                          deadlineStatus?.status === "tomorrow"
+                        ? "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-100 font-semibold"
+                        : deadlineStatus?.status === "soon"
+                          ? "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-100 font-semibold"
                           : "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-100"
-                  }`}
-                >
-                  <Clock className="h-3 w-3 mr-1" />
-                  {formatDeadline(task.deadline)}
-                  <span className="ml-2">{deadlineStatus.message}</span>
-                </span>
-              )}
+                }`}
+              >
+                <Clock className="h-3 w-3 mr-1" />
+                {!task.deadline && <span>締切なし</span>}
+                {task.deadline && deadlineStatus && (
+                  <>
+                    {deadlineStatus.status === "expired" && (
+                      <AlertTriangle className="h-4 w-4 mr-1 text-red-500 animate-bounce" />
+                    )}
+                    {formatDeadline(task.deadline)}
+                    <span className="ml-2">{deadlineStatus.message}</span>
+                  </>
+                )}
+              </span>
               {task.timeSpent > 0 && (
                 <span className="text-xs bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-100 px-2 py-0.5 rounded">
                   {formatTime(task.timeSpent)}
