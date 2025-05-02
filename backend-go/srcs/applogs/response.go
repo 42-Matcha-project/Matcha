@@ -35,6 +35,4 @@ func RespondJSON(reqContext *gin.Context, httpStatus int, err error, responseCod
 		}
 		reqContext.Error(err)
 	}
-
-	reqContext.Abort()
 }
