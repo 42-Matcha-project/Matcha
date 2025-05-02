@@ -37,25 +37,22 @@ func AddWorkHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	var addWorkInput AddWorkInput
 	err = reqContext.ShouldBindJSON(&addWorkInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	work, err := addWork(addWorkInput, *user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateWork, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToCreateWork, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateWork, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.AddWorkSuccess, applogs.ResponseOptions{Work: work}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.AddWorkSuccess, applogs.CreateJSONResponseByResponseCode(applogs.AddWorkSuccess, applogs.ResponseOptions{Work: work}))
 }

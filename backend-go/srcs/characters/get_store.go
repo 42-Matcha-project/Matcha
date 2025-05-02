@@ -36,17 +36,15 @@ func GetNonOwnedCharactersInStore(user models.TUser) ([]models.TCharacter, error
 func GetNonOwnedCharactersInStoreHandler(reqContext *gin.Context) {
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	nonOwnedCharactersInStore, err := GetNonOwnedCharactersInStore(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetCharacter, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetCharacter, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetCharacter, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetNonOwnCharactersInStoreSuccess, applogs.ResponseOptions{Characters: models.ConvertToCharacterInfos(nonOwnedCharactersInStore)}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.GetNonOwnCharactersInStoreSuccess, applogs.CreateJSONResponseByResponseCode(applogs.GetNonOwnCharactersInStoreSuccess, applogs.ResponseOptions{Characters: models.ConvertToCharacterInfos(nonOwnedCharactersInStore)}))
 }

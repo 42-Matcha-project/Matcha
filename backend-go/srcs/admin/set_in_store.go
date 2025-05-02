@@ -49,19 +49,17 @@ func SetBuildingsInStoreHandler(reqContext *gin.Context) {
 	*/
 	var setBuildingsInStoreInput SetBuildingsInStoreInput
 	if err := reqContext.ShouldBindJSON(&setBuildingsInStoreInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	err := setBuildingsInStore(setBuildingsInStoreInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateBuilding, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToCreateBuilding, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateBuilding, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.SetBuildingsInStoreSuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.SetBuildingsInStoreSuccess, applogs.CreateJSONResponseByResponseCode(applogs.SetBuildingsInStoreSuccess, applogs.ResponseOptions{}))
 }
 
 func setCharactersInStore(setCharactersInStoreInput SetCharacterInStoreInput) error {
@@ -94,17 +92,15 @@ type SetCharacterInStoreInput struct {
 func SetCharactersInStoreHandler(reqContext *gin.Context) {
 	var setCharactersInStoreInput SetCharacterInStoreInput
 	if err := reqContext.ShouldBindJSON(&setCharactersInStoreInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	err := setCharactersInStore(setCharactersInStoreInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateCharacter, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToCreateCharacter, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateCharacter, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.SetCharactersInStoreSuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.SetCharactersInStoreSuccess, applogs.CreateJSONResponseByResponseCode(applogs.SetCharactersInStoreSuccess, applogs.ResponseOptions{}))
 }

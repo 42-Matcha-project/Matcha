@@ -79,39 +79,34 @@ func ForgotPasswordHandler(reqContext *gin.Context) {
 	*/
 	OTP, err := utils.GenerateRandomCode(6)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGenerateRand, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusInternalServerError, err, applogs.FailedToGenerateRand, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGenerateRand, applogs.ResponseOptions{}))
 		return
 	}
 
 	var forgotPasswordInput ForgotPasswordInput
 	if err = reqContext.ShouldBindJSON(&forgotPasswordInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	if err = mail.SendMail(forgotPasswordInput.Email, mail_contents.CreatePasswordForgotSubject(), mail_contents.CreatePasswordForgotMailText(OTP), mail_contents.CreatePasswordForgotMailHTML(OTP)); err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSendEmail, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusInternalServerError, err, applogs.FailedToSendEmail, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSendEmail, applogs.ResponseOptions{}))
 		return
 	}
 
 	if err = saveOTP(OTP, forgotPasswordInput.Email); err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSaveOTP, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusInternalServerError, err, applogs.FailedToSaveOTP, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSaveOTP, applogs.ResponseOptions{}))
 		return
 	}
 
 	if err = cleanupExpiredOTPs(); err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCleanUpExpiredOTPs, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusInternalServerError, err, applogs.FailedToCleanUpExpiredOTPs, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCleanUpExpiredOTPs, applogs.ResponseOptions{}))
 		return
 	}
 
 	if os.Getenv("ENVIRONMENT") == "development" {
-		reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{OTP: OTP}))
+		applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.HandleForgotPassword, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{OTP: OTP}))
 		return
 	}
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.HandleForgotPassword, applogs.CreateJSONResponseByResponseCode(applogs.HandleForgotPassword, applogs.ResponseOptions{}))
 }

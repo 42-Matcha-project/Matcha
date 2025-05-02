@@ -79,25 +79,22 @@ func BuildBuildingsHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	var buildBuildingsInput BuildBuildingsInput
 	err = reqContext.BindJSON(&buildBuildingsInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	err, responseCode := buildBuildings(*user, buildBuildingsInput.BuildingID, buildBuildingsInput.PlaceIndex)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, responseCode, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.BuildBuildingSuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.BuildBuildingSuccess, applogs.CreateJSONResponseByResponseCode(applogs.BuildBuildingSuccess, applogs.ResponseOptions{}))
 }

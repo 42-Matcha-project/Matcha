@@ -20,25 +20,22 @@ func deleteWork(workIDToDelete int, user models.TUser) error {
 func DeleteWorkHandler(reqContext *gin.Context) {
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	var deleteWorkInput DeleteWorkInput
 	err = reqContext.ShouldBindJSON(&deleteWorkInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	err = deleteWork(deleteWorkInput.WorkID, *user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToDeleteWork, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToDeleteWork, applogs.CreateJSONResponseByResponseCode(applogs.FailedToDeleteWork, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.DeleteWorkSuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.DeleteWorkSuccess, applogs.CreateJSONResponseByResponseCode(applogs.DeleteWorkSuccess, applogs.ResponseOptions{}))
 }

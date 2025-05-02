@@ -51,7 +51,7 @@ func JoinStudyRoomHandler(reqContext *gin.Context) {
 	roomCode := reqContext.Param("roomCode")
 	StudyRoomsMutex.Lock()
 	if _, isExist := StudyRooms[roomCode]; !isExist {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.RoomCodeNotFound, applogs.ResponseOptions{}))
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, nil, applogs.RoomCodeNotFound, applogs.CreateJSONResponseByResponseCode(applogs.RoomCodeNotFound, applogs.ResponseOptions{}))
 		StudyRoomsMutex.Unlock()
 		return
 	}
@@ -60,23 +60,20 @@ func JoinStudyRoomHandler(reqContext *gin.Context) {
 
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	conn, err := upgrader.Upgrade(reqContext.Writer, reqContext.Request, nil)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToUpgradeConnectionToWS, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusInternalServerError, err, applogs.FailedToUpgradeConnectionToWS, applogs.CreateJSONResponseByResponseCode(applogs.FailedToUpgradeConnectionToWS, applogs.ResponseOptions{}))
 		return
 	}
 	defer conn.Close()
 
 	mainCharacter, err := characters.GetMainCharacter(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetUser, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetUser, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetUser, applogs.ResponseOptions{}))
 		return
 	}
 

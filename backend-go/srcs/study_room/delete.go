@@ -31,12 +31,12 @@ func DeleteStudyRoomHandler(reqContext *gin.Context) {
 	userId, err := token.ExtractUserIdFromRequest(reqContext)
 	if err != nil {
 		reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	StudyRoomsMutex.Lock()
 	deleteStudyRoomByHostId(int(userId))
 	StudyRoomsMutex.Unlock()
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.DeleteStudyRoomSuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.DeleteStudyRoomSuccess, applogs.CreateJSONResponseByResponseCode(applogs.DeleteStudyRoomSuccess, applogs.ResponseOptions{}))
 }

@@ -29,17 +29,15 @@ func GetOwnCharacters(user models.TUser) ([]models.TUserCharacter, error) {
 func GetOwnCharactersHandler(reqContext *gin.Context) {
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	characters, err := GetOwnCharacters(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetCharacter, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetCharacter, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetCharacter, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetOwnCharactersSuccess, applogs.ResponseOptions{UserCharacters: models.ConvertToUserCharacterInfos(characters)}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.GetOwnCharactersSuccess, applogs.CreateJSONResponseByResponseCode(applogs.GetOwnCharactersSuccess, applogs.ResponseOptions{UserCharacters: models.ConvertToUserCharacterInfos(characters)}))
 }
