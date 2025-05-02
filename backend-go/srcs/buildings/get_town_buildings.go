@@ -15,7 +15,7 @@ func GetTownBuildings(user models.TUser) ([]models.TUserBuilding, error) {
 	var townBuildings []models.TUserBuilding
 	err := models.DB.Preload("Building").
 		Where("t_user_id = ? AND place_index > ?", user.ID, 0).
-		First(&townBuildings).Error
+		Find(&townBuildings).Error
 
 	return townBuildings, err
 }

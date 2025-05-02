@@ -10,7 +10,6 @@ type BuildingInfo interface {
 	GetExteriorImageURL() string
 	GetInteriorImageURL() string
 	GetDefaultName() string
-	GetCustomName() string
 }
 
 type UserBuildingInfo interface {
@@ -58,20 +57,34 @@ type WorkLogInfo interface {
 	GetMinutes() int64
 }
 
+type CharacterInfo interface {
+	GetID() int
+	GetImageURL() string
+	GetDefaultName() string
+	GetIsInStore() bool
+}
+
+type UserCharacterInfo interface {
+	GetCharacter() CharacterInfo
+	GetIsMain() bool
+}
+
 type ResponseOptions struct {
-	OTP           string
-	Token         string
-	Building      BuildingInfo
-	Buildings     []BuildingInfo
-	UserBuilding  UserBuildingInfo
-	UserBuildings []UserBuildingInfo
-	Friendship    FriendshipInfo
-	Friends       []OtherUserInfo
-	Me            SelfUserInfo
-	RoomCode      string
-	Work          WorkInfo
-	Works         []WorkInfo
-	WorkLogs      []WorkLogInfo
+	OTP            string
+	Token          string
+	Building       BuildingInfo
+	Buildings      []BuildingInfo
+	UserBuilding   UserBuildingInfo
+	UserBuildings  []UserBuildingInfo
+	Friendship     FriendshipInfo
+	Friends        []OtherUserInfo
+	Me             SelfUserInfo
+	RoomCode       string
+	Work           WorkInfo
+	Works          []WorkInfo
+	WorkLogs       []WorkLogInfo
+	UserCharacters []UserCharacterInfo
+	Characters     []CharacterInfo
 }
 
 func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions) gin.H {
@@ -94,7 +107,6 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			"ExteriorImageURL": options.Building.GetExteriorImageURL(),
 			"InteriorImageURL": options.Building.GetInteriorImageURL(),
 			"DefaultName":      options.Building.GetDefaultName(),
-			"CustomName":       options.Building.GetCustomName(),
 		}
 	}
 
@@ -106,7 +118,6 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 				"ExteriorImageURL": buildingInfo.GetExteriorImageURL(),
 				"InteriorImageURL": buildingInfo.GetInteriorImageURL(),
 				"DefaultName":      buildingInfo.GetDefaultName(),
-				"CustomName":       buildingInfo.GetCustomName(),
 			})
 		}
 		JSONResponse["Buildings"] = buildings
@@ -119,7 +130,6 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			"ExteriorImageURL": building.GetExteriorImageURL(),
 			"InteriorImageURL": building.GetInteriorImageURL(),
 			"DefaultName":      building.GetDefaultName(),
-			"CustomName":       building.GetCustomName(),
 			"PlaceIndex":       options.UserBuilding.GetPlaceIndex(),
 		}
 	}
@@ -133,7 +143,6 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 				"ExteriorImageURL": building.GetExteriorImageURL(),
 				"InteriorImageURL": building.GetInteriorImageURL(),
 				"DefaultName":      building.GetDefaultName(),
-				"CustomName":       building.GetCustomName(),
 				"PlaceIndex":       userBuilding.GetPlaceIndex(),
 			})
 		}
@@ -214,6 +223,34 @@ func CreateJSONResponseByResponseCode(responseCode int, options ResponseOptions)
 			})
 		}
 		JSONResponse["WorkLogs"] = workLogs
+	}
+
+	if options.UserCharacters != nil {
+		userCharacters := make([]gin.H, 0, len(options.UserCharacters))
+		for _, userCharacter := range options.UserCharacters {
+			character := userCharacter.GetCharacter()
+			userCharacters = append(userCharacters, gin.H{
+				"ID":          character.GetID(),
+				"ImageURL":    character.GetImageURL(),
+				"DefaultName": character.GetDefaultName(),
+				"IsInStore":   character.GetIsInStore(),
+				"IsMain":      userCharacter.GetIsMain(),
+			})
+		}
+		JSONResponse["OwnCharacters"] = userCharacters
+	}
+
+	if options.Characters != nil {
+		characters := make([]gin.H, 0, len(options.Characters))
+		for _, character := range options.Characters {
+			characters = append(characters, gin.H{
+				"ID":          character.GetID(),
+				"ImageURL":    character.GetImageURL(),
+				"DefaultName": character.GetDefaultName(),
+				"IsInStore":   character.GetIsInStore(),
+			})
+		}
+		JSONResponse["Characters"] = characters
 	}
 
 	return JSONResponse

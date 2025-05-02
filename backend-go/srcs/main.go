@@ -6,13 +6,13 @@ import (
 	"srcs/admin"
 	"srcs/auth"
 	"srcs/buildings"
+	"srcs/characters"
 	"srcs/friends"
 	"srcs/middlewares"
 	"srcs/models"
 	"srcs/password"
 	"srcs/profile"
 	"srcs/reports"
-	"srcs/store"
 	"srcs/study_room"
 	"srcs/utils"
 	"srcs/works"
@@ -64,6 +64,7 @@ func main() {
 
 	admin.CreateAdminUser()
 	buildings.SetDefaultBuildingInStore()
+	characters.SetDefaultCharacterInStore()
 
 	authRoutes := router.Group("/auth")
 	otpRoutes := authRoutes.Group("/otp")
@@ -114,11 +115,19 @@ func main() {
 
 	storeRoutes := router.Group("/store")
 	storeRoutes.Use(middlewares.JWTValidationMiddleware())
-	storeRoutes.POST("/buy", store.BuyBuildingHandler)
+	storeRoutes.POST("/buy-building", buildings.BuyBuildingHandler)
+	storeRoutes.POST("/buy-character", characters.BuyCharacterHandler)
+
+	charactersRoutes := router.Group("/characters")
+	charactersRoutes.Use(middlewares.JWTValidationMiddleware())
+	charactersRoutes.POST("/set-as-main", characters.SetAsMainCharacterHandler)
+	charactersRoutes.GET("/get-own", characters.GetOwnCharactersHandler)
+	charactersRoutes.GET("/get-store", characters.GetNonOwnedCharactersInStoreHandler)
 
 	adminGroup := router.Group("/admin")
 	adminGroup.Use(middlewares.AdminJWTValidationMiddleware())
 	adminGroup.POST("/buildings/set-in-store", admin.SetBuildingsInStoreHandler)
+	adminGroup.POST("/characters/set-in-store", admin.SetCharactersInStoreHandler)
 
 	backendPort := os.Getenv("BACKEND_PORT")
 	router.Run(":" + backendPort)

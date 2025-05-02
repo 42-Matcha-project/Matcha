@@ -30,7 +30,12 @@ const (
 	GetWorkLogsSuccess                 = 25
 	SetBuildingsInStoreSuccess         = 26
 	LogWorkSuccess                     = 27
-	DeleteWorkSuccess                  = 28
+	SetCharactersInStoreSuccess        = 28
+	BuyCharacterSuccess                = 29
+	SetAsMainCharacterSuccess          = 30
+	GetOwnCharactersSuccess            = 31
+	GetNonOwnCharactersInStoreSuccess  = 32
+	DeleteWorkSuccess                  = 33
 	// 100~ ユーザーレベル
 	EmailOTPPairsNotFound          = 100
 	OTPNotMatch                    = 101
@@ -54,6 +59,8 @@ const (
 	InvalidJWTToken             = 203
 	UnknownReportType           = 204
 	BuildingAlreadyOwned        = 205
+	CharacterAlreadyOwned       = 206
+	CharacterNotOwned           = 207
 	// 300~ バックエンドレベル
 	FailedToLoadTimeZone          = 301
 	FailedToSendEmail             = 302
@@ -83,7 +90,10 @@ const (
 	FailedToCreateWorkLog        = 415
 	FailedToSaveUser             = 416
 	FailedToGetUser              = 417
-	FailedToDeleteWork           = 417
+	FailedToCreateCharacter      = 418
+	FailedToGetCharacter         = 419
+	FailedToUpdateUserCharacter  = 420
+	FailedToDeleteWork           = 421
 )
 
 var Message = map[int]string{}
@@ -118,6 +128,11 @@ func init() {
 	Message[GetWorkLogsSuccess] = "タスクログ一覧の取得に成功しました。"
 	Message[SetBuildingsInStoreSuccess] = "ストアに建物をセットしました。"
 	Message[LogWorkSuccess] = "作業を記録しました。"
+	Message[SetCharactersInStoreSuccess] = "ストアにキャラクターをセットしました。"
+	Message[BuyCharacterSuccess] = "キャラクターの購入が完了しました。"
+	Message[SetAsMainCharacterSuccess] = "メインキャラクターに設定しました。"
+	Message[GetOwnCharactersSuccess] = "所有しているキャラクター一覧の取得に成功しました。"
+	Message[GetNonOwnCharactersInStoreSuccess] = "ストアにあるキャラクターのうち所有していないキャラクター一覧の取得に成功しました。"
 	Message[DeleteWorkSuccess] = "タスクの削除に成功しました。"
 	// 100~ ユーザーレベル
 	Message[EmailOTPPairsNotFound] = "入力されたメールアドレスにワンタイムパスワードは存在しません。改めてワンタイムパスワードを送信してください。"
@@ -142,6 +157,8 @@ func init() {
 	Message[InvalidJWTToken] = "JWTトークンが無効です。ログインし直してください。"
 	Message[UnknownReportType] = "報告タイプが認識できません。"
 	Message[BuildingAlreadyOwned] = "すでに所有している建物です。"
+	Message[CharacterAlreadyOwned] = "すでに所有しているキャラクターです。"
+	Message[CharacterNotOwned] = "該当キャラクターを所有していません。"
 	// 300~ バックエンドレベル
 	Message[FailedToLoadTimeZone] = "タイムゾーンの取得に失敗しました。"
 	Message[FailedToSendEmail] = "メールの送信に失敗しました。"
@@ -170,5 +187,8 @@ func init() {
 	Message[FailedToCreateWorkLog] = "データベースにタスクログを保存できませんでした。"
 	Message[FailedToSaveUser] = "データベースのユーザー情報を更新できませんでした。"
 	Message[FailedToGetUser] = "データベースからユーザーの取得に失敗しました。"
+	Message[FailedToCreateCharacter] = "データベースにキャラクターを保存できませんでした。"
+	Message[FailedToGetCharacter] = "データベースからキャラクターの取得に失敗しました。"
+	Message[FailedToUpdateUserCharacter] = "データベースへのユーザーキャラクターの更新に失敗しました。"
 	Message[FailedToDeleteWork] = "データベースからタスクの削除に失敗しました。"
 }

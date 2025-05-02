@@ -36,6 +36,8 @@ type TUser struct {
 
 	FriendshipsSent     []TFriendship `gorm:"foreignKey:RequesterID;references:ID" json:"-"`
 	FriendshipsReceived []TFriendship `gorm:"foreignKey:ReceiverID;references:ID" json:"-"`
+
+	Characters []TCharacter `gorm:"many2many:t_user_characters" json:"-"`
 }
 
 func (TUser) TableName() string {
@@ -70,6 +72,16 @@ func (user TUser) DeductCoins(requiredCoinCount int) error {
 	user.CoinCount -= requiredCoinCount
 	err := DB.Save(&user).Error
 	return err
+}
+
+func (user TUser) IsCharacterIDOwned(characterID int) (bool, error) {
+	err := DB.Where("t_character_id = ? AND t_user_id = ?", characterID, user.ID).First(&TUserCharacter{}).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		return false, nil
+	} else if err != nil {
+		return false, err
+	}
+	return true, nil
 }
 
 func (user TUser) IsBuildingIDOwned(buildingID int) (bool, error) {

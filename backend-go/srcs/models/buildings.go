@@ -1,7 +1,6 @@
 package models
 
 import (
-	"database/sql"
 	"srcs/applogs"
 )
 
@@ -29,15 +28,12 @@ func ConvertToUserBuildingInfos(userBuildings []TUserBuilding) []applogs.UserBui
 }
 
 type TBuilding struct {
-	ID                int          `gorm:"primaryKey;autoIncrement;column:id"`
-	ExteriorImageURL  string       `gorm:"type:varchar(255);not null;column:exterior_image_url"`
-	InteriorImageURL  string       `gorm:"type:varchar(255);not null;column:interior_image_url"`
-	DefaultName       string       `gorm:"type:varchar(30);not null;column:default_name"`
-	CustomName        string       `gorm:"type:varchar(30);not null;column:custom_name"`
-	RequiredCoinCount int          `gorm:"type:int;not null;column:required_coin_count"`
-	IsInStore         bool         `gorm:"type:bool;not null;column:is_in_store"`
-	SaleStartTime     sql.NullTime `gorm:"type:timestamp;column:sale_start_time"`
-	SaleEndTime       sql.NullTime `gorm:"type:timestamp;column:sale_end_time"`
+	ID                int    `gorm:"primaryKey;autoIncrement;column:id"`
+	ExteriorImageURL  string `gorm:"type:varchar(255);not null;column:exterior_image_url"`
+	InteriorImageURL  string `gorm:"type:varchar(255);not null;column:interior_image_url"`
+	DefaultName       string `gorm:"type:varchar(30);not null;column:default_name"`
+	RequiredCoinCount int    `gorm:"type:int;not null;column:required_coin_count"`
+	IsInStore         bool   `gorm:"type:bool;not null;column:is_in_store"`
 
 	Users []TUser `gorm:"many2many:t_user_buildings" json:"-"`
 }
@@ -48,7 +44,6 @@ func (building TBuilding) GetID() int                  { return building.ID }
 func (building TBuilding) GetExteriorImageURL() string { return building.ExteriorImageURL }
 func (building TBuilding) GetInteriorImageURL() string { return building.InteriorImageURL }
 func (building TBuilding) GetDefaultName() string      { return building.DefaultName }
-func (building TBuilding) GetCustomName() string       { return building.CustomName }
 
 func ConvertToBuildingInfos(buildings []TBuilding) []applogs.BuildingInfo {
 	buildingInfos := make([]applogs.BuildingInfo, len(buildings))

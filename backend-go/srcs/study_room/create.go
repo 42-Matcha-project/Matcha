@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/websocket"
 	"net/http"
 	"srcs/applogs"
+	"srcs/characters"
 	"srcs/models"
 	"srcs/utils"
 	"sync"
@@ -23,12 +24,14 @@ type StudyRoom struct {
 }
 
 type User struct {
-	UserId   int
-	Username string
-	IconURL  string
-	Status   string
-	IsHost   bool
-	Conn     *websocket.Conn
+	UserId            int
+	Username          string
+	IconURL           string
+	CharacterImageURL string
+	CharacterName     string
+	Status            string
+	IsHost            bool
+	Conn              *websocket.Conn
 }
 
 type CreateStudyRoomInput struct {
@@ -53,23 +56,27 @@ func generateRoomCode() (string, error) {
 	}
 }
 
-func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, user models.TUser) *StudyRoom {
+func createStudyRoom(createStudyRoomInput CreateStudyRoomInput, user models.TUser, mainCharacter models.TCharacter) *StudyRoom {
 	/*
 		自習室を作成する関数。
 	*/
+
 	studyRoom := &StudyRoom{
 		StudyRoomName: createStudyRoomInput.StudyRoomName,
 		ImageURL:      createStudyRoomInput.StudyRoomImageURL,
 		Clients:       make(map[int]*User),
 		Mutex:         &sync.Mutex{},
 	}
+
 	host := &User{
-		UserId:   user.ID,
-		Username: user.Username,
-		IconURL:  user.IconImageURL,
-		Status:   "Online",
-		IsHost:   true,
-		Conn:     nil,
+		UserId:            user.ID,
+		Username:          user.Username,
+		IconURL:           user.IconImageURL,
+		CharacterImageURL: mainCharacter.ImageURL,
+		CharacterName:     mainCharacter.DefaultName,
+		Status:            "Online",
+		IsHost:            true,
+		Conn:              nil,
 	}
 	studyRoom.Mutex.Lock()
 	defer studyRoom.Mutex.Unlock()
@@ -102,8 +109,15 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 		return
 	}
 
+	mainCharacter, err := characters.GetMainCharacter(*user)
+	if err != nil {
+		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetUser, applogs.ResponseOptions{}))
+		reqContext.Error(err)
+		return
+	}
+
 	StudyRoomsMutex.Lock()
-	StudyRooms[roomCode] = createStudyRoom(createStudyRoomInput, *user)
+	StudyRooms[roomCode] = createStudyRoom(createStudyRoomInput, *user, mainCharacter)
 	StudyRoomsMutex.Unlock()
 	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.CreateStudyRoomSuccess, applogs.ResponseOptions{RoomCode: roomCode}))
 }

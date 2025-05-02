@@ -105,7 +105,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"Buildings\": [{\n    \"ExteriorImageURL\": \"hajimarinoie_exterior_url\",\n    \"InteriorImageURL\": \"hajimarinoie_interior_url\",\n    \"DefaultName\": \"はじまりの家\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": false\n  },{\n    \"ExteriorImageURL\": \"hajimarinotyugakko_exterior_url\",\n    \"InteriorImageURL\": \"hajimarinotyugakko_interior_url\",\n    \"DefaultName\": \"はじまりの中学校\",\n    \"RequiredCoinCount\": 200,\n    \"SaleStartTime\": \"2025-03-26T00:00:00+09:00\",\n    \"IsInStore\": false\n  }]\n}",
+          "raw": "{\n  \"Buildings\": [{\n    \"ExteriorImageURL\": \"hajimarinoie_exterior_url\",\n    \"InteriorImageURL\": \"hajimarinoie_interior_url\",\n    \"DefaultName\": \"はじまりの家\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": true\n  },{\n    \"ExteriorImageURL\": \"hajimarinotyugakko_exterior_url\",\n    \"InteriorImageURL\": \"hajimarinotyugakko_interior_url\",\n    \"DefaultName\": \"はじまりの中学校\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": true\n  }]\n}",
           "options": {
             "raw": {
               "language": "json"
@@ -122,6 +122,65 @@
           "path": [
             "admin",
             "buildings",
+            "set-in-store"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "キャラクターをストアに追加",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"レスポンスが 200 であることを確認\", function () {",
+              "    pm.response.to.have.status(200);",
+              "});",
+              "",
+              "let jsonData = pm.response.json();",
+              "",
+              "pm.test(\"レスポンスに ReponseCode=28 Message Tokenが含まれている\", function () {",
+              "    var jsonData = pm.response.json();",
+              "    pm.expect(jsonData).to.have.property(\"ResponseCode\");",
+              "    pm.expect(jsonData.ResponseCode).to.equal(28);",
+              "});",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": " Bearer {{admin_jwt_token}}",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"Characters\": [{\n    \"ImageURL\": \"upa_url\",\n    \"DefaultName\": \"ウパさん\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": true\n  },{\n    \"ImageURL\": \"buntyo_url\",\n    \"DefaultName\": \"ぶんちょ\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": true\n  },{\n    \"ImageURL\": \"azarashi_url\",\n    \"DefaultName\": \"あざらし大王\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": true\n  },{\n    \"ImageURL\": \"sakana_url\",\n    \"DefaultName\": \"さかな\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": true\n  },{\n    \"ImageURL\": \"koneko_url\",\n    \"DefaultName\": \"こねこ\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": true\n  },{\n    \"ImageURL\": \"?_url\",\n    \"DefaultName\": \"?\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": true\n  },{\n    \"ImageURL\": \"tako_url\",\n    \"DefaultName\": \"タコ兄貴\",\n    \"RequiredCoinCount\": 200,\n    \"IsInStore\": true\n  }]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/admin/characters/set-in-store",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "admin",
+            "characters",
             "set-in-store"
           ]
         }
