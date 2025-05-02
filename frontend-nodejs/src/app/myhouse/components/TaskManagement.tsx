@@ -14,8 +14,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { AnimatePresence, motion } from "framer-motion";
 import { formatTime, formatDeadline } from "../lib/timeUtils";
-// Next.jsのImageを使う場合は以下を有効化
-// import Image from "next/image";
+import Image from "next/image";
 
 // タスクの型定義
 export interface Task {
@@ -465,7 +464,7 @@ const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
       <div className="flex-1 min-w-0">
         <div className="flex items-start">
           {task.iconImageURL && (
-            <img
+            <Image
               src={task.iconImageURL}
               alt=""
               className="w-6 h-6 mr-2 rounded-full"

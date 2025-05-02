@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { CirclePlus, LogOut, Play, Pause } from "lucide-react";
+import { LogOut, Play, Pause } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -14,23 +14,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-// 作業目標の型定義
-interface StudyGoal {
-  id: number;
-  text: string;
-  completed: boolean;
-  color: "green" | "orange" | "gray";
-}
 interface StudyStatsProps {
   isDarkMode: boolean;
 }
 
 export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const router = useRouter();
-  const [goals, setGoals] = useState<StudyGoal[]>([]);
-  const [newGoalText, setNewGoalText] = useState("");
-  const [isAddingGoal, setIsAddingGoal] = useState(false);
-  const [goalError, setGoalError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
   const [studyTimeMinutes, setStudyTimeMinutes] = useState(0); // 作業時間（分）
@@ -39,15 +28,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const [isStudying, setIsStudying] = useState(false); // 勉強中かどうか
   const [totalStudyTimeSeconds, setTotalStudyTimeSeconds] = useState(0); // 累積作業時間（秒）
   const [pauseTime, setPauseTime] = useState<Date | null>(null); // 一時停止時間
-
-  // 警告メッセージの状態
-  const [showWarning, setShowWarning] = useState(false);
-  const [warningMessage, setWarningMessage] = useState("");
-
-  // 目標テキストの最大文字数を定義
-  const MAX_GOAL_TEXT_LENGTH = 100;
-  // 表示する警告の閾値を調整
-  const WARNING_THRESHOLD = Math.floor(MAX_GOAL_TEXT_LENGTH * 0.8); // 80%で警告
 
   // コンポーネントマウント時に保存された状態を復元
   useEffect(() => {
@@ -183,36 +163,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     setPauseTime(null);
 
     toast.success("勉強を再開しました！");
-  };
-
-  // 目標達成率を計算
-  const completionRate = Math.round(
-    (goals.filter((goal) => goal.completed).length / goals.length) * 100,
-  );
-
-  // 新しい目標を追加
-  const addGoal = () => {
-    if (newGoalText.trim()) {
-      const newGoal: StudyGoal = {
-        id: Date.now(),
-        text: newGoalText.trim(),
-        completed: false,
-        color: "gray",
-      };
-      setGoals([...goals, newGoal]);
-      setNewGoalText("");
-      setGoalError(null);
-      setIsAddingGoal(false);
-    }
-  };
-
-  // 目標の状態を切り替え
-  const toggleGoalCompletion = (id: number) => {
-    setGoals((prevGoals) =>
-      prevGoals.map((goal) =>
-        goal.id === id ? { ...goal, completed: !goal.completed } : goal,
-      ),
-    );
   };
 
   // 自習終了ダイアログを表示
@@ -462,26 +412,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     const diffSeconds = Math.floor(diffMs / 1000);
     displayTotalTime += diffSeconds;
   }
-
-  // 目標テキスト入力ハンドラ
-  const handleGoalTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    // 現在の文字数が最大を超えているか確認
-    if (value.length > MAX_GOAL_TEXT_LENGTH) {
-      // 警告メッセージを設定して表示
-      setWarningMessage(
-        `このテキストを${MAX_GOAL_TEXT_LENGTH}文字以下にしてください（現時点で ${value.length} 文字です）。`,
-      );
-      setShowWarning(true);
-      // 最大文字数に制限
-      setNewGoalText(value.slice(0, MAX_GOAL_TEXT_LENGTH));
-    } else {
-      setNewGoalText(value);
-      // 警告を非表示
-      setShowWarning(false);
-    }
-  };
 
   return (
     <div

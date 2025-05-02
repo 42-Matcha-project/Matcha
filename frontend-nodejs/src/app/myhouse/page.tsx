@@ -347,6 +347,7 @@ export default function MyHousePage() {
                   showPointsNotification(Math.floor(Math.random() * 20) + 5);
                 }
               } catch (e) {
+                console.error("作業ログの追加中にエラーが発生しました:", e);
                 // JSONパースエラーが発生した場合は擬似的にポイント表示
                 showPointsNotification(Math.floor(Math.random() * 20) + 5);
               }
@@ -440,7 +441,7 @@ export default function MyHousePage() {
     };
 
     loadCompletedTasksFromStorage();
-  }, [tasks.length]); // タスクリストが変わったときだけ実行
+  }, [tasks]);
 
   // 学習データサマリーコンポーネント - Card コンポーネントを使用する形に変更
   const StudyDataSummary = () => {

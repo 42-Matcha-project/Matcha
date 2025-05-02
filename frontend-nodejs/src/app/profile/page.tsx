@@ -58,7 +58,7 @@ export default function ProfilePage() {
   const [isLoadingTasks, setIsLoadingTasks] = useState(false);
   const [tasksError, setTasksError] = useState<string | null>(null);
   const [totalTaskTime, setTotalTaskTime] = useState<number>(0); // 合計作業時間（秒）
-  const [todayTaskTime, setTodayTaskTime] = useState<number>(0); // 今日の合計作業時間（秒）
+  const [, setTodayTaskTime] = useState<number>(0); // 今日の合計作業時間（秒）
 
   // タスク追加フォームの状態
   const [formData, setFormData] = useState({
