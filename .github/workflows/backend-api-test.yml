@@ -81,6 +81,9 @@ jobs:
       - name: Test Store API
         run: newman run ./postman/store.json --reporters cli,junit --reporter-junit-export results.xml
 
+      - name: Test Characters API
+        run: newman run ./postman/characters.json --reporters cli,junit --reporter-junit-export results.xml
+
       - name: Test Password API
         run: newman run ./postman/password.json --reporters cli,junit --reporter-junit-export results.xml
 

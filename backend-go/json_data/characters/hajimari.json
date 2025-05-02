@@ -1,0 +1,38 @@
+{
+  "Characters": [{
+    "ImageURL": "upa_url",
+    "DefaultName": "ウパさん",
+    "RequiredCoinCount": 200,
+    "IsInStore": true
+  },{
+    "ImageURL": "buntyo_url",
+    "DefaultName": "ぶんちょ",
+    "RequiredCoinCount": 200,
+    "IsInStore": true
+  },{
+    "ImageURL": "azarashi_url",
+    "DefaultName": "あざらし大王",
+    "RequiredCoinCount": 200,
+    "IsInStore": true
+  },{
+    "ImageURL": "sakana_url",
+    "DefaultName": "さかな",
+    "RequiredCoinCount": 200,
+    "IsInStore": true
+  },{
+    "ImageURL": "koneko_url",
+    "DefaultName": "こねこ",
+    "RequiredCoinCount": 200,
+    "IsInStore": true
+  },{
+    "ImageURL": "?_url",
+    "DefaultName": "?",
+    "RequiredCoinCount": 200,
+    "IsInStore": true
+  },{
+    "ImageURL": "tako_url",
+    "DefaultName": "タコ兄貴",
+    "RequiredCoinCount": 200,
+    "IsInStore": true
+  }]
+}
