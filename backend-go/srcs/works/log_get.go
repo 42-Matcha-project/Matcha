@@ -91,5 +91,5 @@ func GetWorkLogsHandler(reqContext *gin.Context) {
 		return
 	}
 
-	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.GetWorksSuccess, applogs.CreateJSONResponseByResponseCode(applogs.GetWorksSuccess, applogs.ResponseOptions{WorkLogs: ConvertToWorkLogInfos(workLogsResponse)}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.GetWorkLogsSuccess, applogs.CreateJSONResponseByResponseCode(applogs.GetWorkLogsSuccess, applogs.ResponseOptions{WorkLogs: ConvertToWorkLogInfos(workLogsResponse)}))
 }
