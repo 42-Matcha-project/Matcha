@@ -49,7 +49,7 @@ func Register(reqContext *gin.Context) {
 	var registerInput RegisterInput
 
 	if err := reqContext.ShouldBindJSON(&registerInput); err != nil {
-		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJWTToken, applogs.ResponseOptions{}))
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
