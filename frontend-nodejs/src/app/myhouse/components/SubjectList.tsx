@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { BookOpen, RefreshCw, Trash2 } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
+import { SubjectRegistrationForm } from "./SubjectRegistrationForm";
 
 // HTMLImageElementを使用するために明示的に参照
 const HTMLImage = globalThis.Image;
@@ -140,7 +141,24 @@ export function SubjectList({
       }
 
       const data = await response.json();
-      setSubjects(data.Works || []);
+      let works = data.Works || [];
+
+      // --- ローカルストレージのnotesをマージ ---
+      try {
+        const cachedNotes = JSON.parse(
+          localStorage.getItem("subjectNotes") || "{}",
+        );
+        works = works.map((subject: Subject) => {
+          const cacheKey = subject.ID.toString();
+          if (cachedNotes[cacheKey]) {
+            return { ...subject, notes: cachedNotes[cacheKey] };
+          }
+          return subject;
+        });
+      } catch {
+        // 何もしない
+      }
+      setSubjects(works);
     } catch (error) {
       console.error("タスクリスト取得エラー:", error);
       // エラーをコンソールに記録するだけで、UIには表示しない
@@ -440,6 +458,7 @@ export function SubjectList({
 
       localStorage.setItem("subjectNotes", JSON.stringify(cachedNotes));
       toast.success("メモを保存しました");
+      restoreIconsFromCache();
     } catch (error) {
       console.error("ノートの保存に失敗:", error);
       toast.error("メモの保存に失敗しました");
@@ -592,6 +611,23 @@ export function SubjectList({
     }
   };
 
+  // 新しいタスクをローカルで即時追加
+  const handleSubjectAdded = (newTask: {
+    WorkName: string;
+    IconImageURL: string | null;
+    notes?: string;
+  }) => {
+    setSubjects((prev) => [
+      {
+        ...newTask,
+        ID: Date.now(), // 仮ID
+        notes: typeof newTask.notes === "string" ? newTask.notes : "",
+        IconImageURL: newTask.IconImageURL ?? "",
+      },
+      ...prev,
+    ]);
+  };
+
   return (
     <div
       className={cn(
@@ -618,6 +654,11 @@ export function SubjectList({
           <RefreshCw className={cn("h-5 w-5", isLoading && "animate-spin")} />
         </button>
       </div>
+
+      <SubjectRegistrationForm
+        isDarkMode={isDarkMode}
+        onSubjectAdded={handleSubjectAdded}
+      />
 
       {/* 非表示のファイル入力 */}
       <input
@@ -725,10 +766,14 @@ export function SubjectList({
                 <div className="flex-grow">
                   <span className="font-medium">{subject.WorkName}</span>
 
-                  {/* Notes indicator */}
-                  {subject.notes && (
-                    <div className="text-xs mt-0.5 opacity-70">メモあり</div>
-                  )}
+                  {/* Notes prominently displayed */}
+                  {typeof subject.notes === "string" &&
+                    subject.notes.trim() !== "" && (
+                      <div className="mt-2 p-2 rounded bg-yellow-50 border-l-4 border-yellow-400 text-sm text-yellow-900 whitespace-pre-line">
+                        <span className="font-bold mr-1">📝 メモ:</span>
+                        {subject.notes}
+                      </div>
+                    )}
                 </div>
 
                 {/* Note and Delete Buttons */}

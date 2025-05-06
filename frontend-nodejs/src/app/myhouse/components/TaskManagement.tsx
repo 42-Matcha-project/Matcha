@@ -23,6 +23,7 @@ export interface Task {
   currentTimerValue?: number; // 現在のタイマー値（秒単位）
   pausedTimerValue?: number; // 一時停止時の残り時間
   completedDate?: Date; // タスク完了日時
+  memo: string;
 }
 
 export const TaskManagement = () => {
@@ -62,6 +63,7 @@ export const TaskManagement = () => {
       iconImageURL: newTaskIcon || "https://placehold.co/32",
       timerRunning: false,
       currentTimerValue: 0,
+      memo: newTask.memo,
     };
     setTasks((prev) => [...prev, task]);
     setNewTask({
@@ -514,6 +516,12 @@ const TaskItem = ({
             <h4 className="font-medium text-gray-800 dark:text-gray-200 truncate">
               {task.title}
             </h4>
+            {typeof task.memo === "string" && task.memo.trim() !== "" && (
+              <div className="mt-2 p-2 rounded bg-yellow-50 border-l-4 border-yellow-400 text-sm text-yellow-900 whitespace-pre-line">
+                <span className="font-bold mr-1">📝 メモ:</span>
+                {task.memo}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2 mt-1">
               <span
                 className={`text-xs px-2 py-0.5 rounded flex items-center ${
