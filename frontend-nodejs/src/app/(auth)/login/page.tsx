@@ -91,14 +91,10 @@ const Login = () => {
   const [usernameOrEmail, setUsernameOrEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isComposing, setIsComposing] = useState(false);
-  // 送信中かどうかを示す状態
   const [isLoading, setIsLoading] = useState(false);
-  // APIエラーを管理
   const [apiError, setApiError] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  // 送信が試行されたかどうか
   const [submitAttempted, setSubmitAttempted] = useState(false);
-  // フォームのエラー状態を管理
   const [errors, setErrors] = useState<{
     usernameOrEmail: boolean;
     password: boolean;
@@ -220,7 +216,6 @@ const Login = () => {
 
           // 少し遅延を入れて認証状態が更新されるのを待つ
           setTimeout(() => {
-            // Next.jsのルーターを使用してリダイレクト
             router.push("/settlement");
           }, 100);
         } catch {

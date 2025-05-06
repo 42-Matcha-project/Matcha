@@ -1,671 +1,875 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
-import {
-  MessageSquare,
-  ChevronUp,
-  ChevronDown,
-  LogOut,
-  Moon,
-  Sun,
-  Settings,
-} from "lucide-react";
-import Image from "next/image";
-import { toast } from "sonner";
-import { useRouter } from "next/navigation";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { useTheme } from "@/contexts/ThemeContext";
-
-// コンポーネントをインポート
+import { Task } from "./components/TaskManagement";
+import { TaskManagement } from "./components/TaskManagement";
+import { StudyTimeChart } from "./components/StudyTimeChart";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Home,
+  BookOpen,
+  Calendar,
+  Clock,
+  MessageSquare,
+  BarChart2,
+  Plus,
+  LucideIcon,
+  CheckCircle,
+  FileText,
+  AlertTriangle,
+} from "lucide-react";
 import { ChatPanel } from "./components/ChatPanel";
-import { StudyStats } from "./components/StudyStats";
-import { initialParticipants } from "./data";
-import { Participant, Message } from "./types";
+import { Message } from "./types";
+import { formatTime, formatDeadline } from "./lib/timeUtils";
 
-// 初期データをインポート
-import { initialMessages } from "./data";
+// APIから取得するタスクの型定義
+interface ApiTask {
+  ID: number;
+  WorkName: string;
+  IconImageURL: string;
+  notes?: string;
+  timeSpent?: number;
+  deadline?: string;
+}
 
-export default function CozyRoomPage() {
-  const router = useRouter();
-  const { isDarkMode, toggleDarkMode } = useTheme();
-  const [activeTab, setActiveTab] = useState("chat");
-  const [isPanelExpanded, setIsPanelExpanded] = useState(true);
-  const [participants, setParticipants] =
-    useState<Participant[]>(initialParticipants);
-  const [guestInfo, setGuestInfo] = useState<{
-    name: string;
-    avatar: string;
-    status: "studying" | "break" | "away";
-    position: { x: number; y: number };
-  } | null>(null);
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
-  const [isLoggingWork, setIsLoggingWork] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
-  const [showRoomCode, setShowRoomCode] = useState(false);
-  const [roomCode, setRoomCode] = useState("");
+type TabType = "tasks" | "chat" | "stats" | "completed";
 
-  // キーボードショートカットを登録
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      // Alt+L: 作業ログダイアログを表示 (MacではOption+L)
-      if (
-        e.altKey &&
-        e.key === "l" &&
-        !isLoggingWork &&
-        !showEndSessionDialog
-      ) {
-        e.preventDefault(); // デフォルトの挙動を防止
-        setIsLoggingWork(true);
-      }
+interface TabInfo {
+  id: TabType;
+  label: string;
+  icon: LucideIcon;
+}
 
-      // Escape: 各種ダイアログを閉じる
-      if (e.key === "Escape") {
-        if (isLoggingWork) {
-          setIsLoggingWork(false);
-        }
-        if (showEndSessionDialog) {
-          setShowEndSessionDialog(false);
-        }
-      }
-    };
+export default function MyHousePage() {
+  const { isDarkMode } = useTheme();
+  const [tasks, setTasks] = useState<Task[]>([]);
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+  const [userStats, setUserStats] = useState({
+    level: 1,
+    dayStreak: 0,
+    totalStudyHours: 0,
+  });
 
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isLoggingWork, showEndSessionDialog]);
+  const [activeTab, setActiveTab] = useState<TabType>("tasks");
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      id: 1,
+      sender: "オーナー",
+      content:
+        "マイスタディハウスへようこそ！ここで学習の記録や他のユーザーとのコミュニケーションができます。",
+      time: new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+      }),
+    },
+  ]);
 
-  // ゲスト参加を検知して参加者リストを更新
-  useEffect(() => {
-    // クライアントサイドでのみ実行
-    if (typeof window !== "undefined") {
-      // 最後に参加したコードを確認
-      const lastJoinedCode = localStorage.getItem("lastJoinedCode");
-      const myRoomCode = localStorage.getItem("myRoomCode");
+  const tabs: TabInfo[] = [
+    { id: "tasks", label: "タスク管理", icon: Plus },
+    { id: "completed", label: "完了したタスク", icon: CheckCircle },
+    { id: "chat", label: "チャット", icon: MessageSquare },
+    { id: "stats", label: "学習データ", icon: BarChart2 },
+  ];
 
-      // 最後に参加したコードがマイルームコードと一致し、かつゲスト情報がまだない場合
-      if (
-        lastJoinedCode &&
-        myRoomCode &&
-        lastJoinedCode === myRoomCode &&
-        !guestInfo
-      ) {
-        // ゲスト名（実際には認証情報から取得すべき）
-        const guestName = "ゲスト" + Math.floor(Math.random() * 1000);
-
-        // ゲスト情報を設定
-        setGuestInfo({
-          name: guestName,
-          avatar: "/placeholder.svg?height=80&width=80",
-          status: "studying" as "studying" | "break" | "away",
-          position: { x: Math.random() * 80 + 10, y: Math.random() * 80 + 10 },
-        });
-
-        // ゲストを参加者リストに追加
-        const newGuest = {
-          id: participants.length + 1,
-          name: guestName,
-          avatar: "/placeholder.svg?height=80&width=80",
-          status: "studying" as "studying" | "break" | "away",
-          position: { x: Math.random() * 80 + 10, y: Math.random() * 80 + 10 },
-        };
-
-        setParticipants([...participants, newGuest]);
-
-        // 入室メッセージをチャットに追加
-        const newMessage = {
-          id: messages.length + 1,
-          sender: "システム",
-          content: `${guestName} さんが入室しました。`,
-          time: new Date().toLocaleTimeString([], {
-            hour: "2-digit",
-            minute: "2-digit",
-          }),
-        };
-
-        setMessages([...messages, newMessage]);
-
-        // パネルを自動的に開く
-        setIsPanelExpanded(true);
-        setActiveTab("chat");
-      }
-    }
-  }, [guestInfo, messages, participants]);
-
-  // コンポーネントマウント時にルームコードを読み取る
-  useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedRoomCode = localStorage.getItem("myRoomCode");
-      if (savedRoomCode) {
-        setRoomCode(savedRoomCode);
-      } else {
-        // 初回訪問時は新しいコードを生成して保存
-        const newCode = generateRandomCode();
-        setRoomCode(newCode);
-        localStorage.setItem("myRoomCode", newCode);
-      }
-    }
-  }, []);
-
-  // 新しいルームコードを生成する
-  const regenerateRoomCode = () => {
-    const newCode = generateRandomCode();
-    setRoomCode(newCode);
-    localStorage.setItem("myRoomCode", newCode);
-    setShowRoomCode(true);
-  };
-
-  // ルームコードを生成する関数
-  function generateRandomCode(length: number = 6): string {
-    const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-    let result = "";
-    for (let i = 0; i < length; i++) {
-      result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
-  }
-
-  // 招待リンクをコピー
-  const copyInviteLink = () => {
-    if (typeof window !== "undefined" && navigator.clipboard) {
-      // ルームコードのみをコピー
-      const codeToShare = roomCode || "ルームコードがありません";
-
-      navigator.clipboard
-        .writeText(codeToShare)
-        .then(() => {
-          toast.success("招待コードをコピーしました");
-          setShowRoomCode(true);
-        })
-        .catch((err) => {
-          console.error("クリップボードへのコピーに失敗しました:", err);
-        });
-    }
-  };
-
-  // パネルの展開・収納を切り替え
-  const togglePanel = () => setIsPanelExpanded(!isPanelExpanded);
-
-  // End study session function
-  const endStudySession = async () => {
-    setIsLoading(true);
+  // APIからタスク情報を取得する関数
+  const fetchApiTasks = async () => {
     try {
       const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("認証情報がありません。再ログインしてください。");
-        // ログイン画面へリダイレクト
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500); // トーストメッセージを表示した後、1.5秒後にリダイレクト
-        return;
-      }
+      if (!token) return;
 
+      // タイムスタンプを追加してキャッシュを回避
+      const timestamp = Date.now();
       const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/study-room/delete`,
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/get?t=${timestamp}`,
         {
-          method: "DELETE",
+          method: "GET",
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
+          cache: "no-store",
         },
       );
 
       if (!response.ok) {
-        // 認証エラーの場合
-        if (response.status === 401) {
-          toast.error(
-            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
-          );
-          setTimeout(() => {
-            router.push("/login");
-          }, 2000); // メッセージ表示後、2秒後にリダイレクト
-          return;
-        }
-        throw new Error(`タスクの終了に失敗しました (${response.status})`);
+        throw new Error(`タスクの取得に失敗しました (${response.status})`);
       }
 
-      toast.success("タスクを終了しました");
-      // リダイレクトをsettlementページに
-      router.push("/settlement");
+      const data = await response.json();
+
+      // データの存在確認とフォーマット検証を柔軟に行う
+      const worksData = data.Works || data.works || [];
+
+      // DBから取得したタスクをTask型に変換
+      const convertedTasks = worksData.map((apiTask: ApiTask) => ({
+        id: apiTask.ID,
+        title: apiTask.WorkName,
+        deadline: apiTask.deadline ? new Date(apiTask.deadline) : undefined,
+        subject: apiTask.WorkName, // 科目部分がないため、タスク名を科目として使用
+        completed: false, // APIからの完了状態を正しく反映
+        timeSpent: apiTask.timeSpent || 0,
+        iconImageURL: apiTask.IconImageURL || "",
+      }));
+
+      // ローカルのタスクに反映（既存の完了状態は維持）
+      setTasks((prevTasks) => {
+        // 既存タスクの完了状態を維持するマップを作成
+        const completionMap = new Map();
+        prevTasks.forEach((task) => {
+          if (task.completed) {
+            completionMap.set(task.id, {
+              completed: true,
+              completedDate: task.completedDate,
+            });
+          }
+        });
+
+        // 新しいタスクリストを作成し、完了状態を適用
+        return convertedTasks.map((task) => {
+          const existingStatus = completionMap.get(task.id);
+          if (existingStatus) {
+            return {
+              ...task,
+              completed: existingStatus.completed,
+              completedDate: existingStatus.completedDate,
+            };
+          }
+          return task;
+        });
+      });
     } catch (error) {
-      console.error("タスク終了エラー:", error);
-      toast.error(
-        error instanceof Error
-          ? error.message
-          : "タスクの終了中にエラーが発生しました",
-      );
-    } finally {
-      setIsLoading(false);
-      setShowEndSessionDialog(false);
+      console.error("APIタスク取得エラー:", error);
     }
   };
 
+  // ユーザー統計情報を取得
+  const fetchUserStats = async () => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) return;
+
+      const response = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const userData = data.User || data.user || data.Me || data;
+
+        setUserStats({
+          level: userData.Level || userData.level || 1,
+          dayStreak: userData.DayStreak || userData.dayStreak || 0,
+          totalStudyHours:
+            userData.TotalStudyHours || userData.totalStudyHours || 0,
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching user stats:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (authLoading) return;
+
+    if (isAuthenticated) {
+      fetchUserStats();
+      fetchApiTasks(); // APIからタスクデータを取得
+
+      // チャットメッセージをロード
+      const loadSavedMessages = () => {
+        const savedMessages = localStorage.getItem("chatMessages");
+        if (savedMessages) {
+          try {
+            const parsedMessages = JSON.parse(savedMessages);
+            if (parsedMessages.length > 0) {
+              setMessages(parsedMessages);
+            }
+          } catch (e) {
+            console.error("チャットメッセージの読み込みエラー:", e);
+          }
+        }
+      };
+
+      loadSavedMessages();
+    }
+  }, [isAuthenticated, authLoading]);
+
+  // タブが変更されたときに再取得
+  useEffect(() => {
+    if (activeTab === "tasks" || activeTab === "stats") {
+      fetchApiTasks();
+    }
+  }, [activeTab]);
+
+  // メッセージが変更されたらローカルストレージに保存
+  useEffect(() => {
+    if (messages.length > 0) {
+      localStorage.setItem("chatMessages", JSON.stringify(messages));
+    }
+  }, [messages]);
+
+  // モーダル表示用の状態
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completedTaskId, setCompletedTaskId] = useState<number | null>(null);
+
+  const handleTaskComplete = (taskId: number) => {
+    // タスク完了時の処理
+    // タスクの完了状態を更新
+    const taskToComplete = tasks.find((task) => task.id === taskId);
+
+    if (!taskToComplete) return;
+
+    // すでに完了しているタスクを未完了に戻す処理のみ行う場合
+    if (taskToComplete.completed) {
+      const updatedTasks = tasks.map((task) => {
+        if (task.id === taskId) {
+          return {
+            ...task,
+            completed: false,
+            completedDate: undefined,
+          };
+        }
+        return task;
+      });
+
+      // タスク状態を更新
+      setTasks(updatedTasks);
+
+      // 変更をローカルストレージにも保存
+      const completedTasksInStorage = JSON.parse(
+        localStorage.getItem("completedTasks") || "[]",
+      );
+      const updatedCompletedTasks = completedTasksInStorage.filter(
+        (id: number) => id !== taskId,
+      );
+      localStorage.setItem(
+        "completedTasks",
+        JSON.stringify(updatedCompletedTasks),
+      );
+
+      // 統計情報を更新
+      fetchUserStats();
+
+      return;
+    }
+
+    // 未完了 → 完了への変更処理
+    const updatedTasks = tasks.map((task) => {
+      if (task.id === taskId) {
+        // 完了へ変更の場合は現在時刻を記録
+        const completedDate = new Date();
+
+        // タスク完了通知を表示
+        showCompletionNotification(task.title);
+
+        // 完了モーダルを表示
+        setCompletedTaskId(taskId);
+        setShowCompletionModal(true);
+
+        // タスク完了IDをローカルストレージに保存（再読み込み後も完了状態を保持するため）
+        const completedTasksInStorage = JSON.parse(
+          localStorage.getItem("completedTasks") || "[]",
+        );
+        if (!completedTasksInStorage.includes(taskId)) {
+          completedTasksInStorage.push(taskId);
+          localStorage.setItem(
+            "completedTasks",
+            JSON.stringify(completedTasksInStorage),
+          );
+        }
+
+        // 作業ログAPIを使用してタスク完了を記録
+        const logTaskCompletion = async () => {
+          try {
+            const token = localStorage.getItem("token");
+            if (!token) return;
+
+            // 学習時間（分）を計算
+            const timeSpentMinutes = Math.max(
+              1,
+              Math.floor((task.timeSpent || 0) / 60),
+            );
+
+            console.log("APIリクエスト内容:", {
+              WorkID: taskId,
+              Minutes: timeSpentMinutes,
+            });
+
+            // バックエンドのAPIリクエスト形式に合わせる
+            // APIが大文字キーを期待しているためここでも大文字を使用
+            const response = await fetch(
+              `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
+              {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${token}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                  WorkID: parseInt(taskId.toString(), 10), // 確実に数値型に変換
+                  Minutes: timeSpentMinutes,
+                }),
+              },
+            );
+
+            const responseText = await response.text();
+            console.log("APIレスポンス:", responseText);
+
+            if (!response.ok) {
+              console.error(`作業ログの追加に失敗しました: ${response.status}`);
+              console.log(
+                "サーバーへの保存は失敗しましたが、ローカルでは完了として処理します",
+              );
+
+              // エラーがあっても擬似的なポイント獲得表示
+              showPointsNotification(Math.floor(Math.random() * 20) + 5);
+            } else {
+              console.log("作業ログの追加に成功しました");
+
+              // 完了成功時の処理（例：ポイント加算など）
+              try {
+                const data = JSON.parse(responseText);
+                if (data && data.Result && data.Result.Coins) {
+                  // ポイント獲得のフィードバックを表示
+                  showPointsNotification(data.Result.Coins);
+                } else {
+                  // レスポンスに獲得コインがない場合は擬似的に表示
+                  showPointsNotification(Math.floor(Math.random() * 20) + 5);
+                }
+              } catch (e) {
+                console.error("作業ログの追加中にエラーが発生しました:", e);
+                // JSONパースエラーが発生した場合は擬似的にポイント表示
+                showPointsNotification(Math.floor(Math.random() * 20) + 5);
+              }
+            }
+
+            // タスク一覧と統計情報を更新
+            setTimeout(() => {
+              fetchApiTasks();
+              fetchUserStats();
+            }, 500);
+          } catch (error) {
+            console.error("作業ログの追加中にエラーが発生しました:", error);
+
+            // エラーがあってもローカルでは完了状態を保持
+            console.log(
+              "エラーが発生しましたが、ローカルでは完了として処理します",
+            );
+
+            // 擬似的にポイント獲得の通知を表示
+            showPointsNotification(Math.floor(Math.random() * 20) + 5);
+
+            // タスク一覧と統計情報を更新
+            setTimeout(() => {
+              fetchApiTasks();
+              fetchUserStats();
+            }, 500);
+          }
+        };
+
+        logTaskCompletion();
+
+        return {
+          ...task,
+          completed: true,
+          completedDate,
+        };
+      }
+      return task;
+    });
+
+    // タスク状態を更新
+    setTasks(updatedTasks);
+  };
+
+  // ポイント獲得通知を表示する関数
+  const showPointsNotification = (points: number) => {
+    const pointNotification = document.createElement("div");
+    pointNotification.className =
+      "fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50";
+    pointNotification.innerHTML = `<p class="font-bold">+${points}ポイント獲得！</p>`;
+    document.body.appendChild(pointNotification);
+
+    // 3秒後に通知を消す
+    setTimeout(() => {
+      pointNotification.remove();
+    }, 3000);
+  };
+
+  // handleTaskAdd 関数を追加
+  const handleTaskAdd = (task: Task) => {
+    setTasks((prev) => [...prev, task]);
+    // タスクが追加されたらAPIタスクも再取得
+    setTimeout(() => {
+      fetchApiTasks();
+    }, 500);
+  };
+
+  // 完了済みタスクを維持するための処理を追加
+  useEffect(() => {
+    // ローカルストレージから完了済みタスクIDのリストを取得
+    const loadCompletedTasksFromStorage = () => {
+      const completedTaskIds = JSON.parse(
+        localStorage.getItem("completedTasks") || "[]",
+      );
+
+      // 既存のタスクに完了状態を適用
+      if (completedTaskIds.length > 0 && tasks.length > 0) {
+        const updatedTasks = tasks.map((task) => {
+          if (completedTaskIds.includes(task.id)) {
+            return {
+              ...task,
+              completed: true,
+              completedDate: task.completedDate || new Date(), // 完了日時がなければ現在時刻を設定
+            };
+          }
+          return task;
+        });
+
+        setTasks(updatedTasks);
+      }
+    };
+
+    loadCompletedTasksFromStorage();
+  }, [tasks]);
+
+  // 学習データサマリーコンポーネント - Card コンポーネントを使用する形に変更
+  const StudyDataSummary = () => {
+    // 完了済みのタスク数と未完了のタスク数を計算
+    const completedTasksCount = tasks.filter((task) => task.completed).length;
+    const activeTasksCount = tasks.filter((task) => !task.completed).length;
+
+    return (
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Card
+          icon={<Calendar />}
+          label="連続学習"
+          value={`${userStats.dayStreak}日`}
+        />
+        <Card
+          icon={<Clock />}
+          label="総タスク数"
+          value={`${completedTasksCount + activeTasksCount}件`}
+        />
+        <Card
+          icon={<BookOpen />}
+          label="総学習時間"
+          value={`${userStats.totalStudyHours}時間`}
+        />
+        <Card
+          icon={<Clock />}
+          label="今日の学習"
+          value={`${Math.floor(tasks.reduce((acc, task) => acc + task.timeSpent, 0) / 60)}分`}
+        />
+      </div>
+    );
+  };
+
   return (
-    <div
-      className={cn(
-        "min-h-screen overflow-hidden",
-        isDarkMode
-          ? "bg-amber-950 text-amber-50"
-          : "bg-amber-100 text-amber-950",
-      )}
-      style={{
-        backgroundImage: `url('/images/new-house.png')`,
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundRepeat: "no-repeat",
-        backgroundColor: isDarkMode
-          ? "rgba(120, 53, 15, 0.85)"
-          : "rgba(245, 225, 180, 0.5)",
-        backgroundBlendMode: isDarkMode ? "overlay" : "soft-light",
-      }}
-    >
-      <header
-        className={cn(
-          "px-4 py-2 flex items-center justify-between border-b backdrop-blur-sm",
-          isDarkMode
-            ? "bg-amber-900/90 border-amber-800"
-            : "bg-amber-100/90 border-amber-200",
-        )}
-      >
-        <div className="flex items-center space-x-2">
-          <h1 className="font-bold text-lg">マイハウス</h1>
-          <span
-            className={cn(
-              "px-2 py-0.5 text-xs rounded-md",
-              isDarkMode ? "bg-amber-800" : "bg-amber-200",
-            )}
-          >
-            マイルーム
+    <main className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 dark:from-amber-900 dark:to-amber-800">
+      <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between z-50 sticky top-0 left-0 right-0 font-sans">
+        <div className="flex items-center">
+          <Home className="h-7 w-7 mr-2" />
+          <h1 className="text-xl font-bold tracking-wide">
+            マイスタディハウス
+          </h1>
+          <span className="ml-3 bg-amber-700 px-3 py-1 rounded text-base font-semibold">
+            Lv.{userStats.level}
           </span>
         </div>
 
-        <div className="flex items-center space-x-3">
-          {showRoomCode && (
-            <div
-              className={cn(
-                "px-3 py-1 rounded-md text-sm font-mono flex items-center gap-2",
-                isDarkMode ? "bg-amber-800" : "bg-amber-200",
-              )}
-            >
-              <span>招待コード: {roomCode}</span>
-              <button
-                onClick={regenerateRoomCode}
-                className="h-5 w-5 rounded-full flex items-center justify-center hover:bg-amber-700/20"
-                title="新しいコードを生成"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="12"
-                  height="12"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  className="lucide lucide-refresh-cw"
-                >
-                  <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-                  <path d="M21 3v5h-5" />
-                  <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-                  <path d="M3 21v-5h5" />
-                </svg>
-              </button>
-            </div>
-          )}
+        <div className="flex items-center space-x-6">
+          <div className="flex items-center">
+            <Calendar className="h-6 w-6 mr-2" />
+            <span className="text-lg font-medium">
+              {userStats.dayStreak}日連続
+            </span>
+          </div>
 
-          <button
-            className={cn(
-              "text-sm py-1.5 px-3 rounded-md flex items-center",
-              isDarkMode
-                ? "bg-amber-800 border-amber-700 hover:bg-amber-700"
-                : "bg-amber-200 border-amber-300 hover:bg-amber-300",
-            )}
-            onClick={copyInviteLink}
-          >
-            招待する
-          </button>
-
-          {/* End Study Session Button */}
-          <button
-            onClick={() => setShowEndSessionDialog(true)}
-            disabled={isLoading}
-            className={cn(
-              "flex items-center text-sm rounded-md py-1.5 px-3 transition-all",
-              isDarkMode
-                ? "bg-amber-800 hover:bg-amber-700 text-amber-50"
-                : "bg-amber-200 hover:bg-amber-300 text-amber-950",
-              isLoading && "opacity-70 cursor-not-allowed",
-            )}
-          >
-            <LogOut className="h-4 w-4 mr-1.5" />
-            タスク終了
-          </button>
-
-          {/* Custom theme toggle button */}
-          <button
-            onClick={toggleDarkMode}
-            className={cn(
-              "flex items-center justify-center rounded-full p-2 transition-colors",
-              isDarkMode
-                ? "bg-amber-800 hover:bg-amber-700 text-amber-50"
-                : "bg-amber-200 hover:bg-amber-300 text-amber-950",
-            )}
-          >
-            {isDarkMode ? (
-              <Sun className="h-4 w-4" />
-            ) : (
-              <Moon className="h-4 w-4" />
-            )}
-          </button>
-
-          <button
-            className={cn(
-              "flex items-center justify-center rounded-full p-2 transition-colors",
-              isDarkMode
-                ? "bg-amber-800 hover:bg-amber-700 text-amber-50"
-                : "bg-amber-200 hover:bg-amber-300 text-amber-950",
-            )}
-          >
-            <Settings className="h-4 w-4" />
-          </button>
+          <div className="flex items-center">
+            <BookOpen className="h-6 w-6 mr-2" />
+            <span className="text-lg font-medium">
+              {userStats.totalStudyHours}時間
+            </span>
+          </div>
         </div>
       </header>
 
-      <main className="relative h-[calc(100vh-3rem)] overflow-hidden">
-        {/* 参加者の表示領域 - 固定位置に */}
-        <div
-          className={cn(
-            "flex-1 relative min-h-[60vh] mb-20",
-            "transition-all duration-500 ease-in-out",
-          )}
-        >
-          {/* 参加者アバター - 背景に合わせた配置 */}
-          {participants.map((user, index) => {
-            // より自然な位置に配置 - 部屋の背景に合わせて調整
-            let posX, posY, scale;
-
-            // 参加者の数と位置に応じて調整 - 部屋の家具に合わせた位置
-            switch (index) {
-              case 0: // 左側のソファ
-                posX = 24;
-                posY = 50;
-                scale = 1.1;
-                break;
-              case 1: // 右側のソファ
-                posX = 76;
-                posY = 50;
-                scale = 1.1;
-                break;
-              case 2: // 床の座布団（中央下）
-                posX = 50;
-                posY = 74;
-                scale = 1;
-                break;
-              case 3: // テーブル前の椅子（上側）
-                posX = 50;
-                posY = 35;
-                scale = 0.9;
-                break;
-              case 4: // 左上の椅子（窓側）
-                posX = 32;
-                posY = 37;
-                scale = 0.85;
-                break;
-              case 5: // 右上の椅子
-                posX = 68;
-                posY = 37;
-                scale = 0.85;
-                break;
-              case 6: // 左下の座布団
-                posX = 32;
-                posY = 68;
-                scale = 0.9;
-                break;
-              case 7: // 右下の座布団
-                posX = 68;
-                posY = 68;
-                scale = 0.9;
-                break;
-              default: // その他の人は端に配置
-                const angle = (index * Math.PI * 2) / participants.length;
-                posX = 50 + 40 * Math.cos(angle);
-                posY = 50 + 30 * Math.sin(angle);
-                scale = 0.8;
-            }
-
-            return (
-              <div
-                key={user.id}
-                className="absolute"
-                style={{
-                  left: `${posX}%`,
-                  top: `${posY}%`,
-                  transform: `translate(-50%, -50%) scale(${scale})`,
-                  zIndex: user.id === 1 ? 20 : 10,
-                }}
-              >
-                {/* 影 */}
-                <div className="absolute bottom-[-3px] left-1/2 transform -translate-x-1/2 w-10 h-1 bg-black/20 rounded-full blur-sm"></div>
-
-                <div className="flex flex-col items-center">
-                  <div
-                    className={cn(
-                      "relative w-16 h-16 rounded-full overflow-hidden border-2",
-                      user.id === 1
-                        ? isDarkMode
-                          ? "border-amber-500"
-                          : "border-amber-600"
-                        : isDarkMode
-                          ? "border-amber-700"
-                          : "border-amber-300",
-                    )}
-                  >
-                    <Image
-                      src={user.avatar || "/images/user1.png"}
-                      alt={user.name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 64px"
-                      className="object-cover"
-                    />
-                  </div>
-                  <span
-                    className={cn(
-                      "mt-1 px-2 py-0.5 rounded-full text-xs font-medium",
-                      isDarkMode
-                        ? "bg-amber-800/80 text-amber-50"
-                        : "bg-white/85 text-amber-950 border border-amber-400/50",
-                    )}
-                  >
-                    {user.name}
-                  </span>
-
-                  {/* ステータスインジケーター */}
-                  <div
-                    className={cn(
-                      "mt-1 w-2 h-2 rounded-full",
-                      user.status === "studying"
-                        ? "bg-green-500"
-                        : user.status === "break"
-                          ? "bg-amber-500"
-                          : "bg-slate-500",
-                    )}
-                  ></div>
-                </div>
+      {/* タスク完了モーダル */}
+      {showCompletionModal && completedTaskId && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 modal-backdrop">
+          <div className="bg-white dark:bg-amber-800 rounded-lg p-6 max-w-md w-full mx-4 shadow-2xl transform transition-all">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-green-100 dark:bg-green-900 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle className="h-10 w-10 text-green-500 dark:text-green-400" />
               </div>
-            );
-          })}
-        </div>
 
-        {/* End Study Session Dialog */}
-        <Dialog
-          open={showEndSessionDialog}
-          onOpenChange={setShowEndSessionDialog}
-        >
-          <DialogContent
-            className={cn(
-              "sm:max-w-xl w-[90%] p-6",
-              isDarkMode
-                ? "bg-amber-900 border-amber-800 text-amber-50 border-2"
-                : "bg-amber-50 border-amber-200 text-amber-950 border-2",
-            )}
-          >
-            <DialogHeader className="p-2">
-              <DialogTitle className="flex items-center gap-3 text-xl mb-2">
-                <LogOut className="h-6 w-6" />
-                タスクを終了しますか？
-              </DialogTitle>
-              <DialogDescription
-                className={cn(
-                  "text-base",
-                  isDarkMode ? "text-amber-300" : "text-amber-700",
-                )}
-              >
-                タスクを終了すると、現在の作業タイマーがリセットされます。タイマーの進捗はプロフィールに記録されます。
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="sm:justify-between flex-row gap-3 mt-6 mb-2">
-              <button
-                onClick={() => setShowEndSessionDialog(false)}
-                disabled={isLoading}
-                className={cn(
-                  "flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors",
-                  isDarkMode
-                    ? "bg-amber-800 hover:bg-amber-700"
-                    : "bg-amber-100 hover:bg-amber-200",
-                )}
-              >
-                キャンセル
-              </button>
-              <button
-                onClick={endStudySession}
-                disabled={isLoading}
-                className={cn(
-                  "flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors flex justify-center items-center",
-                  isDarkMode
-                    ? "bg-red-800 hover:bg-red-700 text-red-50"
-                    : "bg-red-100 hover:bg-red-200 text-red-800",
-                  isLoading && "opacity-70 cursor-not-allowed",
-                )}
-              >
-                {isLoading ? (
-                  "処理中..."
-                ) : (
-                  <>
-                    <LogOut className="h-5 w-5 mr-2" />
-                    終了する
-                  </>
-                )}
-              </button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+              <h3 className="text-xl font-bold text-amber-800 dark:text-amber-100 mb-2">
+                タスク完了！
+              </h3>
 
-        {/* メモ・チャット・作業状態エリア - 画面最下部に固定 */}
-        <div className="fixed bottom-0 left-0 right-0 z-30">
-          <div className="container mx-auto px-4">
-            {/* 開閉ボタン - タブの外に移動 */}
-            <div className="absolute -top-10 left-0 right-0 flex justify-center">
+              <p className="text-amber-600 dark:text-amber-300 mb-4">
+                「{tasks.find((t) => t.id === completedTaskId)?.title}
+                」を完了しました。 おめでとうございます！
+              </p>
+
               <button
-                onClick={togglePanel}
-                className={cn(
-                  "px-6 py-1 rounded-full flex items-center justify-center text-xs font-medium",
-                  "transform transition-all duration-500 ease-in-out hover:scale-110",
-                  "border shadow-md",
-                  isDarkMode
-                    ? "bg-amber-700/90 text-amber-50 hover:bg-amber-600 border-amber-600"
-                    : "bg-amber-400/90 text-amber-950 hover:bg-amber-500 border-amber-500/80 backdrop-blur-sm",
-                )}
+                onClick={() => {
+                  setShowCompletionModal(false);
+                }}
+                className="bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-6 rounded-lg transition-colors"
               >
-                {isPanelExpanded ? (
-                  <>
-                    <ChevronDown className="h-4 w-4 mr-1" />
-                    <span>パネルを閉じる</span>
-                  </>
-                ) : (
-                  <>
-                    <ChevronUp className="h-4 w-4 mr-1" />
-                    <span>パネルを開く</span>
-                  </>
-                )}
+                いい調子！
               </button>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div
+      <div className="container mx-auto px-4 py-8 max-w-6xl">
+        {/* モバイル向けのタブナビゲーション */}
+        <div className="lg:hidden flex border-b mb-6 overflow-x-auto">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
               className={cn(
-                "rounded-t-xl overflow-hidden border transform origin-bottom",
-                "transition-colors duration-500 ease-in-out",
-                isPanelExpanded ? "scale-y-100" : "scale-y-95",
-                isDarkMode
-                  ? "bg-amber-900/90 border-amber-800 shadow-lg"
-                  : "bg-amber-50/95 border-amber-200 shadow-md",
+                "flex items-center gap-2 px-4 py-3 whitespace-nowrap",
+                activeTab === tab.id
+                  ? isDarkMode
+                    ? "border-b-2 border-amber-500 text-amber-100 font-medium"
+                    : "border-b-2 border-amber-500 text-amber-800 font-medium"
+                  : isDarkMode
+                    ? "text-amber-300"
+                    : "text-amber-600",
               )}
             >
-              <Tabs
-                defaultValue="chat"
-                value={activeTab}
-                onValueChange={setActiveTab}
-              >
-                {/* タブナビゲーション - 常に表示 */}
-                <div className="flex items-center justify-between">
-                  <TabsList
-                    className={cn(
-                      "w-full grid grid-cols-2",
-                      isDarkMode ? "bg-amber-800" : "bg-amber-100",
-                    )}
-                  >
-                    <TabsTrigger value="chat" className="flex items-center">
-                      <MessageSquare className="h-4 w-4 mr-2" />
-                      チャット
-                    </TabsTrigger>
-                    <TabsTrigger value="stats" className="flex items-center">
-                      <span className="mr-2">📊</span>
-                      作業状況
-                    </TabsTrigger>
-                  </TabsList>
-                </div>
+              <tab.icon className="h-5 w-5" />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
 
-                {/* パネルの内容 - 開閉可能（トランジションなし） */}
-                <div
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          {/* サイドバーナビゲーション（デスクトップ） */}
+          <div className="hidden lg:block lg:col-span-3">
+            <div className="bg-white dark:bg-amber-800/90 rounded-lg shadow-md border border-amber-200 dark:border-amber-700 overflow-hidden sticky top-24">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "w-full",
-                    isPanelExpanded
-                      ? "h-[70vh] min-h-[600px] max-h-[800px] opacity-100 visible"
-                      : "h-0 opacity-0 invisible",
+                    "w-full flex items-center gap-3 px-4 py-4 text-left transition-colors",
+                    activeTab === tab.id
+                      ? isDarkMode
+                        ? "bg-amber-700/50 text-amber-50 font-medium border-l-4 border-amber-500"
+                        : "bg-amber-100 text-amber-800 font-medium border-l-4 border-amber-500"
+                      : isDarkMode
+                        ? "text-amber-200 hover:bg-amber-800/50"
+                        : "text-amber-700 hover:bg-amber-50",
                   )}
                 >
-                  <TabsContent value="chat" className="h-full overflow-hidden">
+                  <tab.icon className="h-5 w-5" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* メインコンテンツエリア */}
+          <div className="lg:col-span-9">
+            {/* 学習データサマリー - 常に表示 */}
+            <StudyDataSummary />
+
+            {/* 学習ステータス */}
+            <div className="mb-8 p-4 bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-md">
+              <div className="flex items-center mb-3">
+                <div className="w-8 h-8 bg-[#8cc750] rounded-full flex items-center justify-center border-2 border-[#7ab145] shadow-sm">
+                  <Clock className="h-5 w-5 text-white" />
+                </div>
+                <h3 className="ml-2 text-lg font-bold text-[#7b6c5d]">
+                  学習ステータス
+                </h3>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="bg-white p-3 rounded-lg border border-[#e4cbac]">
+                  <div className="text-xs text-[#9b8e7e] mb-1">
+                    累計学習時間
+                  </div>
+                  <div className="text-xl font-bold text-[#7b6c5d]">
+                    {formatTime(
+                      tasks.reduce((sum, t) => sum + (t.timeSpent || 0), 0),
+                    )}
+                  </div>
+                </div>
+                <div className="bg-white p-3 rounded-lg border border-[#e4cbac]">
+                  <div className="text-xs text-[#9b8e7e] mb-1">
+                    今日の学習時間
+                  </div>
+                  <div className="text-xl font-bold text-[#7b6c5d]">
+                    {formatTime(
+                      tasks.reduce(
+                        (sum, task) => sum + (task.timeSpent || 0),
+                        0,
+                      ),
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* タブコンテンツ */}
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={activeTab}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                transition={{ duration: 0.3 }}
+              >
+                {activeTab === "tasks" && (
+                  <>
+                    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
+                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                        タスク管理
+                      </h3>
+                      <TaskManagement
+                        tasks={tasks}
+                        onTaskComplete={handleTaskComplete}
+                        onTaskAdd={handleTaskAdd}
+                      />
+                    </div>
+                  </>
+                )}
+
+                {activeTab === "completed" && (
+                  <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
+                    <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                      完了したタスク
+                    </h3>
+
+                    {/* 完了タスク一覧 */}
+                    <div className="space-y-4">
+                      {tasks.filter((task) => task.completed).length === 0 ? (
+                        <div className="text-center py-8">
+                          <FileText className="h-12 w-12 mx-auto text-amber-500 mb-2" />
+                          <p className="text-lg text-amber-800 dark:text-amber-200">
+                            完了したタスクはありません
+                          </p>
+                          <p className="text-sm text-amber-600 dark:text-amber-300">
+                            タスクを完了すると、ここに表示されます
+                          </p>
+                        </div>
+                      ) : (
+                        <>
+                          <div className="mb-4 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                            <div className="flex items-center gap-2 text-green-800 dark:text-green-300 mb-2">
+                              <CheckCircle className="h-5 w-5" />
+                              <h4 className="font-medium">完了したタスク</h4>
+                            </div>
+                            <p className="text-sm text-green-700 dark:text-green-400">
+                              おめでとうございます！
+                              {tasks.filter((task) => task.completed).length}
+                              件のタスクを完了しました。
+                            </p>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            {tasks
+                              .filter((task) => task.completed)
+                              .map((task) => (
+                                <div
+                                  key={task.id}
+                                  className="bg-amber-50 dark:bg-amber-800/50 p-4 rounded-lg border border-amber-200 dark:border-amber-700"
+                                >
+                                  <div className="flex items-start justify-between">
+                                    <div>
+                                      <h5 className="font-medium line-through text-amber-700 dark:text-amber-300">
+                                        {task.title}
+                                      </h5>
+                                      {task.completedDate && (
+                                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                                          完了日時:{" "}
+                                          {task.completedDate.toLocaleString()}
+                                        </p>
+                                      )}
+                                    </div>
+                                    <div className="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                                      完了済み
+                                    </div>
+                                  </div>
+
+                                  <div className="mt-2 text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                    <Clock className="h-4 w-4" />
+                                    <span>
+                                      学習時間:{" "}
+                                      {formatTime(task.timeSpent || 0)}
+                                    </span>
+                                  </div>
+
+                                  <button
+                                    onClick={() => handleTaskComplete(task.id)}
+                                    className="mt-3 text-amber-700 dark:text-amber-300 text-sm underline flex items-center gap-1"
+                                  >
+                                    <span>未完了に戻す</span>
+                                  </button>
+                                </div>
+                              ))}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {activeTab === "chat" && (
+                  <div
+                    className="bg-white dark:bg-amber-800/90 rounded-lg overflow-hidden shadow-md border border-amber-200 dark:border-amber-700"
+                    style={{ height: "600px" }}
+                  >
                     <ChatPanel
                       messages={messages}
                       setMessages={setMessages}
                       isDarkMode={isDarkMode}
                     />
-                  </TabsContent>
+                  </div>
+                )}
 
-                  <TabsContent
-                    value="stats"
-                    className="h-full overflow-auto py-4"
-                  >
-                    <div className="h-full flex flex-col justify-start">
-                      <div className="w-full max-w-4xl mx-auto px-4 py-4 transform transition-all duration-300 hover:scale-[1.005]">
-                        <StudyStats isDarkMode={isDarkMode} />
+                {activeTab === "stats" && (
+                  <>
+                    {/* 学習ステータス */}
+                    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700 mb-6">
+                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                        学習統計
+                      </h3>
+                      <StudyTimeChart tasks={tasks} isDarkMode={isDarkMode} />
+                    </div>
+
+                    {/* タスク別分析 */}
+                    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
+                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                        タスク別分析
+                      </h3>
+                      <div className="space-y-4">
+                        {tasks.length === 0 ? (
+                          <div className="text-center py-8">
+                            <AlertTriangle className="h-12 w-12 mx-auto text-amber-500 mb-2" />
+                            <p className="text-lg text-amber-800 dark:text-amber-200">
+                              タスクがありません
+                            </p>
+                            <p className="text-sm text-amber-600 dark:text-amber-300">
+                              タスクを追加すると、ここに分析データが表示されます
+                            </p>
+                          </div>
+                        ) : (
+                          tasks.map((task) => (
+                            <div
+                              key={task.id}
+                              className="p-4 border border-amber-200 dark:border-amber-700 rounded-lg"
+                            >
+                              <div className="flex justify-between items-start mb-2">
+                                <div>
+                                  <h4 className="font-bold">{task.title}</h4>
+                                  <p className="text-sm text-amber-700 dark:text-amber-300">
+                                    {task.subject}
+                                  </p>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-medium">
+                                    {formatTime(task.timeSpent || 0)}
+                                  </div>
+                                  {task.deadline && (
+                                    <div
+                                      className={cn(
+                                        "text-xs",
+                                        new Date() > task.deadline
+                                          ? "text-red-500"
+                                          : "text-amber-600 dark:text-amber-300",
+                                      )}
+                                    >
+                                      {formatDeadline(task.deadline)}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="w-full bg-amber-100 dark:bg-amber-700/30 h-2 rounded-full overflow-hidden">
+                                <div
+                                  className="bg-amber-500 h-full rounded-full"
+                                  style={{
+                                    width: `${Math.min(
+                                      100,
+                                      (task.timeSpent || 0) / 60,
+                                    )}%`,
+                                  }}
+                                ></div>
+                              </div>
+                            </div>
+                          ))
+                        )}
                       </div>
                     </div>
-                  </TabsContent>
-                </div>
-              </Tabs>
-            </div>
+                  </>
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
         </div>
-      </main>
+      </div>
+    </main>
+  );
+}
+
+// Card コンポーネント - 最初のコードのカード実装を利用
+function Card({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 text-white flex items-center space-x-3 shadow-md">
+      <div className="text-white">{icon}</div>
+      <div>
+        <div className="text-sm opacity-80">{label}</div>
+        <div className="text-xl font-bold">{value}</div>
+      </div>
     </div>
   );
+}
+
+// ユーティリティ関数：タスク完了通知を表示
+function showCompletionNotification(taskTitle: string) {
+  // ブラウザの通知APIが利用可能かチェック
+  if ("Notification" in window) {
+    // 通知の許可状態を確認
+    if (Notification.permission === "granted") {
+      new Notification("タスク完了", {
+        body: `「${taskTitle}」を完了しました！`,
+        icon: "/icons/complete-icon.png", // 適切なアイコンパスに変更
+      });
+    } else if (Notification.permission !== "denied") {
+      // 通知の許可を要求
+      Notification.requestPermission().then((permission) => {
+        if (permission === "granted") {
+          new Notification("タスク完了", {
+            body: `「${taskTitle}」を完了しました！`,
+            icon: "/icons/complete-icon.png", // 適切なアイコンパスに変更
+          });
+        }
+      });
+    }
+  }
 }

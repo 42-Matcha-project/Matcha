@@ -2,9 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
-import { CirclePlus, LogOut, Play, Pause } from "lucide-react";
-import { SubjectRegistrationForm } from "./SubjectRegistrationForm";
-import { SubjectList } from "./SubjectList";
+import { LogOut, Play, Pause } from "lucide-react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import {
@@ -16,24 +14,12 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 
-// 作業目標の型定義
-interface StudyGoal {
-  id: number;
-  text: string;
-  completed: boolean;
-  color: "green" | "orange" | "gray";
-}
 interface StudyStatsProps {
   isDarkMode: boolean;
 }
 
 export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const router = useRouter();
-  const [goals, setGoals] = useState<StudyGoal[]>([]);
-  const [newGoalText, setNewGoalText] = useState("");
-  const [isAddingGoal, setIsAddingGoal] = useState(false);
-  const [goalError, setGoalError] = useState<string | null>(null);
-  const [refreshSubjectsTrigger, setRefreshSubjectsTrigger] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showEndSessionDialog, setShowEndSessionDialog] = useState(false);
   const [studyTimeMinutes, setStudyTimeMinutes] = useState(0); // 作業時間（分）
@@ -42,15 +28,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
   const [isStudying, setIsStudying] = useState(false); // 勉強中かどうか
   const [totalStudyTimeSeconds, setTotalStudyTimeSeconds] = useState(0); // 累積作業時間（秒）
   const [pauseTime, setPauseTime] = useState<Date | null>(null); // 一時停止時間
-
-  // 警告メッセージの状態
-  const [showWarning, setShowWarning] = useState(false);
-  const [warningMessage, setWarningMessage] = useState("");
-
-  // 目標テキストの最大文字数を定義
-  const MAX_GOAL_TEXT_LENGTH = 100;
-  // 表示する警告の閾値を調整
-  const WARNING_THRESHOLD = Math.floor(MAX_GOAL_TEXT_LENGTH * 0.8); // 80%で警告
 
   // コンポーネントマウント時に保存された状態を復元
   useEffect(() => {
@@ -188,41 +165,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     toast.success("勉強を再開しました！");
   };
 
-  // 目標達成率を計算
-  const completionRate = Math.round(
-    (goals.filter((goal) => goal.completed).length / goals.length) * 100,
-  );
-
-  // 新しい目標を追加
-  const addGoal = () => {
-    if (newGoalText.trim()) {
-      const newGoal: StudyGoal = {
-        id: Date.now(),
-        text: newGoalText.trim(),
-        completed: false,
-        color: "gray",
-      };
-      setGoals([...goals, newGoal]);
-      setNewGoalText("");
-      setGoalError(null);
-      setIsAddingGoal(false);
-    }
-  };
-
-  // 目標の状態を切り替え
-  const toggleGoalCompletion = (id: number) => {
-    setGoals((prevGoals) =>
-      prevGoals.map((goal) =>
-        goal.id === id ? { ...goal, completed: !goal.completed } : goal,
-      ),
-    );
-  };
-
-  // タスクが追加されたときにタスクリストを更新
-  const handleSubjectAdded = () => {
-    setRefreshSubjectsTrigger((prev) => prev + 1);
-  };
-
   // 自習終了ダイアログを表示
   const openEndSessionDialog = () => {
     if (isStudying) {
@@ -269,9 +211,9 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         localStorage.removeItem("isStudying");
 
         // ログイン画面へリダイレクト
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500); // トーストメッセージを表示した後、1.5秒後にリダイレクト
+        // setTimeout(() => {
+        //   router.push("/login");
+        // }, 1500); // トーストメッセージを表示した後、1.5秒後にリダイレクト
         return;
       }
 
@@ -462,12 +404,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     return `${minutes}分${seconds}秒`;
   };
 
-  // 現在の作業セッション時間
-  const currentSessionTime = formatStudyTime(
-    studyTimeMinutes,
-    studyTimeSeconds,
-  );
-
   // 合計作業時間（現在のセッション + 過去のセッション）
   let displayTotalTime = totalStudyTimeSeconds;
   if (isStudying && studyTimeStarted) {
@@ -477,90 +413,98 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
     displayTotalTime += diffSeconds;
   }
 
-  // 目標テキスト入力ハンドラ
-  const handleGoalTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-
-    // 現在の文字数が最大を超えているか確認
-    if (value.length > MAX_GOAL_TEXT_LENGTH) {
-      // 警告メッセージを設定して表示
-      setWarningMessage(
-        `このテキストを${MAX_GOAL_TEXT_LENGTH}文字以下にしてください（現時点で ${value.length} 文字です）。`,
-      );
-      setShowWarning(true);
-      // 最大文字数に制限
-      setNewGoalText(value.slice(0, MAX_GOAL_TEXT_LENGTH));
-    } else {
-      setNewGoalText(value);
-      // 警告を非表示
-      setShowWarning(false);
-    }
-  };
-
   return (
     <div
       className={cn(
-        "rounded-2xl p-8 mb-8",
+        "rounded-2xl p-6 mb-8 shadow-md",
         isDarkMode
-          ? "bg-amber-900/90 border border-amber-800"
-          : "bg-amber-50/95 border border-amber-200",
+          ? "bg-amber-800/90 border border-amber-700 text-amber-50"
+          : "bg-white border border-amber-200 text-amber-900",
       )}
     >
-      {/* 勉強タイマーセクション */}
-      <div className="mb-6 p-4 bg-opacity-50 rounded-lg border border-amber-200 bg-amber-50">
-        <div className="text-center mb-4">
-          <h3 className="text-lg font-bold mb-1">作業タイマー</h3>
-          <div className="text-3xl font-bold mb-1">
-            {isStudying
-              ? currentSessionTime
-              : pauseTime
-                ? "一時停止中"
-                : "未開始"}
-          </div>
-          <div className="text-sm opacity-75">
-            合計作業時間: {formatTotalTime(displayTotalTime)}
+      {/* <h3 className="text-xl font-bold mb-4 border-b pb-2 border-amber-200">
+        学習ステータス
+      </h3> */}
+
+      {/* タイマーと作業時間表示 */}
+      <div
+        className={cn(
+          "mb-6 p-4 rounded-lg",
+          isDarkMode ? "bg-amber-700/80" : "bg-amber-100/70",
+        )}
+      >
+        <div className="flex justify-between items-center mb-3">
+          <span className="font-semibold">現在の学習時間</span>
+          <div className="flex space-x-2">
+            {isStudying ? (
+              <button
+                onClick={pauseStudy}
+                className={cn(
+                  "flex items-center px-3 py-1 rounded text-white font-medium text-sm",
+                  "bg-amber-600 hover:bg-amber-500 transition-colors",
+                )}
+              >
+                <Pause className="h-4 w-4 mr-1" /> 一時停止
+              </button>
+            ) : (
+              <button
+                onClick={studyTimeStarted ? resumeStudy : startStudy}
+                className={cn(
+                  "flex items-center px-3 py-1 rounded text-white font-medium text-sm",
+                  "bg-green-600 hover:bg-green-500 transition-colors",
+                )}
+              >
+                <Play className="h-4 w-4 mr-1" />
+                {studyTimeStarted ? "再開" : "スタート"}
+              </button>
+            )}
+            <button
+              onClick={openEndSessionDialog}
+              className={cn(
+                "flex items-center px-3 py-1 rounded font-medium text-sm",
+                "bg-red-500 hover:bg-red-400 text-white transition-colors",
+              )}
+            >
+              <LogOut className="h-4 w-4 mr-1" /> 終了
+            </button>
           </div>
         </div>
 
-        <div className="flex justify-center gap-4">
-          {!isStudying ? (
-            <button
-              onClick={pauseTime ? resumeStudy : startStudy}
+        <div className="grid grid-cols-2 gap-3">
+          <div
+            className={cn(
+              "rounded-lg p-3 text-center",
+              isDarkMode ? "bg-amber-900/70" : "bg-white",
+            )}
+          >
+            <div className="text-sm mb-1">今回の学習時間</div>
+            <div
               className={cn(
-                "flex items-center justify-center px-5 py-2 rounded-lg font-medium",
-                "bg-green-100 text-green-700 hover:bg-green-200 transition-colors",
-                "border border-green-300",
+                "text-2xl font-mono",
+                isDarkMode ? "text-amber-100" : "text-amber-900",
               )}
             >
-              <Play className="h-4 w-4 mr-2" />
-              {pauseTime ? "再開する" : "勉強開始"}
-            </button>
-          ) : (
-            <button
-              onClick={pauseStudy}
-              className={cn(
-                "flex items-center justify-center px-5 py-2 rounded-lg font-medium",
-                "bg-amber-100 text-amber-700 hover:bg-amber-200 transition-colors",
-                "border border-amber-300",
-              )}
-            >
-              <Pause className="h-4 w-4 mr-2" />
-              一時停止
-            </button>
-          )}
-        </div>
-      </div>
+              {formatStudyTime(studyTimeMinutes, studyTimeSeconds)}
+            </div>
+          </div>
 
-      {/* タスク登録セクション */}
-      <div className="mb-8">
-        <SubjectRegistrationForm
-          isDarkMode={isDarkMode}
-          onSubjectAdded={handleSubjectAdded}
-        />
-        <SubjectList
-          isDarkMode={isDarkMode}
-          refreshTrigger={refreshSubjectsTrigger}
-        />
+          <div
+            className={cn(
+              "rounded-lg p-3 text-center",
+              isDarkMode ? "bg-amber-900/70" : "bg-white",
+            )}
+          >
+            <div className="text-sm mb-1">今日の累計</div>
+            <div
+              className={cn(
+                "text-2xl font-mono",
+                isDarkMode ? "text-amber-100" : "text-amber-900",
+              )}
+            >
+              {formatTotalTime(totalStudyTimeSeconds)}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* End Study Session Dialog */}
@@ -629,154 +573,6 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* 目標達成度 */}
-      <div className="mb-4">
-        <p className="text-sm mb-1">今日の目標達成度</p>
-        <div className="w-full bg-gray-200 rounded-full h-2.5">
-          <div
-            className="bg-green-600 h-2.5 rounded-full"
-            style={{ width: `${completionRate || 0}%` }}
-          ></div>
-        </div>
-        <p className="text-right text-sm mt-1">{completionRate || 0}%</p>
-      </div>
-
-      {/* 今日の目標 */}
-      <div>
-        <h3 className="text-lg font-bold mb-3">今日の目標</h3>
-        <ul className="space-y-3 mb-3">
-          {goals.map((goal) => (
-            <li
-              key={goal.id}
-              className="flex items-center cursor-pointer"
-              onClick={() => toggleGoalCompletion(goal.id)}
-            >
-              <div
-                className={cn(
-                  "w-3 h-3 rounded-full mr-2",
-                  goal.color === "green"
-                    ? "bg-green-500"
-                    : goal.color === "orange"
-                      ? "bg-orange-500"
-                      : "bg-gray-400",
-                )}
-              ></div>
-              <span
-                className={cn(goal.completed ? "line-through opacity-70" : "")}
-              >
-                {goal.text}
-              </span>
-            </li>
-          ))}
-        </ul>
-
-        {/* 目標追加フォーム */}
-        {isAddingGoal ? (
-          <div className="mt-3">
-            {showWarning && (
-              <div className="bg-gray-700 text-white p-3 rounded mb-2 relative">
-                {warningMessage}
-                <button
-                  onClick={() => setShowWarning(false)}
-                  className="absolute top-2 right-2 text-white"
-                >
-                  ✕
-                </button>
-              </div>
-            )}
-            <input
-              type="text"
-              className={cn(
-                "w-full p-2 rounded-lg text-sm mb-2",
-                isDarkMode
-                  ? "bg-amber-800 border-amber-700 text-amber-50"
-                  : "bg-white border border-amber-200 text-amber-950",
-                goalError ? "border-red-500" : "",
-              )}
-              placeholder="新しい目標を入力..."
-              value={newGoalText}
-              onChange={handleGoalTextChange}
-              onKeyDown={(e) => e.key === "Enter" && addGoal()}
-              autoFocus
-              maxLength={MAX_GOAL_TEXT_LENGTH}
-            />
-            <div className="text-xs mt-1 mb-2">
-              {newGoalText.length}/{MAX_GOAL_TEXT_LENGTH}
-              {newGoalText.length >= WARNING_THRESHOLD &&
-                newGoalText.length < MAX_GOAL_TEXT_LENGTH && (
-                  <span className="text-amber-500 ml-2">
-                    制限に近づいています
-                  </span>
-                )}
-            </div>
-            <p className="text-xs text-red-500 mb-2">
-              最大{MAX_GOAL_TEXT_LENGTH}文字までです
-            </p>
-            <div className="flex justify-end space-x-2">
-              <button
-                className={cn(
-                  "px-3 py-1 rounded-lg text-xs",
-                  isDarkMode
-                    ? "bg-amber-700 hover:bg-amber-600"
-                    : "bg-amber-100 hover:bg-amber-200",
-                )}
-                onClick={() => setIsAddingGoal(false)}
-              >
-                キャンセル
-              </button>
-              <button
-                className={cn(
-                  "px-3 py-1 rounded-lg text-xs",
-                  isDarkMode
-                    ? "bg-amber-600 hover:bg-amber-500"
-                    : "bg-amber-300 hover:bg-amber-400",
-                )}
-                onClick={addGoal}
-              >
-                追加
-              </button>
-            </div>
-          </div>
-        ) : (
-          <button
-            className={cn(
-              "w-full py-2 rounded-lg text-sm flex items-center justify-center",
-              isDarkMode
-                ? "bg-amber-800 hover:bg-amber-700"
-                : "bg-white border border-amber-200 hover:bg-amber-50",
-            )}
-            onClick={() => setIsAddingGoal(true)}
-          >
-            <CirclePlus className="h-4 w-4 mr-1" />
-            目標を追加
-          </button>
-        )}
-      </div>
-
-      {/* 自習を終了するボタン */}
-      <button
-        onClick={openEndSessionDialog}
-        className="w-full py-3 px-6 rounded-lg flex items-center justify-center bg-red-50 text-red-600 hover:bg-red-100 transition-colors mt-4 border-2 border-red-300"
-      >
-        <LogOut className="h-5 w-5 mr-2" />
-        <span className="font-medium">自習を終了する</span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className="ml-2 lucide lucide-arrow-right"
-        >
-          <path d="M5 12h14" />
-          <path d="m12 5 7 7-7 7" />
-        </svg>
-      </button>
     </div>
   );
 }

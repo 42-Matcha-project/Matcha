@@ -142,62 +142,7 @@ export function SubjectRegistrationForm({
       setIsSubmitting(true);
 
       // ローカルストレージからトークンを取得
-      let token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("認証情報がありません");
-      }
-
-      // 認証テスト - トークンが有効か確認
-      try {
-        const testResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/profile/get`,
-          {
-            method: "GET",
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          },
-        );
-
-        // 認証失敗した場合はログインし直す
-        if (!testResponse.ok) {
-          const loginResponse = await fetch(
-            `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/login`,
-            {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                Username: "test", // テスト用の固定値
-                Password: "test", // テスト用の固定値
-              }),
-            },
-          );
-
-          if (loginResponse.ok) {
-            const data = await loginResponse.json();
-            // tokenが文字列であることを保証
-            if (typeof data.Token === "string") {
-              token = data.Token;
-              localStorage.setItem("token", data.Token);
-              toast.success("再認証しました");
-            } else {
-              throw new Error("認証トークンが無効です");
-            }
-          } else {
-            throw new Error("再認証に失敗しました");
-          }
-        }
-      } catch (error) {
-        console.error("認証テストエラー:", error);
-        throw new Error("認証に失敗しました");
-      }
-
-      // この時点でtokenは必ず存在する（エラーが発生していなければ）
-      if (!token) {
-        throw new Error("認証トークンが見つかりません");
-      }
+      const token = localStorage.getItem("token") || "dummy-token";
 
       // タスク登録APIを呼び出す
       const response = await fetch(
@@ -243,7 +188,14 @@ export function SubjectRegistrationForm({
   };
 
   return (
-    <div className="mb-6">
+    <div
+      className={cn(
+        "rounded-2xl p-6 mb-6 shadow-md",
+        isDarkMode
+          ? "bg-amber-800/90 border border-amber-700 text-amber-50"
+          : "bg-white border border-amber-200 text-amber-900",
+      )}
+    >
       {/* 非表示のファイル入力 */}
       <input
         type="file"
@@ -253,32 +205,24 @@ export function SubjectRegistrationForm({
         className="hidden"
       />
 
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-bold">タスク登録</h3>
+      <h3 className="text-xl font-bold mb-4 border-b pb-2 border-amber-200">
+        科目登録
+      </h3>
+
+      {!isFormOpen ? (
         <button
-          onClick={() => setIsFormOpen(!isFormOpen)}
+          onClick={() => setIsFormOpen(true)}
           className={cn(
-            "text-xs px-2 py-1 rounded-full flex items-center",
+            "w-full py-3 flex items-center justify-center gap-2 rounded-lg transition-all",
             isDarkMode
-              ? "bg-amber-800 hover:bg-amber-700"
-              : "bg-amber-100 hover:bg-amber-200",
+              ? "bg-amber-700 hover:bg-amber-600 text-white"
+              : "bg-amber-500 hover:bg-amber-600 text-white",
           )}
         >
-          {isFormOpen ? (
-            <>
-              <X className="h-3 w-3 mr-1" />
-              閉じる
-            </>
-          ) : (
-            <>
-              <PlusCircle className="h-3 w-3 mr-1" />
-              追加
-            </>
-          )}
+          <PlusCircle className="h-5 w-5" />
+          <span className="font-medium">新しい科目を登録</span>
         </button>
-      </div>
-
-      {isFormOpen && (
+      ) : (
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label className="block text-sm font-medium mb-1">

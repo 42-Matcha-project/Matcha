@@ -593,7 +593,32 @@ export function SubjectList({
   };
 
   return (
-    <div className="mb-6">
+    <div
+      className={cn(
+        "rounded-2xl p-6 shadow-md",
+        isDarkMode
+          ? "bg-amber-800/90 border border-amber-700 text-amber-50"
+          : "bg-white border border-amber-200 text-amber-900",
+      )}
+    >
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-xl font-bold border-b pb-2 border-amber-200">
+          登録済みタスク
+        </h3>
+        <button
+          onClick={handleRefresh}
+          className={cn(
+            "p-2 rounded-full transition-colors",
+            isDarkMode
+              ? "text-amber-200 hover:bg-amber-700"
+              : "text-amber-800 hover:bg-amber-100",
+          )}
+          aria-label="リスト更新"
+        >
+          <RefreshCw className={cn("h-5 w-5", isLoading && "animate-spin")} />
+        </button>
+      </div>
+
       {/* 非表示のファイル入力 */}
       <input
         type="file"
@@ -602,20 +627,6 @@ export function SubjectList({
         accept="image/*"
         className="hidden"
       />
-
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-lg font-bold">登録済みタスク</h3>
-        <button
-          onClick={handleRefresh}
-          className={cn(
-            "text-xs px-2 py-1 rounded-full flex items-center",
-            isDarkMode
-              ? "bg-amber-800 hover:bg-amber-700"
-              : "bg-amber-100 hover:bg-amber-200",
-          )}
-          disabled={isLoading}
-        ></button>
-      </div>
 
       {isLoading ? (
         <div className="p-4 text-center">

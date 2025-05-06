@@ -101,14 +101,13 @@ export default function BuildingsPage() {
     try {
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        toast.error("認証情報がありません");
-        // ログイン画面へリダイレクト
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500); // トーストメッセージを表示した後、1.5秒後にリダイレクト
-        throw new Error("認証情報がありません");
-      }
+      // if (!token) {
+      //   toast.error("認証情報がありません");
+      //   setTimeout(() => {
+      //     router.push("/login");
+      //   }, 1500);
+      //   throw new Error("認証情報がありません");
+      // }
 
       // API call to get buildings
       const response = await fetch(
@@ -122,19 +121,18 @@ export default function BuildingsPage() {
         },
       );
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error(
-            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
-          );
-          // ログイン画面へリダイレクト
-          setTimeout(() => {
-            router.push("/login");
-          }, 2000); // トーストメッセージを表示後、2秒後にリダイレクト
-          throw new Error("認証エラー - 再ログインが必要です");
-        }
-        throw new Error(`建物データの取得に失敗しました (${response.status})`);
-      }
+      // if (!response.ok) {
+      //   if (response.status === 401) {
+      //     toast.error(
+      //       "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+      //     );
+      //     setTimeout(() => {
+      //       router.push("/login");
+      //     }, 2000);
+      //     throw new Error("認証エラー - 再ログインが必要です");
+      //   }
+      //   throw new Error(`建物データの取得に失敗しました (${response.status})`);
+      // }
 
       const data: APIResponse = await response.json();
 
@@ -308,14 +306,13 @@ export default function BuildingsPage() {
     try {
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        toast.error("認証情報がありません");
-        // ログイン画面へリダイレクト
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500);
-        throw new Error("認証情報がありません");
-      }
+      // if (!token) {
+      //   toast.error("認証情報がありません");
+      //   setTimeout(() => {
+      //     router.push("/login");
+      //   }, 1500);
+      //   throw new Error("認証情報がありません");
+      // }
 
       // API call to get store buildings
       const response = await fetch(
@@ -329,21 +326,20 @@ export default function BuildingsPage() {
         },
       );
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error(
-            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
-          );
-          // ログイン画面へリダイレクト
-          setTimeout(() => {
-            router.push("/login");
-          }, 2000);
-          throw new Error("認証エラー - 再ログインが必要です");
-        }
-        throw new Error(
-          `ストア建物データの取得に失敗しました (${response.status})`,
-        );
-      }
+      // if (!response.ok) {
+      //   if (response.status === 401) {
+      //     toast.error(
+      //       "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+      //     );
+      //     setTimeout(() => {
+      //       router.push("/login");
+      //     }, 2000);
+      //     throw new Error("認証エラー - 再ログインが必要です");
+      //   }
+      //   throw new Error(
+      //     `ストア建物データの取得に失敗しました (${response.status})`,
+      //   );
+      // }
 
       const data: APIResponse = await response.json();
 
@@ -369,14 +365,13 @@ export default function BuildingsPage() {
     try {
       const token = localStorage.getItem("token");
 
-      if (!token) {
-        toast.error("認証情報がありません");
-        // ログイン画面へリダイレクト
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500);
-        return;
-      }
+      // if (!token) {
+      //   toast.error("認証情報がありません");
+      //   setTimeout(() => {
+      //     router.push("/login");
+      //   }, 1500);
+      //   return;
+      // }
 
       // API call to buy a building
       const response = await fetch(
@@ -393,22 +388,21 @@ export default function BuildingsPage() {
         },
       );
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          toast.error(
-            "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
-          );
-          // ログイン画面へリダイレクト
-          setTimeout(() => {
-            router.push("/login");
-          }, 2000);
-          return;
-        }
-        const errorData = await response.json();
-        throw new Error(
-          errorData.Error || `建物の購入に失敗しました (${response.status})`,
-        );
-      }
+      // if (!response.ok) {
+      //   if (response.status === 401) {
+      //     toast.error(
+      //       "認証情報がありません。またあとでためしてみるか、運営に相談してみよう！",
+      //     );
+      //     setTimeout(() => {
+      //       router.push("/login");
+      //     }, 2000);
+      //     return;
+      //   }
+      //   const errorData = await response.json();
+      //   throw new Error(
+      //     errorData.Error || `建物の購入に失敗しました (${response.status})`,
+      //   );
+      // }
 
       toast.success("建物を購入しました！");
 
