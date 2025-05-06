@@ -1,6 +1,7 @@
 package main
 
 import (
+	sentrygin "github.com/getsentry/sentry-go/gin"
 	"net/http"
 	"os"
 	"srcs/admin"
@@ -10,6 +11,7 @@ import (
 	"srcs/friends"
 	"srcs/middlewares"
 	"srcs/models"
+	"srcs/monitoring"
 	"srcs/password"
 	"srcs/profile"
 	"srcs/reports"
@@ -29,7 +31,9 @@ func main() {
 
 	var router *gin.Engine
 	if os.Getenv("ENVIRONMENT") == "production" {
+		monitoring.InitSentry()
 		router = gin.New()
+		router.Use(sentrygin.New(sentrygin.Options{}))
 		router.Use(utils.ProductionLogger())
 		router.Use(gin.Recovery())
 		gin.SetMode(gin.ReleaseMode)

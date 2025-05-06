@@ -49,32 +49,28 @@ func Register(reqContext *gin.Context) {
 	var registerInput RegisterInput
 
 	if err := reqContext.ShouldBindJSON(&registerInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	isVerified, err, responseCode := IsEmailVerified(registerInput.Email)
 	if !isVerified && err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, responseCode, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		return
 	}
 
 	user, err, responseCode := registerUser(registerInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, responseCode, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		return
 	}
 
 	err = buildings.BuildDefaultBuilding(user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToBuildDefaultBuilding, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToBuildDefaultBuilding, applogs.CreateJSONResponseByResponseCode(applogs.FailedToBuildDefaultBuilding, applogs.ResponseOptions{}))
 		return
 	}
 
 	err = characters.GetDefaultCharacter(user)
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.RegisterSuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.RegisterSuccess, applogs.CreateJSONResponseByResponseCode(applogs.RegisterSuccess, applogs.ResponseOptions{}))
 }

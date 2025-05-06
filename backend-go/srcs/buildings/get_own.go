@@ -23,17 +23,15 @@ func GetOwnBuildingsHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	buildings, err := GetOwnBuildings(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetBuildings, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetBuildings, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetBuildings, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetOwnBuildingsSuccess, applogs.ResponseOptions{Buildings: models.ConvertToBuildingInfos(buildings)}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.GetOwnBuildingsSuccess, applogs.CreateJSONResponseByResponseCode(applogs.GetOwnBuildingsSuccess, applogs.ResponseOptions{Buildings: models.ConvertToBuildingInfos(buildings)}))
 }

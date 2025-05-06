@@ -90,44 +90,39 @@ func GenerateOTPHandler(reqContext *gin.Context) {
 	var generateOTPInput GenerateOTPInput
 	err := reqContext.ShouldBindJSON(&generateOTPInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	OTP, err := utils.GenerateRandomCode(6)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGenerateRand, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGenerateRand, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGenerateRand, applogs.ResponseOptions{}))
 		return
 	}
 
 	err = mail.SendMail(generateOTPInput.Email, mail_contents.CreateOTPSubject(), mail_contents.CreateOTPMailText(OTP), mail_contents.CreateOTPMailHTML(OTP))
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSendEmail, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusInternalServerError, err, applogs.FailedToSendEmail, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSendEmail, applogs.ResponseOptions{}))
 		return
 	}
 
 	err = saveOTP(generateOTPInput.Email, OTP)
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSaveOTP, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusInternalServerError, err, applogs.FailedToSaveOTP, applogs.CreateJSONResponseByResponseCode(applogs.FailedToSaveOTP, applogs.ResponseOptions{}))
 		return
 	}
 
 	err = cleanupExpiredOTPs()
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCleanUpExpiredOTPs, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusInternalServerError, err, applogs.FailedToCleanUpExpiredOTPs, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCleanUpExpiredOTPs, applogs.ResponseOptions{}))
 		return
 	}
 
 	if os.Getenv("ENVIRONMENT") == "development" {
-		reqContext.JSON(http.StatusCreated, applogs.CreateJSONResponseByResponseCode(applogs.OTPGenerateSuccess, applogs.ResponseOptions{OTP: OTP}))
+		applogs.RespondJSON(reqContext, http.StatusCreated, err, applogs.OTPGenerateSuccess, applogs.CreateJSONResponseByResponseCode(applogs.OTPGenerateSuccess, applogs.ResponseOptions{OTP: OTP}))
 		return
 	}
-	reqContext.JSON(http.StatusCreated, applogs.CreateJSONResponseByResponseCode(applogs.OTPGenerateSuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusCreated, nil, applogs.OTPGenerateSuccess, applogs.CreateJSONResponseByResponseCode(applogs.OTPGenerateSuccess, applogs.ResponseOptions{}))
 }
 
 func verifyOTP(Email string, OTP string) (error, int) {
@@ -183,19 +178,17 @@ func VerifyOTPHandler(reqContext *gin.Context) {
 	var verifyOTPInput VerifyOTPInput
 	err := reqContext.ShouldBindJSON(&verifyOTPInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	err, responseCode := verifyOTP(verifyOTPInput.Email, verifyOTPInput.OTP)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, responseCode, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.OTPVerifySuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.OTPVerifySuccess, applogs.CreateJSONResponseByResponseCode(applogs.OTPVerifySuccess, applogs.ResponseOptions{}))
 }
 
 func IsEmailVerified(email string) (bool, error, int) {

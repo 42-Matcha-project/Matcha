@@ -46,17 +46,15 @@ func GetNonOwnedBuildingsInStoreHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	nonOwnedBuildingsInStore, err := getNonOwnedBuildingsInStore(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetBuildings, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetBuildings, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetBuildings, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetNonOwnedBuildingsInStoreSuccess, applogs.ResponseOptions{Buildings: models.ConvertToBuildingInfos(nonOwnedBuildingsInStore)}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.GetNonOwnedBuildingsInStoreSuccess, applogs.CreateJSONResponseByResponseCode(applogs.GetNonOwnedBuildingsInStoreSuccess, applogs.ResponseOptions{Buildings: models.ConvertToBuildingInfos(nonOwnedBuildingsInStore)}))
 }

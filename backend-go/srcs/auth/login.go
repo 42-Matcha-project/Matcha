@@ -37,22 +37,20 @@ func Login(reqContext *gin.Context) {
 	var loginInput LoginInput
 
 	if err := reqContext.ShouldBindJSON(&loginInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 	if err := loginInput.validate(); err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.LackOfLoginData, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.LackOfLoginData, applogs.CreateJSONResponseByResponseCode(applogs.LackOfLoginData, applogs.ResponseOptions{}))
 		return
 	}
 
 	jwtTokenString, err, responseCode := models.FetchUserAndGenerateJWTTokenString(loginInput.Username, loginInput.Email, loginInput.Password)
 	if err != nil {
 		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, responseCode, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.LoginSuccess, applogs.ResponseOptions{Token: jwtTokenString}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.LoginSuccess, applogs.CreateJSONResponseByResponseCode(applogs.LoginSuccess, applogs.ResponseOptions{Token: jwtTokenString}))
 }

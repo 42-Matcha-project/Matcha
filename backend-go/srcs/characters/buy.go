@@ -37,33 +37,29 @@ type BuyCharacterInput struct {
 func BuyCharacterHandler(reqContext *gin.Context) {
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	var buyCharacterInput BuyCharacterInput
 	err = reqContext.ShouldBindJSON(&buyCharacterInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	if isCharacterOwned, err := user.IsCharacterIDOwned(buyCharacterInput.CharacterID); !isCharacterOwned && err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetCharacter, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetCharacter, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetCharacter, applogs.ResponseOptions{}))
 		return
 	} else if isCharacterOwned {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.CharacterAlreadyOwned, applogs.ResponseOptions{}))
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.CharacterAlreadyOwned, applogs.CreateJSONResponseByResponseCode(applogs.CharacterAlreadyOwned, applogs.ResponseOptions{}))
 		return
 	}
 
 	if err, responseCode := buyCharacter(user, buyCharacterInput.CharacterID); err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, responseCode, applogs.CreateJSONResponseByResponseCode(responseCode, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.BuyCharacterSuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, err, applogs.BuyCharacterSuccess, applogs.CreateJSONResponseByResponseCode(applogs.BuyCharacterSuccess, applogs.ResponseOptions{}))
 }

@@ -17,8 +17,7 @@ func JWTValidationMiddleware() gin.HandlerFunc {
 	return func(reqContext *gin.Context) {
 		err := token.ValidateJWTToken(reqContext)
 		if err != nil {
-			reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJWTToken, applogs.ResponseOptions{}))
-			reqContext.Error(err)
+			applogs.RespondJSON(reqContext, http.StatusUnauthorized, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 			reqContext.Abort()
 			return
 		}
@@ -36,23 +35,20 @@ func AdminJWTValidationMiddleware() gin.HandlerFunc {
 	return func(reqContext *gin.Context) {
 		err := token.ValidateJWTToken(reqContext)
 		if err != nil {
-			reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJWTToken, applogs.ResponseOptions{}))
-			reqContext.Error(err)
+			applogs.RespondJSON(reqContext, http.StatusUnauthorized, err, applogs.InvalidJWTToken, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJWTToken, applogs.ResponseOptions{}))
 			reqContext.Abort()
 			return
 		}
 
 		userId, err := token.ExtractUserIdFromRequest(reqContext)
 		if err != nil {
-			reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJWTToken, applogs.ResponseOptions{}))
-			reqContext.Error(err)
+			applogs.RespondJSON(reqContext, http.StatusUnauthorized, err, applogs.InvalidJWTToken, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJWTToken, applogs.ResponseOptions{}))
 			reqContext.Abort()
 			return
 		}
 
 		if userId != 1 {
-			reqContext.JSON(http.StatusUnauthorized, applogs.CreateJSONResponseByResponseCode(applogs.NotHaveAdministratorPrivileges, applogs.ResponseOptions{}))
-			reqContext.Error(err)
+			applogs.RespondJSON(reqContext, http.StatusUnauthorized, err, applogs.NotHaveAdministratorPrivileges, applogs.CreateJSONResponseByResponseCode(applogs.NotHaveAdministratorPrivileges, applogs.ResponseOptions{}))
 			reqContext.Abort()
 			return
 		}
