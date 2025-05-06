@@ -35,10 +35,12 @@ export const TaskManagement = () => {
     color: "#000000",
     memo: "",
   });
+  const [newTaskIcon, setNewTaskIcon] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<"deadline" | "subject">("deadline");
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [now, setNow] = React.useState(new Date());
+  const [isDragging, setIsDragging] = useState(false);
 
   // タスク追加
   const handleTaskSubmit = () => {
@@ -58,7 +60,7 @@ export const TaskManagement = () => {
       deadline,
       completed: false,
       timeSpent: 0,
-      iconImageURL: "https://placehold.co/32",
+      iconImageURL: newTaskIcon || "https://placehold.co/32",
       timerRunning: false,
       currentTimerValue: 0,
     };
@@ -71,6 +73,7 @@ export const TaskManagement = () => {
       memo: "",
     });
     setShowAddTask(false);
+    setNewTaskIcon(null);
     toast.success("タスクを追加しました");
   };
 
@@ -158,6 +161,47 @@ export const TaskManagement = () => {
     const interval = setInterval(() => setNow(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // 画像ファイル選択ハンドラ
+  const handleIconFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setNewTaskIcon(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // ドラッグ＆ドロップハンドラ
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setNewTaskIcon(reader.result);
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  // 画像削除ボタン
+  const handleRemoveIcon = () => setNewTaskIcon(null);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
@@ -261,6 +305,53 @@ export const TaskManagement = () => {
                     rows={2}
                     placeholder="メモを入力"
                   />
+                </div>
+                <div className="mb-3">
+                  <label className="block text-sm font-medium mb-1">
+                    アイコン画像（任意）
+                  </label>
+                  <div
+                    className={`flex items-center gap-3 border-2 rounded p-2 transition-colors ${isDragging ? "border-amber-400 bg-amber-50" : "border-gray-200"}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    style={{ cursor: "pointer" }}
+                    onClick={() =>
+                      document.getElementById("icon-file-input")?.click()
+                    }
+                  >
+                    <input
+                      id="icon-file-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleIconFileChange}
+                      className="hidden"
+                    />
+                    {newTaskIcon ? (
+                      <div className="relative">
+                        <img
+                          src={newTaskIcon}
+                          alt="プレビュー"
+                          style={{ width: 64, height: 64, borderRadius: "50%" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveIcon();
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow"
+                          title="画像を削除"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-xs">
+                        画像をクリックまたはドロップ
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-end">
                   <Button
@@ -433,14 +524,15 @@ const TaskItem = ({
             <Image
               src={task.iconImageURL}
               alt=""
-              width={24}
-              height={24}
-              className="w-6 h-6 mr-2 rounded-full"
+              width={64}
+              height={64}
+              unoptimized
+              className="w-16 h-16 mr-2 rounded-full object-cover"
               onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                 const target = e.target as HTMLImageElement;
-                target.src = "https://placehold.co/32";
-                target.style.width = "32px";
-                target.style.height = "32px";
+                target.src = "https://placehold.co/64";
+                target.style.width = "64px";
+                target.style.height = "64px";
               }}
             />
           )}
