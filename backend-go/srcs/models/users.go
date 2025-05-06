@@ -2,10 +2,8 @@ package models
 
 import (
 	"errors"
-	"github.com/gin-gonic/gin"
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
-	"net/http"
 	"os"
 	"srcs/applogs"
 	"srcs/token"
@@ -174,28 +172,4 @@ func FetchUserAndGenerateJWTTokenString(username string, email string, password 
 	}
 
 	return jwtTokenString, nil, applogs.JWTGenerateSuccess
-}
-
-func GetUserInfo(reqContext *gin.Context) {
-	/*
-		ユーザーの情報を取得する関数。
-	*/
-	userId, err := token.ExtractUserIdFromRequest(reqContext)
-	if err != nil {
-		reqContext.JSON(http.StatusUnauthorized, gin.H{"Error": "Failed to get user id from token"})
-		reqContext.Error(err)
-		return
-	}
-
-	user := &TUser{}
-	err = DB.First(&user, userId).Error
-	if err != nil {
-		reqContext.JSON(http.StatusNotFound, gin.H{"Error": "User not found"})
-		reqContext.Error(err)
-		return
-	}
-
-	reqContext.JSON(http.StatusOK, gin.H{
-		"User": user.PrepareOutput(),
-	})
 }

@@ -42,17 +42,15 @@ func GetFriendsHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	friends, err := getFriends(user.ID)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetFriendship, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetFriendsSuccess, applogs.ResponseOptions{Friends: models.ConvertToOtherUsersInfos(friends)}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.GetFriendsSuccess, applogs.CreateJSONResponseByResponseCode(applogs.GetFriendsSuccess, applogs.ResponseOptions{Friends: models.ConvertToOtherUsersInfos(friends)}))
 }

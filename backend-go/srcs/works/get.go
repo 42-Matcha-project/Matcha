@@ -23,17 +23,15 @@ func GetWorksHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	works, err := getWorks(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetWork, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetWork, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetWork, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.GetWorksSuccess, applogs.ResponseOptions{Works: models.ConvertToWorkInfos(works)}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.GetWorksSuccess, applogs.CreateJSONResponseByResponseCode(applogs.GetWorksSuccess, applogs.ResponseOptions{Works: models.ConvertToWorkInfos(works)}))
 }

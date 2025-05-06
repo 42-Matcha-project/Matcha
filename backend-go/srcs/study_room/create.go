@@ -90,34 +90,30 @@ func CreateStudyRoomHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	var createStudyRoomInput CreateStudyRoomInput
 	if err := reqContext.ShouldBindJSON(&createStudyRoomInput); err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	roomCode, err := generateRoomCode()
 	if err != nil {
-		reqContext.JSON(http.StatusInternalServerError, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGenerateRand, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusInternalServerError, err, applogs.FailedToGenerateRand, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGenerateRand, applogs.ResponseOptions{}))
 		return
 	}
 
 	mainCharacter, err := characters.GetMainCharacter(*user)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetUser, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetUser, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetUser, applogs.ResponseOptions{}))
 		return
 	}
 
 	StudyRoomsMutex.Lock()
 	StudyRooms[roomCode] = createStudyRoom(createStudyRoomInput, *user, mainCharacter)
 	StudyRoomsMutex.Unlock()
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.CreateStudyRoomSuccess, applogs.ResponseOptions{RoomCode: roomCode}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.CreateStudyRoomSuccess, applogs.CreateJSONResponseByResponseCode(applogs.CreateStudyRoomSuccess, applogs.ResponseOptions{RoomCode: roomCode}))
 }

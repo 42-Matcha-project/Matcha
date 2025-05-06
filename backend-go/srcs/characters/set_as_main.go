@@ -29,34 +29,30 @@ type SetAsMainCharacterInput struct {
 func SetAsMainCharacterHandler(reqContext *gin.Context) {
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	var setMainCharacterInput SetAsMainCharacterInput
 	err = reqContext.ShouldBindJSON(&setMainCharacterInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	if isOwned, err := user.IsCharacterIDOwned(setMainCharacterInput.CharacterID); !isOwned && err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetCharacter, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetCharacter, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetCharacter, applogs.ResponseOptions{}))
 		return
 	} else if !isOwned {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.CharacterNotOwned, applogs.ResponseOptions{}))
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, nil, applogs.CharacterNotOwned, applogs.CreateJSONResponseByResponseCode(applogs.CharacterNotOwned, applogs.ResponseOptions{}))
 		return
 	}
 
 	err = setAsMainCharacter(user, setMainCharacterInput.CharacterID)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToUpdateUserCharacter, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToUpdateUserCharacter, applogs.CreateJSONResponseByResponseCode(applogs.FailedToUpdateUserCharacter, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.SetAsMainCharacterSuccess, applogs.ResponseOptions{}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.SetAsMainCharacterSuccess, applogs.CreateJSONResponseByResponseCode(applogs.SetAsMainCharacterSuccess, applogs.ResponseOptions{}))
 }

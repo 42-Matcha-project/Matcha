@@ -47,71 +47,63 @@ func SendFriendRequestHandler(reqContext *gin.Context) {
 	*/
 	user, err := utils.ExtractUserFromRequest(reqContext)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusNotFound, err, applogs.UserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.UserNotFound, applogs.ResponseOptions{}))
 		return
 	}
 
 	var sendFriendRequestInput SendFriendRequestInput
 	err = reqContext.ShouldBindJSON(&sendFriendRequestInput)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.InvalidJSONInput, applogs.CreateJSONResponseByResponseCode(applogs.InvalidJSONInput, applogs.ResponseOptions{}))
 		return
 	}
 
 	if user.Username == sendFriendRequestInput.ReceiverName {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.CannotFriendRequestYourself, applogs.ResponseOptions{}))
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, nil, applogs.CannotFriendRequestYourself, applogs.CreateJSONResponseByResponseCode(applogs.CannotFriendRequestYourself, applogs.ResponseOptions{}))
 		return
 	}
 
 	var receiver models.TUser
 	err = models.DB.Where("username = ?", sendFriendRequestInput.ReceiverName).First(&receiver).Error
 	if err != nil && errors.Is(err, gorm.ErrRecordNotFound) {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.OtherUserNotFound, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.OtherUserNotFound, applogs.CreateJSONResponseByResponseCode(applogs.OtherUserNotFound, applogs.ResponseOptions{}))
 		return
 	} else if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetUser, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetUser, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetUser, applogs.ResponseOptions{}))
 		return
 	}
 
 	var friendship models.TFriendship
 	err = models.DB.Where("requester_id = ? AND receiver_id = ?", user.ID, receiver.ID).First(&friendship).Error
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetFriendship, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
 		return
 	} else if err == nil {
-		reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.FriendRequestAlreadySent, applogs.ResponseOptions{}))
+		applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.FriendRequestAlreadySent, applogs.CreateJSONResponseByResponseCode(applogs.FriendRequestAlreadySent, applogs.ResponseOptions{}))
 		return
 	}
 
 	var reverseFriendship models.TFriendship
 	err = models.DB.Where("requester_id = ? AND receiver_id = ?", receiver.ID, user.ID).First(&reverseFriendship).Error
 	if !errors.Is(err, gorm.ErrRecordNotFound) && err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToGetFriendship, applogs.CreateJSONResponseByResponseCode(applogs.FailedToGetFriendship, applogs.ResponseOptions{}))
 		return
 	} else if errors.Is(err, gorm.ErrRecordNotFound) {
 		returnFriendship, err := sendFriendRequest(user.ID, receiver.ID)
 		if err != nil {
-			reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateFriendship, applogs.ResponseOptions{}))
-			reqContext.Error(err)
+			applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToCreateFriendship, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateFriendship, applogs.ResponseOptions{}))
 			return
 		}
 
-		reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.SendFriendRequestSuccess, applogs.ResponseOptions{Friendship: returnFriendship}))
+		applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.SendFriendRequestSuccess, applogs.CreateJSONResponseByResponseCode(applogs.SendFriendRequestSuccess, applogs.ResponseOptions{Friendship: returnFriendship}))
 		return
 	}
 
 	returnFriendship, err := acceptFriendRequest(reverseFriendship)
 	if err != nil {
-		reqContext.JSON(http.StatusBadRequest, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateFriendship, applogs.ResponseOptions{}))
-		reqContext.Error(err)
+		applogs.RespondJSON(reqContext, http.StatusBadRequest, err, applogs.FailedToCreateFriendship, applogs.CreateJSONResponseByResponseCode(applogs.FailedToCreateFriendship, applogs.ResponseOptions{}))
 		return
 	}
 
-	reqContext.JSON(http.StatusOK, applogs.CreateJSONResponseByResponseCode(applogs.FriendRequestAcceptSuccess, applogs.ResponseOptions{Friendship: returnFriendship}))
+	applogs.RespondJSON(reqContext, http.StatusOK, nil, applogs.FriendRequestAcceptSuccess, applogs.CreateJSONResponseByResponseCode(applogs.FriendRequestAcceptSuccess, applogs.ResponseOptions{Friendship: returnFriendship}))
 }
