@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Clock,
   PlusCircle,
@@ -32,27 +32,8 @@ export interface Task {
   completedDate?: Date; // タスク完了日時
 }
 
-// APIリクエスト用のタスク型
-interface TaskRequest {
-  WorkName: string;
-  IconImageURL?: string;
-  Color: number; // uint32
-  Memo?: string;
-}
-
-interface TaskManagementProps {
-  tasks: Task[];
-  onTaskComplete: (taskId: number) => void;
-  onTaskAdd: (task: Task) => void;
-}
-
-// 締切日のステータスを取得する関数を削除
-
-export const TaskManagement = ({
-  tasks,
-  onTaskComplete,
-  onTaskAdd,
-}: TaskManagementProps) => {
+export const TaskManagement = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTask, setNewTask] = useState({
     title: "",
@@ -62,9 +43,107 @@ export const TaskManagement = ({
     memo: "",
   });
   const [sortBy, setSortBy] = useState<"deadline" | "subject">("deadline");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [now, setNow] = React.useState(new Date());
+
+  // タスク追加
+  const handleTaskSubmit = () => {
+    if (!newTask.title.trim()) {
+      toast.error("タスク名を入力してください");
+      return;
+    }
+    let deadline: Date | undefined = undefined;
+    if (newTask.deadline) {
+      const d = new Date(newTask.deadline);
+      if (!isNaN(d.getTime())) deadline = d;
+    }
+    const task: Task = {
+      id: Date.now(),
+      title: newTask.title,
+      subject: newTask.subject || "一般",
+      deadline,
+      completed: false,
+      timeSpent: 0,
+      iconImageURL: "https://placehold.co/32",
+      timerRunning: false,
+      currentTimerValue: 0,
+    };
+    setTasks((prev) => [...prev, task]);
+    setNewTask({
+      title: "",
+      subject: "",
+      deadline: "",
+      color: "#000000",
+      memo: "",
+    });
+    setShowAddTask(false);
+    toast.success("タスクを追加しました");
+  };
+
+  // タスク削除
+  const handleDeleteTask = (taskId: number) => {
+    setDeleteTargetId(taskId);
+    setShowDeleteModal(true);
+  };
+  const confirmDeleteTask = () => {
+    if (deleteTargetId === null) return;
+    setTasks((prev) => prev.filter((t) => t.id !== deleteTargetId));
+    setShowDeleteModal(false);
+    setDeleteTargetId(null);
+    toast.success("タスクを削除しました");
+  };
+
+  // タスク完了
+  const handleTaskComplete = (taskId: number) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? { ...t, completed: true, completedDate: new Date() }
+          : t,
+      ),
+    );
+    toast.success("タスクを完了しました");
+  };
+
+  // タイマー制御
+  const handleToggleTimer = (taskId: number) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId ? { ...t, timerRunning: !t.timerRunning } : t,
+      ),
+    );
+  };
+  // タイマーtick
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.timerRunning
+            ? { ...t, currentTimerValue: (t.currentTimerValue || 0) + 1 }
+            : t,
+        ),
+      );
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 記録する
+  const handleRecord = (taskId: number) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? {
+              ...t,
+              timeSpent: (t.timeSpent || 0) + (t.currentTimerValue || 0),
+              currentTimerValue: 0,
+              timerRunning: false,
+            }
+          : t,
+      ),
+    );
+    toast.success("学習時間を記録しました");
+  };
 
   const uncompletedTasks = useMemo(() => {
     return tasks
@@ -82,143 +161,10 @@ export const TaskManagement = ({
       : [];
   }, [tasks, sortBy]);
 
-  const handleTaskSubmit = async () => {
-    if (!newTask.title.trim()) {
-      toast.error("タスク名を入力してください");
-      return;
-    }
-
-    try {
-      setIsSubmitting(true);
-      // // APIを使用してタスクを追加
-      // const token = localStorage.getItem("token");
-      // if (!token) {
-      //   toast.error("ログインしていません");
-      //   window.location.href = "/login";
-      //   return;
-      // }
-      const token = localStorage.getItem("token") || "dummy-token";
-
-      const taskRequest: TaskRequest = {
-        WorkName: newTask.title,
-        IconImageURL: "https://placehold.co/32",
-        Color: Number(parseInt(newTask.color.replace("#", ""), 16)), // 確実に数値型に
-        Memo: newTask.memo || "",
-      };
-
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(taskRequest),
-        },
-      );
-
-      if (response.status === 401 || response.status === 403) {
-        //   toast.error("認証エラーです。再ログインしてください。");
-        //   window.location.href = "/login";
-        return;
-      }
-
-      // if (!response.ok) {
-      //   throw new Error(`タスクの追加に失敗しました (${response.status})`);
-      // }
-
-      const data = await response.json();
-
-      // APIからの応答に含まれるタスクIDを使用
-      const taskId = data.Work?.ID || data.ID || Date.now();
-
-      // 新しいタスクオブジェクトを作成
-      let deadline: Date | undefined = undefined;
-      if (newTask.deadline) {
-        const d = new Date(newTask.deadline);
-        if (!isNaN(d.getTime())) deadline = d;
-      }
-      const task: Task = {
-        id: taskId,
-        title: newTask.title,
-        subject: newTask.subject || "一般",
-        deadline,
-        completed: false,
-        timeSpent: 0,
-        iconImageURL: "https://placehold.co/32",
-      };
-
-      // 親コンポーネントにタスク追加を通知
-      onTaskAdd(task);
-
-      // タスク追加フォームをリセットして閉じる
-      setNewTask({
-        title: "",
-        subject: "",
-        deadline: "",
-        color: "#000000",
-        memo: "",
-      });
-      setShowAddTask(false);
-      toast.success("タスクを追加しました");
-    } catch (error) {
-      console.error("タスク追加エラー:", error);
-      toast.error("タスクの追加に失敗しました");
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-
-  const handleDeleteTask = async (taskId: number) => {
-    setDeleteTargetId(taskId);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDeleteTask = async () => {
-    if (deleteTargetId === null) return;
-    try {
-      const token = localStorage.getItem("token") || "dummy-token";
-      // if (!token) {
-      //   toast.error("ログインしていません");
-      //   window.location.href = "/login";
-      //   setShowDeleteModal(false);
-      //   return;
-      // }
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/delete/${deleteTargetId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (response.status === 401 || response.status === 403) {
-        // toast.error("認証エラーです。再ログインしてください。");
-        // window.location.href = "/login";
-        return;
-      }
-      if (!response.ok) {
-        throw new Error(`タスクの削除に失敗しました (${response.status})`);
-      }
-      toast.success("タスクを削除しました");
-      onTaskAdd({
-        id: 0,
-        title: "",
-        subject: "",
-        deadline: undefined,
-        completed: false,
-        timeSpent: 0,
-      });
-    } catch (error) {
-      console.error("タスク削除エラー:", error);
-      toast.error("タスクの削除に失敗しました");
-    } finally {
-      setShowDeleteModal(false);
-      setDeleteTargetId(null);
-    }
-  };
+  React.useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
@@ -334,12 +280,11 @@ export const TaskManagement = ({
                   </Button>
                   <Button
                     onClick={handleTaskSubmit}
-                    disabled={isSubmitting}
                     size="sm"
                     className="bg-amber-500 hover:bg-amber-600"
                   >
-                    {isSubmitting ? "保存中..." : "保存"}
-                    {!isSubmitting && <Save className="h-4 w-4 ml-1" />}
+                    {"保存"}
+                    {!showAddTask && <Save className="h-4 w-4 ml-1" />}
                   </Button>
                 </div>
               </div>
@@ -358,8 +303,11 @@ export const TaskManagement = ({
             <TaskItem
               key={task.id}
               task={task}
-              onComplete={onTaskComplete}
+              onComplete={handleTaskComplete}
               onDelete={handleDeleteTask}
+              onToggleTimer={handleToggleTimer}
+              onRecord={handleRecord}
+              now={now}
             />
           ))
         )}
@@ -399,6 +347,9 @@ interface TaskItemProps {
   task: Task;
   onComplete: (taskId: number) => void;
   onDelete: (taskId: number) => void;
+  onToggleTimer: (taskId: number) => void;
+  onRecord: (taskId: number) => void;
+  now: Date;
 }
 
 type DeadlineStatus = {
@@ -456,10 +407,31 @@ const getDeadlineStatus = (deadline: Date): DeadlineStatus => {
   };
 };
 
-const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
+const TaskItem = ({
+  task,
+  onComplete,
+  onDelete,
+  onToggleTimer,
+  onRecord,
+  now,
+}: TaskItemProps) => {
   const deadlineStatus = task.deadline
     ? getDeadlineStatus(task.deadline)
     : null;
+  let countdown = null;
+  if (task.deadline) {
+    const diff = task.deadline.getTime() - now.getTime();
+    if (diff > 0) {
+      const hours = Math.floor(diff / 1000 / 60 / 60);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      countdown = `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    } else {
+      countdown = "期限切れ";
+    }
+  }
   return (
     <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-650 transition-all">
       <div className="flex-1 min-w-0">
@@ -468,10 +440,14 @@ const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
             <Image
               src={task.iconImageURL}
               alt=""
+              width={24}
+              height={24}
               className="w-6 h-6 mr-2 rounded-full"
               onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                 const target = e.target as HTMLImageElement;
                 target.src = "https://placehold.co/32";
+                target.style.width = "32px";
+                target.style.height = "32px";
               }}
             />
           )}
@@ -511,11 +487,34 @@ const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
                   {formatTime(task.timeSpent)}
                 </span>
               )}
+              {/* タイマー表示 */}
+              <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 px-2 py-0.5 rounded">
+                {formatTime(task.currentTimerValue || 0)}
+              </span>
+              {task.deadline && (
+                <span
+                  className={`text-xs ml-2 ${countdown === "期限切れ" ? "text-red-500 font-bold animate-pulse" : "text-blue-600"}`}
+                >
+                  締切まで: {countdown}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </div>
-      <div className="flex items-center ml-4">
+      <div className="flex items-center ml-4 gap-2">
+        <button
+          onClick={() => onToggleTimer(task.id)}
+          className="px-2 py-1 rounded bg-amber-200 hover:bg-amber-300 text-amber-900 text-xs"
+        >
+          {task.timerRunning ? "一時停止" : "再開"}
+        </button>
+        <button
+          onClick={() => onRecord(task.id)}
+          className="px-2 py-1 rounded bg-green-200 hover:bg-green-300 text-green-900 text-xs"
+        >
+          記録する
+        </button>
         <button
           onClick={() => onComplete(task.id)}
           className="relative group"
