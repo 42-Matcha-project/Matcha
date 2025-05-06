@@ -90,13 +90,14 @@ export const TaskManagement = ({
 
     try {
       setIsSubmitting(true);
-      // APIを使用してタスクを追加
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("ログインしていません");
-        window.location.href = "/login";
-        return;
-      }
+      // // APIを使用してタスクを追加
+      // const token = localStorage.getItem("token");
+      // if (!token) {
+      //   toast.error("ログインしていません");
+      //   window.location.href = "/login";
+      //   return;
+      // }
+      const token = localStorage.getItem("token") || "dummy-token";
 
       const taskRequest: TaskRequest = {
         WorkName: newTask.title,
@@ -118,14 +119,14 @@ export const TaskManagement = ({
       );
 
       if (response.status === 401 || response.status === 403) {
-        toast.error("認証エラーです。再ログインしてください。");
-        window.location.href = "/login";
+        //   toast.error("認証エラーです。再ログインしてください。");
+        //   window.location.href = "/login";
         return;
       }
 
-      if (!response.ok) {
-        throw new Error(`タスクの追加に失敗しました (${response.status})`);
-      }
+      // if (!response.ok) {
+      //   throw new Error(`タスクの追加に失敗しました (${response.status})`);
+      // }
 
       const data = await response.json();
 
@@ -177,13 +178,13 @@ export const TaskManagement = ({
   const confirmDeleteTask = async () => {
     if (deleteTargetId === null) return;
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        toast.error("ログインしていません");
-        window.location.href = "/login";
-        setShowDeleteModal(false);
-        return;
-      }
+      const token = localStorage.getItem("token") || "dummy-token";
+      // if (!token) {
+      //   toast.error("ログインしていません");
+      //   window.location.href = "/login";
+      //   setShowDeleteModal(false);
+      //   return;
+      // }
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/delete/${deleteTargetId}`,
         {
@@ -194,8 +195,8 @@ export const TaskManagement = ({
         },
       );
       if (response.status === 401 || response.status === 403) {
-        toast.error("認証エラーです。再ログインしてください。");
-        window.location.href = "/login";
+        // toast.error("認証エラーです。再ログインしてください。");
+        // window.location.href = "/login";
         return;
       }
       if (!response.ok) {

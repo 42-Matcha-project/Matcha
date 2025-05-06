@@ -36,10 +36,10 @@ export default function AddTaskPage() {
 
   useEffect(() => {
     // Check if user is authenticated
-    const token = localStorage.getItem("token");
-    if (!token) {
-      router.push("/login");
-    }
+    // const token = localStorage.getItem("token");
+    // if (!token) {
+    //   router.push("/login");
+    // }
   }, [router]);
 
   const handleInputChange = (
@@ -115,11 +115,11 @@ export default function AddTaskPage() {
       setSuccessMessage(null);
       setWarningMessage(null);
 
-      const token = localStorage.getItem("token");
-      if (!token) {
-        router.push("/login");
-        return;
-      }
+      // const token = localStorage.getItem("token");
+      // if (!token) {
+      //   router.push("/login");
+      //   return;
+      // }
 
       // APIにタスクを登録するリクエスト
       const taskData = {
@@ -139,13 +139,13 @@ export default function AddTaskPage() {
         },
       );
 
-      if (!response.ok) {
-        if (response.status === 401) {
-          router.push("/login");
-          return;
-        }
-        throw new Error(`タスクの登録に失敗しました (${response.status})`);
-      }
+      // if (!response.ok) {
+      //   if (response.status === 401) {
+      //     router.push("/login");
+      //     return;
+      //   }
+      // throw new Error(`タスクの登録に失敗しました (${response.status})`);
+      // }
 
       // 成功レスポンスの処理
       const responseData = await response.json();

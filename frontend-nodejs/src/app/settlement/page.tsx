@@ -75,14 +75,11 @@ export default function SettlementPage() {
 
       clearTimeout(timeoutId);
 
-      if (!response.ok) {
-        if (response.status === 401 || response.status === 403) {
-          // 認証エラーならログインページへ
-          router.push("/login");
-          return;
-        }
-        throw new Error(`APIエラー: ${response.status}`);
-      }
+      // if (!isAuthenticated) {
+      //   setError("認証情報がありません。ログインしてください。");
+      //   router.push("/login");
+      //   return;
+      // }
 
       // JSONレスポンスを取得
       const data = await response.json();
@@ -113,10 +110,11 @@ export default function SettlementPage() {
           : "ユーザーデータ取得に失敗しました",
       );
 
-      // 深刻なエラーの場合はログインページへリダイレクト
-      setTimeout(() => {
-        router.push("/login");
-      }, 3000); // 3秒後にリダイレクト（エラーメッセージを見せるため）
+      // if (!isAuthenticated) {
+      //   setTimeout(() => {
+      //     router.push("/login");
+      //   }, 3000); // 3秒後にリダイレクト（エラーメッセージを見せるため）
+      // }
     }
   }, [token, router]);
 
@@ -127,13 +125,6 @@ export default function SettlementPage() {
       try {
         // 認証ロード中は何もしない
         if (authLoading) {
-          return;
-        }
-
-        // 認証されていない場合のみリダイレクト
-        if (!isAuthenticated) {
-          setError("認証情報がありません。ログインしてください。");
-          router.push("/login");
           return;
         }
 

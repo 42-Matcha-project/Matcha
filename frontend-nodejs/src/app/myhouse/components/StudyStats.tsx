@@ -211,9 +211,9 @@ export function StudyStats({ isDarkMode }: StudyStatsProps) {
         localStorage.removeItem("isStudying");
 
         // ログイン画面へリダイレクト
-        setTimeout(() => {
-          router.push("/login");
-        }, 1500); // トーストメッセージを表示した後、1.5秒後にリダイレクト
+        // setTimeout(() => {
+        //   router.push("/login");
+        // }, 1500); // トーストメッセージを表示した後、1.5秒後にリダイレクト
         return;
       }
 

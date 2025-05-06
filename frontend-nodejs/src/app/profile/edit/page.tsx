@@ -47,10 +47,10 @@ export default function ProfileEditPage() {
       return;
     }
 
-    if (!isAuthenticated) {
-      router.push("/login");
-      return;
-    }
+    // if (!isAuthenticated) {
+    //   router.push("/login");
+    //   return;
+    // }
 
     // 認証済みの場合のみプロフィール取得を実行
     if (!authLoading && isAuthenticated) {
