@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { Clock, PlusCircle, Trash2, ListFilter, Save } from "lucide-react";
+import {
+  Clock,
+  PlusCircle,
+  Trash2,
+  ListFilter,
+  Save,
+  BookOpen,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -102,14 +109,6 @@ export const TaskManagement = () => {
     toast.success("タスクを完了しました");
   };
 
-  // タイマー制御
-  const handleToggleTimer = (taskId: number) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === taskId ? { ...t, timerRunning: !t.timerRunning } : t,
-      ),
-    );
-  };
   // タイマーtick
   React.useEffect(() => {
     const interval = setInterval(() => {
@@ -389,7 +388,6 @@ export const TaskManagement = () => {
               task={task}
               onComplete={handleTaskComplete}
               onDelete={handleDeleteTask}
-              onToggleTimer={handleToggleTimer}
               onRecord={handleRecord}
               now={now}
             />
@@ -431,7 +429,6 @@ interface TaskItemProps {
   task: Task;
   onComplete: (taskId: number) => void;
   onDelete: (taskId: number) => void;
-  onToggleTimer: (taskId: number) => void;
   onRecord: (taskId: number) => void;
   now: Date;
 }
@@ -495,7 +492,6 @@ const TaskItem = ({
   task,
   onComplete,
   onDelete,
-  onToggleTimer,
   onRecord,
   now,
 }: TaskItemProps) => {
@@ -593,15 +589,10 @@ const TaskItem = ({
       </div>
       <div className="flex items-center ml-4 gap-2">
         <button
-          onClick={() => onToggleTimer(task.id)}
-          className="px-2 py-1 rounded bg-amber-200 hover:bg-amber-300 text-amber-900 text-xs"
-        >
-          {task.timerRunning ? "一時停止" : "再開"}
-        </button>
-        <button
           onClick={() => onRecord(task.id)}
-          className="px-2 py-1 rounded bg-green-200 hover:bg-green-300 text-green-900 text-xs"
+          className="px-3 py-2 rounded-full bg-green-200 hover:bg-green-300 text-green-800 font-bold flex items-center gap-1 shadow transition-transform hover:scale-105"
         >
+          <BookOpen className="w-4 h-4" />
           記録する
         </button>
         <button
@@ -610,7 +601,7 @@ const TaskItem = ({
           aria-label="タスク完了"
         >
           <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-100 hover:bg-amber-200 dark:bg-amber-800 dark:hover:bg-amber-700 border-2 border-amber-300 dark:border-amber-600 transition-all transform group-hover:scale-110">
-            <div className="text-amber-600 dark:text-amber-300">
+            <div className="text-green-600 dark:text-green-300">
               <svg
                 width="20"
                 height="20"
