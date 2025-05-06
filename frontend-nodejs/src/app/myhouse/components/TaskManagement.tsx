@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import {
-  Clock,
-  PlusCircle,
-  Trash2,
-  ListFilter,
-  Save,
-  BookOpen,
-} from "lucide-react";
+import { Clock, PlusCircle, Trash2, Save, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -43,7 +36,6 @@ export const TaskManagement = () => {
     memo: "",
   });
   const [newTaskIcon, setNewTaskIcon] = useState<string | null>(null);
-  const [sortBy, setSortBy] = useState<"deadline" | "subject">("deadline");
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [now, setNow] = React.useState(new Date());
@@ -145,16 +137,12 @@ export const TaskManagement = () => {
       ? tasks
           .filter((task) => !task.completed)
           .sort((a, b) => {
-            if (sortBy === "deadline") {
-              if (!a.deadline) return 1;
-              if (!b.deadline) return -1;
-              return a.deadline.getTime() - b.deadline.getTime();
-            } else {
-              return a.subject.localeCompare(b.subject);
-            }
+            if (!a.deadline) return 1;
+            if (!b.deadline) return -1;
+            return a.deadline.getTime() - b.deadline.getTime();
           })
       : [];
-  }, [tasks, sortBy]);
+  }, [tasks]);
 
   React.useEffect(() => {
     const interval = setInterval(() => setNow(new Date()), 1000);
@@ -207,16 +195,6 @@ export const TaskManagement = () => {
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">タスク管理</h2>
         <div className="flex space-x-2">
-          <Button
-            onClick={() =>
-              setSortBy(sortBy === "deadline" ? "subject" : "deadline")
-            }
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-          >
-            <ListFilter className="h-4 w-4" />
-          </Button>
           <Button
             onClick={() => setShowAddTask(!showAddTask)}
             variant="default"
