@@ -193,9 +193,9 @@ export const TaskManagement = () => {
   const handleRemoveIcon = () => setNewTaskIcon(null);
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
+    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-2 sm:p-4 mb-6 w-full max-w-2xl mx-auto">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-bold">タスク管理</h2>
+        <h2 className="text-lg sm:text-xl font-bold">タスク管理</h2>
         <div className="flex space-x-2">
           <Button
             onClick={() => setShowAddTask(!showAddTask)}
@@ -216,7 +216,7 @@ export const TaskManagement = () => {
             exit={{ height: 0, opacity: 0 }}
             className="overflow-hidden mb-6"
           >
-            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+            <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-2 sm:p-4">
               <h3 className="font-medium mb-2">新しいタスク</h3>
               <div className="space-y-3">
                 <div>
@@ -233,6 +233,7 @@ export const TaskManagement = () => {
                       setNewTask({ ...newTask, title: e.target.value })
                     }
                     placeholder="例: レポート作成"
+                    className="text-sm sm:text-base"
                   />
                 </div>
                 <div>
@@ -249,6 +250,7 @@ export const TaskManagement = () => {
                     onChange={(e) =>
                       setNewTask({ ...newTask, deadline: e.target.value })
                     }
+                    className="text-sm sm:text-base"
                   />
                 </div>
                 <div>
@@ -265,6 +267,7 @@ export const TaskManagement = () => {
                     onChange={(e) =>
                       setNewTask({ ...newTask, color: e.target.value })
                     }
+                    className="h-8 w-16"
                   />
                 </div>
                 <div>
@@ -281,7 +284,7 @@ export const TaskManagement = () => {
                       setNewTask({ ...newTask, memo: e.target.value })
                     }
                     className={
-                      `w-full border rounded p-2 text-sm ` +
+                      `w-full border rounded p-2 text-sm sm:text-base ` +
                       (typeof window !== "undefined" &&
                       document.documentElement.classList.contains("dark")
                         ? "bg-amber-900/60 border-yellow-700 text-yellow-100 placeholder-yellow-200"
@@ -296,7 +299,7 @@ export const TaskManagement = () => {
                     アイコン画像（任意）
                   </label>
                   <div
-                    className={`flex items-center gap-3 border-2 rounded p-2 transition-colors ${isDragging ? "border-amber-400 bg-amber-50" : "border-gray-200"}`}
+                    className={`flex flex-col sm:flex-row items-center gap-3 border-2 rounded p-2 transition-colors ${isDragging ? "border-amber-400 bg-amber-50" : "border-gray-200"}`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
@@ -338,11 +341,11 @@ export const TaskManagement = () => {
                     )}
                   </div>
                 </div>
-                <div className="flex justify-end">
+                <div className="flex flex-col sm:flex-row justify-end gap-2">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="mr-2"
+                    className="w-full sm:w-auto"
                     onClick={() => setShowAddTask(false)}
                   >
                     キャンセル
@@ -350,7 +353,7 @@ export const TaskManagement = () => {
                   <Button
                     onClick={handleTaskSubmit}
                     size="sm"
-                    className="bg-amber-500 hover:bg-amber-600"
+                    className="w-full sm:w-auto bg-amber-500 hover:bg-amber-600"
                   >
                     {"保存"}
                     {!showAddTask && <Save className="h-4 w-4 ml-1" />}
@@ -362,7 +365,7 @@ export const TaskManagement = () => {
         )}
       </AnimatePresence>
 
-      <div className="space-y-4 max-h-80 overflow-y-auto pr-1">
+      <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-1">
         {uncompletedTasks.length === 0 ? (
           <p className="text-center text-gray-500 dark:text-gray-400 py-4">
             タスクはありません
@@ -499,9 +502,9 @@ const TaskItem = ({
     }
   }
   return (
-    <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-650 transition-all">
-      <div className="flex-1 min-w-0">
-        <div className="flex items-start">
+    <div className="flex flex-col sm:flex-row items-center justify-between bg-gray-50 dark:bg-gray-700 p-2 sm:p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-650 transition-all">
+      <div className="flex-1 min-w-0 w-full">
+        <div className="flex items-start flex-col sm:flex-row">
           {task.iconImageURL && (
             <Image
               src={task.iconImageURL}
@@ -518,10 +521,11 @@ const TaskItem = ({
               }}
             />
           )}
-          <div>
-            <h4 className="font-medium text-gray-800 dark:text-gray-200 truncate">
+          <div className="w-full">
+            <h4 className="font-medium text-gray-800 dark:text-gray-200 truncate text-base sm:text-lg">
               {task.title}
             </h4>
+
             {typeof task.memo === "string" && task.memo.trim() !== "" && (
               <div
                 className={
@@ -536,7 +540,7 @@ const TaskItem = ({
                 {task.memo}
               </div>
             )}
-            <div className="flex flex-wrap gap-2 mt-1">
+            <div className="flex flex-wrap gap-2 mt-1 text-xs sm:text-sm">
               <span
                 className={`text-xs px-2 py-0.5 rounded flex items-center ${
                   !task.deadline
@@ -587,17 +591,17 @@ const TaskItem = ({
           </div>
         </div>
       </div>
-      <div className="flex items-center ml-4 gap-2">
+      <div className="flex items-center ml-0 sm:ml-4 gap-2 w-full sm:w-auto mt-2 sm:mt-0">
         <button
           onClick={() => onRecord(task.id)}
-          className="px-3 py-2 rounded-full bg-green-200 hover:bg-green-300 text-green-800 font-bold flex items-center gap-1 shadow transition-transform hover:scale-105"
+          className="px-3 py-2 rounded-full bg-green-200 hover:bg-green-300 text-green-800 font-bold flex items-center gap-1 shadow transition-transform hover:scale-105 w-full sm:w-auto"
         >
           <BookOpen className="w-4 h-4" />
           記録する
         </button>
         <button
           onClick={() => onComplete(task.id)}
-          className="relative group"
+          className="relative group w-full sm:w-auto"
           aria-label="タスク完了"
         >
           <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-100 hover:bg-amber-200 dark:bg-amber-800 dark:hover:bg-amber-700 border-2 border-amber-300 dark:border-amber-600 transition-all transform group-hover:scale-110">
@@ -632,7 +636,7 @@ const TaskItem = ({
         </button>
         <button
           onClick={() => onDelete(task.id)}
-          className="ml-2 flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full transition-colors shadow-sm"
+          className="ml-0 sm:ml-2 flex items-center gap-1 bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded-full transition-colors shadow-sm w-full sm:w-auto"
           aria-label="タスク削除"
         >
           <Trash2 className="h-4 w-4" />
