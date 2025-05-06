@@ -48,6 +48,8 @@ export function SubjectList({
     number | null
   >(null);
   const [noteError, setNoteError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(10);
+  const listRef = useRef<HTMLUListElement>(null);
 
   // タスクリストを取得する
   const fetchSubjects = async () => {
@@ -592,6 +594,27 @@ export function SubjectList({
     }
   };
 
+  useEffect(() => {
+    const onScroll = () => {
+      const list = listRef.current;
+      if (
+        list &&
+        list.scrollTop + list.clientHeight >= list.scrollHeight - 100
+      ) {
+        setVisibleCount((prev) => Math.min(prev + 10, subjects.length));
+      }
+    };
+    const list = listRef.current;
+    if (list) list.addEventListener("scroll", onScroll);
+    return () => {
+      if (list) list.removeEventListener("scroll", onScroll);
+    };
+  }, [subjects.length]);
+
+  useEffect(() => {
+    setVisibleCount(10); // subjectsが変わったらリセット
+  }, [subjects]);
+
   return (
     <div
       className={cn(
@@ -647,8 +670,11 @@ export function SubjectList({
           )}
         </div>
       ) : (
-        <ul className="space-y-2 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-amber-300 scrollbar-track-transparent will-change-transform">
-          {subjects.map((subject, index) => (
+        <ul
+          ref={listRef}
+          className="space-y-2 max-h-[350px] overflow-y-auto pr-1 scrollbar-thin scrollbar-thumb-amber-300 scrollbar-track-transparent will-change-transform"
+        >
+          {subjects.slice(0, visibleCount).map((subject, index) => (
             <li
               key={subject.ID}
               className={cn(
@@ -713,7 +739,7 @@ export function SubjectList({
                           );
                           const target = e.target as HTMLImageElement;
                           target.onerror = null; // エラーループ防止
-                          target.src = "/placeholder.svg";
+                          target.src = "/images/no-image.png";
                         }}
                         style={{ objectFit: "cover" }}
                       />

@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 body {
-  font-family: cursive, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), sans-serif;
   overflow-x: hidden;
 }
 

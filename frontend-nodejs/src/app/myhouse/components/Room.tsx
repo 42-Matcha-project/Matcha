@@ -84,7 +84,7 @@ export function Room({ participants, isDarkMode }: RoomProps) {
               )}
             >
               <Image
-                src={user.avatar || "/placeholder.svg"}
+                src={user.avatar || "/images/no-image.png"}
                 alt={user.name}
                 fill
                 sizes="(max-width: 768px) 100vw, 64px"
@@ -120,7 +120,7 @@ export function Room({ participants, isDarkMode }: RoomProps) {
         <div className="flex flex-col items-center">
           <div className="relative w-32 h-32">
             <Image
-              src="/placeholder.svg?height=128&width=128"
+              src="/images/no-image.png"
               alt="観葉植物"
               width={128}
               height={128}
@@ -134,7 +134,7 @@ export function Room({ participants, isDarkMode }: RoomProps) {
       <div className="absolute bottom-10 left-20">
         <div className="relative w-24 h-24">
           <Image
-            src="/placeholder.svg?height=96&width=96"
+            src="/images/no-image.png"
             alt="観葉植物"
             width={96}
             height={96}
@@ -147,7 +147,7 @@ export function Room({ participants, isDarkMode }: RoomProps) {
       <div className="absolute top-10 right-10">
         <div className="relative w-40 h-64">
           <Image
-            src="/placeholder.svg?height=256&width=160"
+            src="/images/no-image.png"
             alt="本棚"
             width={160}
             height={256}
@@ -160,7 +160,7 @@ export function Room({ participants, isDarkMode }: RoomProps) {
       <div className="absolute bottom-10 right-20">
         <div className="relative w-32 h-40">
           <Image
-            src="/placeholder.svg?height=160&width=128"
+            src="/images/no-image.png"
             alt="タンス"
             width={128}
             height={160}

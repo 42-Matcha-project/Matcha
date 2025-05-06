@@ -52,7 +52,7 @@ export default function PurchaseDialog({
         <div className="flex justify-center mb-6">
           <div className="relative w-72 h-72">
             <Image
-              src={building.image || "/placeholder.svg"}
+              src={building.image || "/images/no-image.png"}
               alt={building.name}
               fill
               sizes="(max-width: 768px) 100vw, 400px"

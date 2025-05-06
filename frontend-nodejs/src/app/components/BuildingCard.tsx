@@ -106,7 +106,7 @@ export default function BuildingCard({
           )}
         >
           <Image
-            src={building.image || "/placeholder.svg"}
+            src={building.image || "/images/no-image.png"}
             alt={building.name}
             fill
             sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"

@@ -261,7 +261,7 @@ export default function StudyRoomBase({
       {theme.backgroundImage && (
         <div className="absolute inset-0 z-0 opacity-20">
           <Image
-            src={theme.backgroundImage || "/placeholder.svg"}
+            src={theme.backgroundImage || "/images/no-image.png"}
             alt={`${theme.name}の背景`}
             fill
             className="object-cover"
@@ -757,7 +757,7 @@ export default function StudyRoomBase({
                         ) : (
                           <div className="w-16 h-16">
                             <Image
-                              src="/placeholder.svg?height=64&width=64"
+                              src="/images/no-image.png"
                               alt="休憩中"
                               width={64}
                               height={64}
