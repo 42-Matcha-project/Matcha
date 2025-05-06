@@ -280,7 +280,13 @@ export const TaskManagement = () => {
                     onChange={(e) =>
                       setNewTask({ ...newTask, memo: e.target.value })
                     }
-                    className="w-full border rounded p-2 text-sm"
+                    className={
+                      `w-full border rounded p-2 text-sm ` +
+                      (typeof window !== "undefined" &&
+                      document.documentElement.classList.contains("dark")
+                        ? "bg-amber-900/60 border-yellow-700 text-yellow-100 placeholder-yellow-200"
+                        : "bg-white border-amber-200 text-amber-950")
+                    }
                     rows={2}
                     placeholder="メモを入力"
                   />
@@ -517,7 +523,15 @@ const TaskItem = ({
               {task.title}
             </h4>
             {typeof task.memo === "string" && task.memo.trim() !== "" && (
-              <div className="mt-2 p-2 rounded bg-yellow-50 border-l-4 border-yellow-400 text-sm text-yellow-900 whitespace-pre-line">
+              <div
+                className={
+                  `mt-2 p-2 rounded text-sm whitespace-pre-line border-l-4 ` +
+                  (typeof window !== "undefined" &&
+                  document.documentElement.classList.contains("dark")
+                    ? "bg-amber-900/60 border-yellow-700 text-yellow-100"
+                    : "bg-yellow-50 border-yellow-400 text-yellow-900")
+                }
+              >
                 <span className="font-bold mr-1">📝 メモ:</span>
                 {task.memo}
               </div>
