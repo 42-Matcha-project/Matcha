@@ -265,7 +265,7 @@ export default function SettlementPage() {
 
         {/* メインコンテンツ */}
         <main
-          className="relative w-full overflow-y-auto pb-32 pt-16 scroll-smooth"
+          className="relative w-full overflow-y-auto pb-56 pt-16 scroll-smooth"
           ref={containerRef}
           style={{ willChange: "scroll-position" }}
         >
