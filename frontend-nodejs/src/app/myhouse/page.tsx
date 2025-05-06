@@ -20,10 +20,20 @@ import {
   CheckCircle,
   FileText,
   AlertTriangle,
+  LogOut,
 } from "lucide-react";
 import { ChatPanel } from "./components/ChatPanel";
 import { Message } from "./types";
 import { formatTime, formatDeadline } from "./lib/timeUtils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
 // APIから取得するタスクの型定義
 interface ApiTask {
@@ -475,6 +485,15 @@ export default function MyHousePage() {
     );
   };
 
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setShowLogoutDialog(false);
+    router.push("/settlement");
+  };
+
   return (
     <main className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 dark:from-amber-900 dark:to-amber-800">
       <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between z-50 sticky top-0 left-0 right-0 font-sans">
@@ -502,8 +521,50 @@ export default function MyHousePage() {
               {userStats.totalStudyHours}時間
             </span>
           </div>
+
+          {/* Logout Button */}
+          <button
+            onClick={() => setShowLogoutDialog(true)}
+            className="ml-4 flex items-center px-3 py-2 rounded-lg bg-amber-700 hover:bg-red-600 transition-colors text-white font-semibold shadow border border-amber-600 hover:border-red-700"
+            title="ログアウト"
+          >
+            <LogOut className="h-5 w-5 mr-1" />
+            myhouseログアウト
+          </button>
         </div>
       </header>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="bg-white dark:bg-amber-900 border-amber-300 dark:border-amber-800">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <LogOut className="h-6 w-6 text-red-600" />
+              ログアウト確認
+            </DialogTitle>
+            <DialogDescription className="text-base mt-2">
+              本当にログアウトしますか？
+              <br />
+              ログアウトするとマイハウスから退出し、精算ページに移動します。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-3 mt-6 mb-2">
+            <button
+              onClick={() => setShowLogoutDialog(false)}
+              className="flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors bg-amber-100 hover:bg-amber-200 text-amber-800"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors bg-red-600 hover:bg-red-700 text-white flex items-center justify-center"
+            >
+              <LogOut className="h-5 w-5 mr-2" />
+              ログアウト
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* タスク完了モーダル */}
       {showCompletionModal && completedTaskId && (
