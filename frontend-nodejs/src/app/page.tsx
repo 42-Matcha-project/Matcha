@@ -18,7 +18,7 @@ const WoodenSignButton = ({
   direction?: "left" | "right";
 }) => {
   const baseClasses =
-    "relative px-5 py-4 font-bold text-lg transform transition-transform duration-300 w-32 sm:w-40 md:w-48 mx-auto flex items-center justify-center";
+    "relative px-4 py-3 sm:px-5 sm:py-4 font-bold text-base sm:text-lg transform transition-transform duration-300 w-full sm:w-40 md:w-48 mx-auto flex items-center justify-center";
   const directionClass =
     direction === "left"
       ? "rotate-[-5deg] hover:rotate-0"
@@ -49,7 +49,7 @@ const WoodenSignButton = ({
   };
 
   return (
-    <div className="relative w-32 sm:w-40 md:w-48 mx-auto">
+    <div className="relative w-full sm:w-40 md:w-48 mx-auto">
       {/* 影の要素 - 看板とサイズを合わせる */}
       <div
         className={`absolute w-full h-full top-[5px] left-[6px] rounded ${directionClass}`}
@@ -81,7 +81,7 @@ const WoodenSignButton = ({
 // LetterBox コンポーネント - PRIVYの文字を表示
 const LetterBox = () => {
   return (
-    <div className="flex justify-center w-full mb-8">
+    <div className="flex justify-center w-full mb-6 sm:mb-8">
       <div className="flex space-x-2 sm:space-x-3 md:space-x-4">
         {["P", "R", "I", "V", "Y"].map((letter, index) => {
           const isBlackText =
@@ -89,7 +89,7 @@ const LetterBox = () => {
           return (
             <div
               key={index}
-              className="inline-block border-2 border-emerald-600 rounded-lg p-2 sm:p-3 md:p-4 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-110 transition-all duration-300"
+              className="inline-block border-2 border-emerald-600 rounded-lg p-2 sm:p-3 md:p-4 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-110 transition-all duration-300 text-center"
               style={{
                 animation: `bounce 1s ease-in-out ${index * 0.7}s infinite alternate`,
                 backgroundColor: `rgba(16, 185, 129, ${(index + 1) * 0.05 + 0.1})`,
@@ -381,11 +381,11 @@ const MainContent = () => {
       </div>
 
       {/* メインコンテンツ */}
-      <div className="relative min-h-screen w-full flex flex-col items-center justify-center px-4 sm:px-6 md:px-8 py-10 z-10">
+      <div className="relative min-h-screen w-full flex flex-col items-center justify-center px-2 sm:px-6 md:px-8 py-6 sm:py-10 z-10">
         <LetterBox />
 
-        <div className="w-full max-w-lg mx-auto mb-6 md:mb-8">
-          <p className="text-gray-800 text-sm sm:text-base md:text-lg">
+        <div className="w-full max-w-lg mx-auto mb-4 sm:mb-6 md:mb-8">
+          <p className="text-gray-800 text-sm sm:text-base md:text-lg text-center">
             ここにアプリの紹介文などを入れる
             <br />
           </p>
