@@ -5,7 +5,6 @@ const nextConfig = {
   reactStrictMode: true,
   compress: true,
   typescript: {
-    // ビルド時の型チェックをスキップ
     ignoreBuildErrors: true,
   },
   images: {
@@ -16,8 +15,8 @@ const nextConfig = {
         hostname: "**.render.com",
       },
     ],
+    domains: ["placehold.co"],
   },
-  // 開発環境用のリライトルール（APIリクエストをバックエンドにプロキシする）
   async rewrites() {
     return [
       {

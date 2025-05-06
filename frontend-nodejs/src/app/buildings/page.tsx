@@ -374,19 +374,16 @@ export default function BuildingsPage() {
       // }
 
       // API call to buy a building
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/store/buy`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            BuildingID: buildingId,
-          }),
+      await fetch(`${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/store/buy`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
-      );
+        body: JSON.stringify({
+          BuildingID: buildingId,
+        }),
+      });
 
       // if (!response.ok) {
       //   if (response.status === 401) {

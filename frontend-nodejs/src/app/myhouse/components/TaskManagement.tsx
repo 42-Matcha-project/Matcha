@@ -1,14 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import {
-  Clock,
-  PlusCircle,
-  Trash2,
-  ListFilter,
-  Save,
-  AlertTriangle,
-} from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { Clock, PlusCircle, Trash2, Save, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -30,29 +23,11 @@ export interface Task {
   currentTimerValue?: number; // 現在のタイマー値（秒単位）
   pausedTimerValue?: number; // 一時停止時の残り時間
   completedDate?: Date; // タスク完了日時
+  memo: string;
 }
 
-// APIリクエスト用のタスク型
-interface TaskRequest {
-  WorkName: string;
-  IconImageURL?: string;
-  Color: number; // uint32
-  Memo?: string;
-}
-
-interface TaskManagementProps {
-  tasks: Task[];
-  onTaskComplete: (taskId: number) => void;
-  onTaskAdd: (task: Task) => void;
-}
-
-// 締切日のステータスを取得する関数を削除
-
-export const TaskManagement = ({
-  tasks,
-  onTaskComplete,
-  onTaskAdd,
-}: TaskManagementProps) => {
+export const TaskManagement = () => {
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [showAddTask, setShowAddTask] = useState(false);
   const [newTask, setNewTask] = useState({
     title: "",
@@ -61,180 +36,167 @@ export const TaskManagement = ({
     color: "#000000",
     memo: "",
   });
-  const [sortBy, setSortBy] = useState<"deadline" | "subject">("deadline");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [newTaskIcon, setNewTaskIcon] = useState<string | null>(null);
   const [deleteTargetId, setDeleteTargetId] = useState<number | null>(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [now, setNow] = React.useState(new Date());
+  const [isDragging, setIsDragging] = useState(false);
+
+  // タスク追加
+  const handleTaskSubmit = () => {
+    if (!newTask.title.trim()) {
+      toast.error("タスク名を入力してください");
+      return;
+    }
+    let deadline: Date | undefined = undefined;
+    if (newTask.deadline) {
+      const d = new Date(newTask.deadline);
+      if (!isNaN(d.getTime())) deadline = d;
+    }
+    const task: Task = {
+      id: Date.now(),
+      title: newTask.title,
+      subject: newTask.subject || "一般",
+      deadline,
+      completed: false,
+      timeSpent: 0,
+      iconImageURL: newTaskIcon || "https://placehold.co/32",
+      timerRunning: false,
+      currentTimerValue: 0,
+      memo: newTask.memo,
+    };
+    setTasks((prev) => [...prev, task]);
+    setNewTask({
+      title: "",
+      subject: "",
+      deadline: "",
+      color: "#000000",
+      memo: "",
+    });
+    setShowAddTask(false);
+    setNewTaskIcon(null);
+    toast.success("タスクを追加しました");
+  };
+
+  // タスク削除
+  const handleDeleteTask = (taskId: number) => {
+    setDeleteTargetId(taskId);
+    setShowDeleteModal(true);
+  };
+  const confirmDeleteTask = () => {
+    if (deleteTargetId === null) return;
+    setTasks((prev) => prev.filter((t) => t.id !== deleteTargetId));
+    setShowDeleteModal(false);
+    setDeleteTargetId(null);
+    toast.success("タスクを削除しました");
+  };
+
+  // タスク完了
+  const handleTaskComplete = (taskId: number) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? { ...t, completed: true, completedDate: new Date() }
+          : t,
+      ),
+    );
+    toast.success("タスクを完了しました");
+  };
+
+  // タイマーtick
+  React.useEffect(() => {
+    const interval = setInterval(() => {
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.timerRunning
+            ? { ...t, currentTimerValue: (t.currentTimerValue || 0) + 1 }
+            : t,
+        ),
+      );
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // 記録する
+  const handleRecord = (taskId: number) => {
+    setTasks((prev) =>
+      prev.map((t) =>
+        t.id === taskId
+          ? {
+              ...t,
+              timeSpent: (t.timeSpent || 0) + (t.currentTimerValue || 0),
+              currentTimerValue: 0,
+              timerRunning: false,
+            }
+          : t,
+      ),
+    );
+    toast.success("学習時間を記録しました");
+  };
 
   const uncompletedTasks = useMemo(() => {
     return tasks
       ? tasks
           .filter((task) => !task.completed)
           .sort((a, b) => {
-            if (sortBy === "deadline") {
-              if (!a.deadline) return 1;
-              if (!b.deadline) return -1;
-              return a.deadline.getTime() - b.deadline.getTime();
-            } else {
-              return a.subject.localeCompare(b.subject);
-            }
+            if (!a.deadline) return 1;
+            if (!b.deadline) return -1;
+            return a.deadline.getTime() - b.deadline.getTime();
           })
       : [];
-  }, [tasks, sortBy]);
+  }, [tasks]);
 
-  const handleTaskSubmit = async () => {
-    if (!newTask.title.trim()) {
-      toast.error("タスク名を入力してください");
-      return;
-    }
+  React.useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(interval);
+  }, []);
 
-    try {
-      setIsSubmitting(true);
-      // // APIを使用してタスクを追加
-      // const token = localStorage.getItem("token");
-      // if (!token) {
-      //   toast.error("ログインしていません");
-      //   window.location.href = "/login";
-      //   return;
-      // }
-      const token = localStorage.getItem("token") || "dummy-token";
-
-      const taskRequest: TaskRequest = {
-        WorkName: newTask.title,
-        IconImageURL: "https://placehold.co/32",
-        Color: Number(parseInt(newTask.color.replace("#", ""), 16)), // 確実に数値型に
-        Memo: newTask.memo || "",
+  // 画像ファイル選択ハンドラ
+  const handleIconFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const file = e.target.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setNewTaskIcon(reader.result);
+        }
       };
+      reader.readAsDataURL(file);
+    }
+  };
 
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/add`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify(taskRequest),
-        },
-      );
-
-      if (response.status === 401 || response.status === 403) {
-        //   toast.error("認証エラーです。再ログインしてください。");
-        //   window.location.href = "/login";
-        return;
-      }
-
-      // if (!response.ok) {
-      //   throw new Error(`タスクの追加に失敗しました (${response.status})`);
-      // }
-
-      const data = await response.json();
-
-      // APIからの応答に含まれるタスクIDを使用
-      const taskId = data.Work?.ID || data.ID || Date.now();
-
-      // 新しいタスクオブジェクトを作成
-      let deadline: Date | undefined = undefined;
-      if (newTask.deadline) {
-        const d = new Date(newTask.deadline);
-        if (!isNaN(d.getTime())) deadline = d;
-      }
-      const task: Task = {
-        id: taskId,
-        title: newTask.title,
-        subject: newTask.subject || "一般",
-        deadline,
-        completed: false,
-        timeSpent: 0,
-        iconImageURL: "https://placehold.co/32",
+  // ドラッグ＆ドロップハンドラ
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setIsDragging(false);
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      const file = e.dataTransfer.files[0];
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === "string") {
+          setNewTaskIcon(reader.result);
+        }
       };
-
-      // 親コンポーネントにタスク追加を通知
-      onTaskAdd(task);
-
-      // タスク追加フォームをリセットして閉じる
-      setNewTask({
-        title: "",
-        subject: "",
-        deadline: "",
-        color: "#000000",
-        memo: "",
-      });
-      setShowAddTask(false);
-      toast.success("タスクを追加しました");
-    } catch (error) {
-      console.error("タスク追加エラー:", error);
-      toast.error("タスクの追加に失敗しました");
-    } finally {
-      setIsSubmitting(false);
+      reader.readAsDataURL(file);
     }
   };
 
-  const handleDeleteTask = async (taskId: number) => {
-    setDeleteTargetId(taskId);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDeleteTask = async () => {
-    if (deleteTargetId === null) return;
-    try {
-      const token = localStorage.getItem("token") || "dummy-token";
-      // if (!token) {
-      //   toast.error("ログインしていません");
-      //   window.location.href = "/login";
-      //   setShowDeleteModal(false);
-      //   return;
-      // }
-      const response = await fetch(
-        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/works/delete/${deleteTargetId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        },
-      );
-      if (response.status === 401 || response.status === 403) {
-        // toast.error("認証エラーです。再ログインしてください。");
-        // window.location.href = "/login";
-        return;
-      }
-      if (!response.ok) {
-        throw new Error(`タスクの削除に失敗しました (${response.status})`);
-      }
-      toast.success("タスクを削除しました");
-      onTaskAdd({
-        id: 0,
-        title: "",
-        subject: "",
-        deadline: undefined,
-        completed: false,
-        timeSpent: 0,
-      });
-    } catch (error) {
-      console.error("タスク削除エラー:", error);
-      toast.error("タスクの削除に失敗しました");
-    } finally {
-      setShowDeleteModal(false);
-      setDeleteTargetId(null);
-    }
-  };
+  // 画像削除ボタン
+  const handleRemoveIcon = () => setNewTaskIcon(null);
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-4 mb-6">
       <div className="flex justify-between items-center mb-4">
         <h2 className="text-xl font-bold">タスク管理</h2>
         <div className="flex space-x-2">
-          <Button
-            onClick={() =>
-              setSortBy(sortBy === "deadline" ? "subject" : "deadline")
-            }
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-          >
-            <ListFilter className="h-4 w-4" />
-          </Button>
           <Button
             onClick={() => setShowAddTask(!showAddTask)}
             variant="default"
@@ -318,10 +280,63 @@ export const TaskManagement = ({
                     onChange={(e) =>
                       setNewTask({ ...newTask, memo: e.target.value })
                     }
-                    className="w-full border rounded p-2 text-sm"
+                    className={
+                      `w-full border rounded p-2 text-sm ` +
+                      (typeof window !== "undefined" &&
+                      document.documentElement.classList.contains("dark")
+                        ? "bg-amber-900/60 border-yellow-700 text-yellow-100 placeholder-yellow-200"
+                        : "bg-white border-amber-200 text-amber-950")
+                    }
                     rows={2}
                     placeholder="メモを入力"
                   />
+                </div>
+                <div className="mb-3">
+                  <label className="block text-sm font-medium mb-1">
+                    アイコン画像（任意）
+                  </label>
+                  <div
+                    className={`flex items-center gap-3 border-2 rounded p-2 transition-colors ${isDragging ? "border-amber-400 bg-amber-50" : "border-gray-200"}`}
+                    onDragOver={handleDragOver}
+                    onDragLeave={handleDragLeave}
+                    onDrop={handleDrop}
+                    style={{ cursor: "pointer" }}
+                    onClick={() =>
+                      document.getElementById("icon-file-input")?.click()
+                    }
+                  >
+                    <input
+                      id="icon-file-input"
+                      type="file"
+                      accept="image/*"
+                      onChange={handleIconFileChange}
+                      className="hidden"
+                    />
+                    {newTaskIcon ? (
+                      <div className="relative">
+                        <img
+                          src={newTaskIcon}
+                          alt="プレビュー"
+                          style={{ width: 64, height: 64, borderRadius: "50%" }}
+                        />
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemoveIcon();
+                          }}
+                          className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs shadow"
+                          title="画像を削除"
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-xs">
+                        画像をクリックまたはドロップ
+                      </span>
+                    )}
+                  </div>
                 </div>
                 <div className="flex justify-end">
                   <Button
@@ -334,12 +349,11 @@ export const TaskManagement = ({
                   </Button>
                   <Button
                     onClick={handleTaskSubmit}
-                    disabled={isSubmitting}
                     size="sm"
                     className="bg-amber-500 hover:bg-amber-600"
                   >
-                    {isSubmitting ? "保存中..." : "保存"}
-                    {!isSubmitting && <Save className="h-4 w-4 ml-1" />}
+                    {"保存"}
+                    {!showAddTask && <Save className="h-4 w-4 ml-1" />}
                   </Button>
                 </div>
               </div>
@@ -358,8 +372,10 @@ export const TaskManagement = ({
             <TaskItem
               key={task.id}
               task={task}
-              onComplete={onTaskComplete}
+              onComplete={handleTaskComplete}
               onDelete={handleDeleteTask}
+              onRecord={handleRecord}
+              now={now}
             />
           ))
         )}
@@ -399,6 +415,8 @@ interface TaskItemProps {
   task: Task;
   onComplete: (taskId: number) => void;
   onDelete: (taskId: number) => void;
+  onRecord: (taskId: number) => void;
+  now: Date;
 }
 
 type DeadlineStatus = {
@@ -456,10 +474,30 @@ const getDeadlineStatus = (deadline: Date): DeadlineStatus => {
   };
 };
 
-const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
+const TaskItem = ({
+  task,
+  onComplete,
+  onDelete,
+  onRecord,
+  now,
+}: TaskItemProps) => {
   const deadlineStatus = task.deadline
     ? getDeadlineStatus(task.deadline)
     : null;
+  let countdown = null;
+  if (task.deadline) {
+    const diff = task.deadline.getTime() - now.getTime();
+    if (diff > 0) {
+      const hours = Math.floor(diff / 1000 / 60 / 60);
+      const minutes = Math.floor((diff / 1000 / 60) % 60);
+      const seconds = Math.floor((diff / 1000) % 60);
+      countdown = `${hours.toString().padStart(2, "0")}:${minutes
+        .toString()
+        .padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    } else {
+      countdown = "期限切れ";
+    }
+  }
   return (
     <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-3 rounded-lg border border-gray-200 dark:border-gray-600 hover:bg-gray-100 dark:hover:bg-gray-650 transition-all">
       <div className="flex-1 min-w-0">
@@ -468,10 +506,15 @@ const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
             <Image
               src={task.iconImageURL}
               alt=""
-              className="w-6 h-6 mr-2 rounded-full"
+              width={64}
+              height={64}
+              unoptimized
+              className="w-16 h-16 mr-2 rounded-full object-cover"
               onError={(e: React.SyntheticEvent<HTMLImageElement, Event>) => {
                 const target = e.target as HTMLImageElement;
-                target.src = "https://placehold.co/32";
+                target.src = "https://placehold.co/64";
+                target.style.width = "64px";
+                target.style.height = "64px";
               }}
             />
           )}
@@ -479,13 +522,27 @@ const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
             <h4 className="font-medium text-gray-800 dark:text-gray-200 truncate">
               {task.title}
             </h4>
+            {typeof task.memo === "string" && task.memo.trim() !== "" && (
+              <div
+                className={
+                  `mt-2 p-2 rounded text-sm whitespace-pre-line border-l-4 ` +
+                  (typeof window !== "undefined" &&
+                  document.documentElement.classList.contains("dark")
+                    ? "bg-amber-900/60 border-yellow-700 text-yellow-100"
+                    : "bg-yellow-50 border-yellow-400 text-yellow-900")
+                }
+              >
+                <span className="font-bold mr-1">📝 メモ:</span>
+                {task.memo}
+              </div>
+            )}
             <div className="flex flex-wrap gap-2 mt-1">
               <span
                 className={`text-xs px-2 py-0.5 rounded flex items-center ${
                   !task.deadline
                     ? "bg-gray-100 text-gray-500"
                     : deadlineStatus?.status === "expired"
-                      ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 font-bold animate-pulse"
+                      ? "bg-red-100 text-red-800 font-bold"
                       : deadlineStatus?.status === "today" ||
                           deadlineStatus?.status === "tomorrow"
                         ? "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-100 font-semibold"
@@ -498,11 +555,16 @@ const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
                 {!task.deadline && <span>締切なし</span>}
                 {task.deadline && deadlineStatus && (
                   <>
-                    {deadlineStatus.status === "expired" && (
-                      <AlertTriangle className="h-4 w-4 mr-1 text-red-500 animate-bounce" />
+                    {deadlineStatus.status === "expired" ? (
+                      <span>
+                        {task.deadline.toLocaleDateString()}（期限切れ）
+                      </span>
+                    ) : (
+                      <>
+                        {formatDeadline(task.deadline)}
+                        <span className="ml-2">{deadlineStatus.message}</span>
+                      </>
                     )}
-                    {formatDeadline(task.deadline)}
-                    <span className="ml-2">{deadlineStatus.message}</span>
                   </>
                 )}
               </span>
@@ -511,18 +573,35 @@ const TaskItem = ({ task, onComplete, onDelete }: TaskItemProps) => {
                   {formatTime(task.timeSpent)}
                 </span>
               )}
+              {task.deadline && (
+                <span
+                  className={`text-base font-bold ml-2 ${countdown === "期限切れ" ? "text-red-500" : "text-blue-700"}`}
+                  style={{ letterSpacing: "0.03em" }}
+                >
+                  {countdown === "期限切れ"
+                    ? `${task.deadline.toLocaleDateString()}（期限切れ）`
+                    : `締切まで: ${countdown}`}
+                </span>
+              )}
             </div>
           </div>
         </div>
       </div>
-      <div className="flex items-center ml-4">
+      <div className="flex items-center ml-4 gap-2">
+        <button
+          onClick={() => onRecord(task.id)}
+          className="px-3 py-2 rounded-full bg-green-200 hover:bg-green-300 text-green-800 font-bold flex items-center gap-1 shadow transition-transform hover:scale-105"
+        >
+          <BookOpen className="w-4 h-4" />
+          記録する
+        </button>
         <button
           onClick={() => onComplete(task.id)}
           className="relative group"
           aria-label="タスク完了"
         >
           <div className="w-10 h-10 rounded-full flex items-center justify-center bg-amber-100 hover:bg-amber-200 dark:bg-amber-800 dark:hover:bg-amber-700 border-2 border-amber-300 dark:border-amber-600 transition-all transform group-hover:scale-110">
-            <div className="text-amber-600 dark:text-amber-300">
+            <div className="text-green-600 dark:text-green-300">
               <svg
                 width="20"
                 height="20"
