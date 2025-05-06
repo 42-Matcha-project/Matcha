@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import {
-  Clock,
-  PlusCircle,
-  Trash2,
-  ListFilter,
-  Save,
-  AlertTriangle,
-} from "lucide-react";
+import { Clock, PlusCircle, Trash2, ListFilter, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -461,7 +454,7 @@ const TaskItem = ({
                   !task.deadline
                     ? "bg-gray-100 text-gray-500"
                     : deadlineStatus?.status === "expired"
-                      ? "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-100 font-bold animate-pulse"
+                      ? "bg-red-100 text-red-800 font-bold"
                       : deadlineStatus?.status === "today" ||
                           deadlineStatus?.status === "tomorrow"
                         ? "bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-100 font-semibold"
@@ -474,11 +467,16 @@ const TaskItem = ({
                 {!task.deadline && <span>締切なし</span>}
                 {task.deadline && deadlineStatus && (
                   <>
-                    {deadlineStatus.status === "expired" && (
-                      <AlertTriangle className="h-4 w-4 mr-1 text-red-500 animate-bounce" />
+                    {deadlineStatus.status === "expired" ? (
+                      <span>
+                        {task.deadline.toLocaleDateString()}（期限切れ）
+                      </span>
+                    ) : (
+                      <>
+                        {formatDeadline(task.deadline)}
+                        <span className="ml-2">{deadlineStatus.message}</span>
+                      </>
                     )}
-                    {formatDeadline(task.deadline)}
-                    <span className="ml-2">{deadlineStatus.message}</span>
                   </>
                 )}
               </span>
@@ -487,15 +485,14 @@ const TaskItem = ({
                   {formatTime(task.timeSpent)}
                 </span>
               )}
-              {/* タイマー表示 */}
-              <span className="text-xs bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-100 px-2 py-0.5 rounded">
-                {formatTime(task.currentTimerValue || 0)}
-              </span>
               {task.deadline && (
                 <span
-                  className={`text-xs ml-2 ${countdown === "期限切れ" ? "text-red-500 font-bold animate-pulse" : "text-blue-600"}`}
+                  className={`text-base font-bold ml-2 ${countdown === "期限切れ" ? "text-red-500" : "text-blue-700"}`}
+                  style={{ letterSpacing: "0.03em" }}
                 >
-                  締切まで: {countdown}
+                  {countdown === "期限切れ"
+                    ? `${task.deadline.toLocaleDateString()}（期限切れ）`
+                    : `締切まで: ${countdown}`}
                 </span>
               )}
             </div>
