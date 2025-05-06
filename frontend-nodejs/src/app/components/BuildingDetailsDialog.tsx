@@ -47,7 +47,7 @@ export default function BuildingDetailsDialog({
         <div className="flex justify-center mb-4">
           <div className="relative w-96 h-96">
             <Image
-              src={building.image || "/placeholder.svg"}
+              src={building.image || "/images/no-image.png"}
               alt={building.name}
               fill
               sizes="(max-width: 768px) 100vw, 600px"

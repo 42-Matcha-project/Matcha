@@ -177,6 +177,21 @@ export default function SettlementPage() {
   // 雲のデータを使用
   const clouds = cloudEffects;
 
+  // --- Lazy rendering state ---
+  const [visibleCount, setVisibleCount] = useState(10);
+  useEffect(() => {
+    const onScroll = () => {
+      if (
+        window.innerHeight + window.scrollY >=
+        document.body.offsetHeight - 500
+      ) {
+        setVisibleCount((prev) => Math.min(prev + 10, managedBuildings.length));
+      }
+    };
+    window.addEventListener("scroll", onScroll);
+    return () => window.removeEventListener("scroll", onScroll);
+  }, [managedBuildings.length]);
+
   // 実際の購入処理（UI表示とメッセージ）
   const handlePurchase = (building: Building) => {
     const success = purchaseBuilding(building);
@@ -265,14 +280,13 @@ export default function SettlementPage() {
 
         {/* メインコンテンツ */}
         <main
-          className="relative w-full overflow-y-auto pb-32 pt-16 scroll-smooth"
+          className="relative w-full overflow-y-auto pb-56 pt-16 scroll-smooth"
           ref={containerRef}
           style={{ willChange: "scroll-position" }}
         >
           {/* 建物配置エリア */}
-          <div className="relative h-[320vh] w-full z-10 mx-auto rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner pb-40">
-            {/* LCPが7.58秒と遅いので、最初に表示される建物だけ優先レンダリングし、残りは遅延ロード */}
-            {managedBuildings.slice(0, 2).map((building) => (
+          <div className="relative min-h-screen w-full z-10 mx-auto rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner">
+            {managedBuildings.slice(0, visibleCount).map((building, idx) => (
               <BuildingCard
                 key={building.id}
                 building={building}
@@ -281,18 +295,7 @@ export default function SettlementPage() {
                 isMounted={isMounted}
                 shouldShowAnimation={shouldShowAnimation}
                 onClick={handleBuildingClick}
-                priority={true} // 優先的にレンダリング
-              />
-            ))}
-            {managedBuildings.slice(2).map((building) => (
-              <BuildingCard
-                key={building.id}
-                building={building}
-                isSelected={selectedBuilding === building.id}
-                isLoaded={isLoaded}
-                isMounted={isMounted}
-                shouldShowAnimation={shouldShowAnimation}
-                onClick={handleBuildingClick}
+                priority={idx === 0}
               />
             ))}
           </div>

@@ -309,7 +309,7 @@ export function SubjectRegistrationForm({
                         // 画像読み込みエラー時にプレースホルダーを表示
                         const target = e.target as HTMLImageElement;
                         target.onerror = null; // エラーループ防止
-                        target.src = "/placeholder.svg";
+                        target.src = "/images/no-image.png";
                       }}
                     />
                   </div>
