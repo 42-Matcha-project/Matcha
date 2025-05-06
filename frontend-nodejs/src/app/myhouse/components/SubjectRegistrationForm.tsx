@@ -8,7 +8,11 @@ import Image from "next/image";
 
 interface SubjectRegistrationFormProps {
   isDarkMode: boolean;
-  onSubjectAdded?: () => void;
+  onSubjectAdded?: (task: {
+    WorkName: string;
+    IconImageURL: string | null;
+    notes?: string;
+  }) => void;
 }
 
 export function SubjectRegistrationForm({
@@ -31,12 +35,15 @@ export function SubjectRegistrationForm({
   // 表示する警告の閾値を調整
   const WARNING_THRESHOLD = Math.floor(MAX_SUBJECT_NAME_LENGTH * 0.8); // 80%で警告
 
+  const [noteText, setNoteText] = useState("");
+
   // フォームをリセットする
   const resetForm = () => {
     setSubjectName("");
     setIconDataUrl(null);
     setIsFormOpen(false);
     setIsDragging(false);
+    setNoteText("");
   };
 
   // 画像ファイルを処理する
@@ -161,6 +168,7 @@ export function SubjectRegistrationForm({
                 ? null
                 : iconDataUrl
               : null,
+            notes: noteText.trim() || undefined,
           }),
         },
       );
@@ -175,7 +183,11 @@ export function SubjectRegistrationForm({
 
       // コールバック関数があれば実行（親コンポーネントでタスクリストを更新するなど）
       if (onSubjectAdded) {
-        onSubjectAdded();
+        onSubjectAdded({
+          WorkName: subjectName,
+          IconImageURL: iconDataUrl,
+          notes: noteText.trim() || undefined,
+        });
       }
     } catch (error) {
       console.error("タスク登録エラー:", error);
@@ -326,6 +338,26 @@ export function SubjectRegistrationForm({
                 </div>
               )}
             </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium mb-1">
+              メモ（任意）
+            </label>
+            <textarea
+              value={noteText}
+              onChange={(e) => setNoteText(e.target.value)}
+              className={cn(
+                "w-full p-2 rounded-lg text-sm border border-amber-200",
+                isDarkMode
+                  ? "bg-amber-800 text-amber-50"
+                  : "bg-white text-amber-950",
+              )}
+              placeholder="このタスクのメモや補足を入力"
+              rows={2}
+              maxLength={100}
+              disabled={isSubmitting}
+            />
           </div>
 
           <div className="flex justify-end space-x-2">
