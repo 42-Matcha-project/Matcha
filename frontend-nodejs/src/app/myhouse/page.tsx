@@ -545,7 +545,7 @@ export default function MyHousePage() {
             <DialogDescription className="text-base mt-2">
               本当にログアウトしますか？
               <br />
-              ログアウトするとマイハウスから退出し、精算ページに移動します。
+              ログアウトするとマイハウスから退出し、建物一覧ページに移動します。
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex-row gap-3 mt-6 mb-2">
