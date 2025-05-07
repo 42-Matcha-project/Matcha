@@ -319,22 +319,22 @@ export default function ProfileEditPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
-        <div className="flex items-center mb-8">
+      <div className="container mx-auto px-2 sm:px-4 md:px-8 py-4 sm:py-8 max-w-lg sm:max-w-2xl md:max-w-3xl lg:max-w-4xl">
+        <div className="flex items-center mb-6 sm:mb-8">
           <button
             onClick={handleBackClick}
-            className="mr-4 p-2 rounded-full bg-amber-200 hover:bg-amber-300 transition-colors"
+            className="mr-2 sm:mr-4 p-2 rounded-full bg-amber-200 hover:bg-amber-300 transition-colors"
           >
             <ArrowLeft size={24} className="text-amber-800" />
           </button>
-          <h1 className="text-2xl font-bold text-amber-900">
+          <h1 className="text-xl sm:text-2xl font-bold text-amber-900">
             プロフィール編集
           </h1>
         </div>
 
         {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-amber-500"></div>
+          <div className="flex justify-center items-center h-48 sm:h-64">
+            <div className="animate-spin rounded-full h-10 w-10 sm:h-12 sm:w-12 border-t-2 border-b-2 border-amber-500"></div>
           </div>
         ) : error && !profile ? (
           <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative">
@@ -346,11 +346,11 @@ export default function ProfileEditPage() {
             onSubmit={handleSubmit}
             className="bg-white rounded-xl shadow-lg overflow-hidden"
           >
-            <div className="bg-gradient-to-r from-amber-500 to-amber-400 p-6 text-white">
-              <div className="flex flex-col md:flex-row items-center gap-6">
-                <div className="relative w-32 h-32">
+            <div className="bg-gradient-to-r from-amber-500 to-amber-400 p-4 sm:p-6 text-white">
+              <div className="flex flex-col md:flex-row items-center gap-4 sm:gap-6">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32">
                   <div
-                    className="w-32 h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-amber-100 relative cursor-not-allowed"
+                    className="w-24 h-24 sm:w-32 sm:h-32 rounded-full overflow-hidden border-4 border-white shadow-md bg-amber-100 relative cursor-not-allowed"
                     onClick={handleImageButtonClick}
                     title="画像のアップロード機能は現在準備中です"
                   >
@@ -364,12 +364,12 @@ export default function ProfileEditPage() {
                       />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <User size={64} className="text-amber-300" />
+                        <User className="text-amber-300 w-12 h-12 sm:w-16 sm:h-16" />
                       </div>
                     )}
                     <div className="absolute inset-0 bg-black bg-opacity-50 flex flex-col items-center justify-center opacity-0 hover:opacity-100 transition-opacity">
                       <Upload
-                        size={24}
+                        size={20}
                         className="text-white mb-1 opacity-50"
                       />
                       <span className="text-white text-xs text-center px-1">
@@ -386,7 +386,7 @@ export default function ProfileEditPage() {
                   />
                 </div>
 
-                <div className="text-center md:text-left flex-1">
+                <div className="text-center md:text-left flex-1 w-full">
                   <FormField label="表示名" htmlFor="displayName">
                     <input
                       id="displayName"
@@ -394,39 +394,41 @@ export default function ProfileEditPage() {
                       type="text"
                       value={formData.displayName}
                       onChange={handleInputChange}
-                      className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium"
+                      className="w-full px-3 sm:px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 font-medium text-base sm:text-lg"
                       placeholder="表示名を入力"
                       maxLength={15}
                     />
-                    <div className="text-xs text-gray-500 mt-1 text-right">
+                    <div className="text-xs text-gray-200 mt-1 text-right">
                       {formData.displayName.length}/15
                     </div>
                     {formData.displayName.length >= 13 &&
                       formData.displayName.length < 15 && (
-                        <span className="text-amber-500 text-xs ml-2">
+                        <span className="text-amber-100 text-xs ml-2">
                           制限に近づいています
                         </span>
                       )}
                     {formData.displayName.length >= 15 && (
-                      <span className="text-red-500 text-xs ml-2">
+                      <span className="text-red-200 text-xs ml-2">
                         文字数制限に達しました
                       </span>
                     )}
                   </FormField>
-                  <p className="text-amber-100 mt-1">@{profile.Username}</p>
+                  <p className="text-amber-100 mt-1 break-all text-xs sm:text-sm">
+                    @{profile.Username}
+                  </p>
                 </div>
               </div>
             </div>
 
-            <div className="p-6 space-y-6">
+            <div className="p-4 sm:p-6 space-y-6">
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-amber-800 border-b pb-2 border-amber-200">
+                <h3 className="text-lg sm:text-xl font-semibold text-amber-800 border-b pb-2 border-amber-200">
                   基本情報
                 </h3>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
                   <FormField label="メールアドレス" htmlFor="email">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <Mail className="text-amber-500" />
                       <input
                         id="email"
@@ -434,7 +436,7 @@ export default function ProfileEditPage() {
                         type="email"
                         value={formData.email}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-90 disabled:bg-amber-50 disabled:text-gray-700 disabled:font-medium"
+                        className="w-full px-3 sm:px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 disabled:opacity-90 disabled:bg-amber-50 disabled:text-gray-700 disabled:font-medium text-base"
                         placeholder="メールアドレスを入力"
                         disabled
                       />
@@ -442,7 +444,7 @@ export default function ProfileEditPage() {
                   </FormField>
 
                   <FormField label="街の名前" htmlFor="townName">
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2 sm:gap-3">
                       <MapPin className="text-amber-500" />
                       <input
                         id="townName"
@@ -450,7 +452,7 @@ export default function ProfileEditPage() {
                         type="text"
                         value={formData.townName}
                         onChange={handleInputChange}
-                        className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500"
+                        className="w-full px-3 sm:px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 text-base"
                         placeholder="あなたの街の名前を入力"
                         maxLength={25}
                       />
@@ -474,7 +476,7 @@ export default function ProfileEditPage() {
               </div>
 
               <div className="space-y-4">
-                <h3 className="text-xl font-semibold text-amber-800 border-b pb-2 border-amber-200">
+                <h3 className="text-lg sm:text-xl font-semibold text-amber-800 border-b pb-2 border-amber-200">
                   自己紹介
                 </h3>
                 <textarea
@@ -482,7 +484,7 @@ export default function ProfileEditPage() {
                   name="introduction"
                   value={formData.introduction}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[120px]"
+                  className="w-full px-3 sm:px-4 py-2 rounded-md border border-amber-200 text-gray-800 focus:outline-none focus:ring-2 focus:ring-amber-500 min-h-[100px] sm:min-h-[120px] text-base"
                   placeholder="自己紹介を入力してください"
                   maxLength={200}
                 />
@@ -522,12 +524,12 @@ export default function ProfileEditPage() {
                 </div>
               )}
 
-              <div className="flex justify-end mt-6">
+              <div className="flex flex-col sm:flex-row justify-end mt-6 gap-2 sm:gap-4">
                 <Button
                   type="button"
                   variant="secondary"
                   onClick={handleBackClick}
-                  className="mr-4"
+                  className="mb-2 sm:mb-0 sm:mr-4"
                 >
                   キャンセル
                 </Button>

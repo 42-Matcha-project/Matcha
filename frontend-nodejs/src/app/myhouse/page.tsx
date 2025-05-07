@@ -20,10 +20,20 @@ import {
   CheckCircle,
   FileText,
   AlertTriangle,
+  LogOut,
 } from "lucide-react";
 import { ChatPanel } from "./components/ChatPanel";
 import { Message } from "./types";
 import { formatTime, formatDeadline } from "./lib/timeUtils";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
+import { useRouter } from "next/navigation";
 
 // APIから取得するタスクの型定義
 interface ApiTask {
@@ -41,6 +51,27 @@ interface TabInfo {
   id: TabType;
   label: string;
   icon: LucideIcon;
+}
+
+// Cardコンポーネントをファイル内で定義
+function Card({
+  icon,
+  label,
+  value,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  value: string;
+}) {
+  return (
+    <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 text-white flex items-center space-x-3 shadow-md">
+      <div className="text-white">{icon}</div>
+      <div>
+        <div className="text-sm opacity-80">{label}</div>
+        <div className="text-xl font-bold">{value}</div>
+      </div>
+    </div>
+  );
 }
 
 export default function MyHousePage() {
@@ -406,15 +437,6 @@ export default function MyHousePage() {
     }, 3000);
   };
 
-  // handleTaskAdd 関数を追加
-  const handleTaskAdd = (task: Task) => {
-    setTasks((prev) => [...prev, task]);
-    // タスクが追加されたらAPIタスクも再取得
-    setTimeout(() => {
-      fetchApiTasks();
-    }, 500);
-  };
-
   // 完了済みタスクを維持するための処理を追加
   useEffect(() => {
     // ローカルストレージから完了済みタスクIDのリストを取得
@@ -475,9 +497,19 @@ export default function MyHousePage() {
     );
   };
 
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
+  const router = useRouter();
+
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setShowLogoutDialog(false);
+    router.push("/settlement");
+  };
+
   return (
-    <main className="min-h-screen bg-gradient-to-b from-amber-50 to-amber-100 dark:from-amber-900 dark:to-amber-800">
-      <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between z-50 sticky top-0 left-0 right-0 font-sans">
+    <div className="min-h-screen bg-gradient-to-br from-emerald-100 to-amber-50 flex flex-col items-center justify-center px-2 sm:px-3 md:px-6 lg:px-10 xl:px-16 py-6 sm:py-10">
+      {/* 固定ヘッダー */}
+      <header className="sticky top-0 left-0 right-0 z-50 w-full max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-8 px-2 sm:px-6 py-4 bg-gradient-to-br from-emerald-100 to-amber-50">
         <div className="flex items-center">
           <Home className="h-7 w-7 mr-2" />
           <h1 className="text-xl font-bold tracking-wide">
@@ -487,7 +519,6 @@ export default function MyHousePage() {
             Lv.{userStats.level}
           </span>
         </div>
-
         <div className="flex items-center space-x-6">
           <div className="flex items-center">
             <Calendar className="h-6 w-6 mr-2" />
@@ -495,15 +526,344 @@ export default function MyHousePage() {
               {userStats.dayStreak}日連続
             </span>
           </div>
-
           <div className="flex items-center">
             <BookOpen className="h-6 w-6 mr-2" />
             <span className="text-lg font-medium">
               {userStats.totalStudyHours}時間
             </span>
           </div>
+          {/* Logout Button */}
+          <button
+            onClick={() => setShowLogoutDialog(true)}
+            className="ml-4 flex items-center px-3 py-2 rounded-lg bg-amber-700 hover:bg-red-600 transition-colors text-white font-semibold shadow border border-amber-600 hover:border-red-700"
+            title="ログアウト"
+          >
+            <LogOut className="h-5 w-5 mr-1" />
+            myhouseログアウト
+          </button>
         </div>
       </header>
+
+      {/* タブナビゲーション（モバイル下部/PC左サイド） */}
+      <div className="w-full max-w-7xl">
+        {/* モバイル向けのタブナビゲーション */}
+        <div className="lg:hidden flex border-b mb-6 overflow-x-auto bg-white/80 rounded-t-xl">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={cn(
+                "flex items-center gap-2 px-4 py-3 whitespace-nowrap",
+                activeTab === tab.id
+                  ? isDarkMode
+                    ? "border-b-2 border-amber-500 text-amber-100 font-medium"
+                    : "border-b-2 border-amber-500 text-amber-800 font-medium"
+                  : isDarkMode
+                    ? "text-amber-300"
+                    : "text-amber-600",
+              )}
+            >
+              <tab.icon className="h-5 w-5" />
+              <span>{tab.label}</span>
+            </button>
+          ))}
+        </div>
+        <div className="grid grid-cols-10 gap-6">
+          {/* サイドバーナビゲーション（デスクトップ） */}
+          <div className="hidden lg:block lg:col-span-2">
+            <div className="bg-white dark:bg-amber-800/90 rounded-lg shadow-md border border-amber-200 dark:border-amber-700 overflow-hidden sticky top-24">
+              {tabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id)}
+                  className={cn(
+                    "w-full flex items-center gap-3 px-4 py-4 text-left transition-colors",
+                    activeTab === tab.id
+                      ? isDarkMode
+                        ? "bg-amber-700/50 text-amber-50 font-medium border-l-4 border-amber-500"
+                        : "bg-amber-100 text-amber-800 font-medium border-l-4 border-amber-500"
+                      : isDarkMode
+                        ? "text-amber-200 hover:bg-amber-800/50"
+                        : "text-amber-700 hover:bg-amber-50",
+                  )}
+                >
+                  <tab.icon className="h-5 w-5" />
+                  <span>{tab.label}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+          {/* メインコンテンツエリア */}
+          <div className="lg:col-span-8">
+            <main className="w-full flex flex-col gap-6 sm:gap-10 md:gap-14 lg:gap-16 px-2 sm:px-6">
+              {/* 学習データサマリー - 常に表示 */}
+              <StudyDataSummary />
+
+              {/* 学習ステータス */}
+              <div className="mb-8 p-4 bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-md">
+                <div className="flex items-center mb-3">
+                  <div className="w-8 h-8 bg-[#8cc750] rounded-full flex items-center justify-center border-2 border-[#7ab145] shadow-sm">
+                    <Clock className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="ml-2 text-lg font-bold text-[#7b6c5d]">
+                    学習ステータス
+                  </h3>
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-white p-3 rounded-lg border border-[#e4cbac]">
+                    <div className="text-xs text-[#9b8e7e] mb-1">
+                      累計学習時間
+                    </div>
+                    <div className="text-xl font-bold text-[#7b6c5d]">
+                      {formatTime(
+                        tasks.reduce((sum, t) => sum + (t.timeSpent || 0), 0),
+                      )}
+                    </div>
+                  </div>
+                  <div className="bg-white p-3 rounded-lg border border-[#e4cbac]">
+                    <div className="text-xs text-[#9b8e7e] mb-1">
+                      今日の学習時間
+                    </div>
+                    <div className="text-xl font-bold text-[#7b6c5d]">
+                      {formatTime(
+                        tasks.reduce(
+                          (sum, task) => sum + (task.timeSpent || 0),
+                          0,
+                        ),
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* タブコンテンツ */}
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeTab}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 20 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {activeTab === "tasks" && (
+                    <>
+                      <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
+                        <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                          タスク管理
+                        </h3>
+                        <TaskManagement />
+                      </div>
+                    </>
+                  )}
+
+                  {activeTab === "completed" && (
+                    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
+                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                        完了したタスク
+                      </h3>
+
+                      {/* 完了タスク一覧 */}
+                      <div className="space-y-4">
+                        {tasks.filter((task) => task.completed).length === 0 ? (
+                          <div className="text-center py-8">
+                            <FileText className="h-12 w-12 mx-auto text-amber-500 mb-2" />
+                            <p className="text-lg text-amber-800 dark:text-amber-200">
+                              完了したタスクはありません
+                            </p>
+                            <p className="text-sm text-amber-600 dark:text-amber-300">
+                              タスクを完了すると、ここに表示されます
+                            </p>
+                          </div>
+                        ) : (
+                          <>
+                            <div className="mb-4 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                              <div className="flex items-center gap-2 text-green-800 dark:text-green-300 mb-2">
+                                <CheckCircle className="h-5 w-5" />
+                                <h4 className="font-medium">完了したタスク</h4>
+                              </div>
+                              <p className="text-sm text-green-700 dark:text-green-400">
+                                おめでとうございます！
+                                {tasks.filter((task) => task.completed).length}
+                                件のタスクを完了しました。
+                              </p>
+                            </div>
+
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              {tasks
+                                .filter((task) => task.completed)
+                                .map((task) => (
+                                  <div
+                                    key={task.id}
+                                    className="bg-amber-50 dark:bg-amber-800/50 p-4 rounded-lg border border-amber-200 dark:border-amber-700"
+                                  >
+                                    <div className="flex items-start justify-between">
+                                      <div>
+                                        <h5 className="font-medium line-through text-amber-700 dark:text-amber-300">
+                                          {task.title}
+                                        </h5>
+                                        {task.completedDate && (
+                                          <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+                                            完了日時:{" "}
+                                            {task.completedDate.toLocaleString()}
+                                          </p>
+                                        )}
+                                      </div>
+                                      <div className="bg-green-600 text-white text-xs px-2 py-1 rounded">
+                                        完了済み
+                                      </div>
+                                    </div>
+
+                                    <div className="mt-2 text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                                      <Clock className="h-4 w-4" />
+                                      <span>
+                                        学習時間:{" "}
+                                        {formatTime(task.timeSpent || 0)}
+                                      </span>
+                                    </div>
+
+                                    <button
+                                      onClick={() =>
+                                        handleTaskComplete(task.id)
+                                      }
+                                      className="mt-3 text-amber-700 dark:text-amber-300 text-sm underline flex items-center gap-1"
+                                    >
+                                      <span>未完了に戻す</span>
+                                    </button>
+                                  </div>
+                                ))}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {activeTab === "chat" && (
+                    <div
+                      className="bg-white dark:bg-amber-800/90 rounded-lg overflow-hidden shadow-md border border-amber-200 dark:border-amber-700"
+                      style={{ height: "600px" }}
+                    >
+                      <ChatPanel
+                        messages={messages}
+                        setMessages={setMessages}
+                        isDarkMode={isDarkMode}
+                      />
+                    </div>
+                  )}
+
+                  {activeTab === "stats" && (
+                    <>
+                      {/* 学習ステータス */}
+                      <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700 mb-6">
+                        <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                          学習統計
+                        </h3>
+                        <StudyTimeChart tasks={tasks} isDarkMode={isDarkMode} />
+                      </div>
+
+                      {/* タスク別分析 */}
+                      <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
+                        <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
+                          タスク別分析
+                        </h3>
+                        <div className="space-y-4">
+                          {tasks.length === 0 ? (
+                            <div className="text-center py-8">
+                              <AlertTriangle className="h-12 w-12 mx-auto text-amber-500 mb-2" />
+                              <p className="text-lg text-amber-800 dark:text-amber-200">
+                                タスクがありません
+                              </p>
+                              <p className="text-sm text-amber-600 dark:text-amber-300">
+                                タスクを追加すると、ここに分析データが表示されます
+                              </p>
+                            </div>
+                          ) : (
+                            tasks.map((task) => (
+                              <div
+                                key={task.id}
+                                className="p-4 border border-amber-200 dark:border-amber-700 rounded-lg"
+                              >
+                                <div className="flex justify-between items-start mb-2">
+                                  <div>
+                                    <h4 className="font-bold">{task.title}</h4>
+                                    <p className="text-sm text-amber-700 dark:text-amber-300">
+                                      {task.subject}
+                                    </p>
+                                  </div>
+                                  <div className="text-right">
+                                    <div className="font-medium">
+                                      {formatTime(task.timeSpent || 0)}
+                                    </div>
+                                    {task.deadline && (
+                                      <div
+                                        className={cn(
+                                          "text-xs",
+                                          new Date() > task.deadline
+                                            ? "text-red-500"
+                                            : "text-amber-600 dark:text-amber-300",
+                                        )}
+                                      >
+                                        {formatDeadline(task.deadline)}
+                                      </div>
+                                    )}
+                                  </div>
+                                </div>
+                                <div className="w-full bg-amber-100 dark:bg-amber-700/30 h-2 rounded-full overflow-hidden">
+                                  <div
+                                    className="bg-amber-500 h-full rounded-full"
+                                    style={{
+                                      width: `${Math.min(
+                                        100,
+                                        (task.timeSpent || 0) / 60,
+                                      )}%`,
+                                    }}
+                                  ></div>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </motion.div>
+              </AnimatePresence>
+            </main>
+          </div>
+        </div>
+      </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent className="bg-white dark:bg-amber-900 border-amber-300 dark:border-amber-800">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <LogOut className="h-6 w-6 text-red-600" />
+              ログアウト確認
+            </DialogTitle>
+            <DialogDescription className="text-base mt-2">
+              本当にログアウトしますか？
+              <br />
+              ログアウトするとマイハウスから退出し、建物一覧ページに移動します。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-3 mt-6 mb-2">
+            <button
+              onClick={() => setShowLogoutDialog(false)}
+              className="flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors bg-amber-100 hover:bg-amber-200 text-amber-800"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={handleLogout}
+              className="flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors bg-red-600 hover:bg-red-700 text-white flex items-center justify-center"
+            >
+              <LogOut className="h-5 w-5 mr-2" />
+              ログアウト
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* タスク完了モーダル */}
       {showCompletionModal && completedTaskId && (
@@ -535,317 +895,6 @@ export default function MyHousePage() {
           </div>
         </div>
       )}
-
-      <div className="container mx-auto px-4 py-8 max-w-6xl">
-        {/* モバイル向けのタブナビゲーション */}
-        <div className="lg:hidden flex border-b mb-6 overflow-x-auto">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-3 whitespace-nowrap",
-                activeTab === tab.id
-                  ? isDarkMode
-                    ? "border-b-2 border-amber-500 text-amber-100 font-medium"
-                    : "border-b-2 border-amber-500 text-amber-800 font-medium"
-                  : isDarkMode
-                    ? "text-amber-300"
-                    : "text-amber-600",
-              )}
-            >
-              <tab.icon className="h-5 w-5" />
-              <span>{tab.label}</span>
-            </button>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          {/* サイドバーナビゲーション（デスクトップ） */}
-          <div className="hidden lg:block lg:col-span-3">
-            <div className="bg-white dark:bg-amber-800/90 rounded-lg shadow-md border border-amber-200 dark:border-amber-700 overflow-hidden sticky top-24">
-              {tabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
-                  className={cn(
-                    "w-full flex items-center gap-3 px-4 py-4 text-left transition-colors",
-                    activeTab === tab.id
-                      ? isDarkMode
-                        ? "bg-amber-700/50 text-amber-50 font-medium border-l-4 border-amber-500"
-                        : "bg-amber-100 text-amber-800 font-medium border-l-4 border-amber-500"
-                      : isDarkMode
-                        ? "text-amber-200 hover:bg-amber-800/50"
-                        : "text-amber-700 hover:bg-amber-50",
-                  )}
-                >
-                  <tab.icon className="h-5 w-5" />
-                  <span>{tab.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* メインコンテンツエリア */}
-          <div className="lg:col-span-9">
-            {/* 学習データサマリー - 常に表示 */}
-            <StudyDataSummary />
-
-            {/* 学習ステータス */}
-            <div className="mb-8 p-4 bg-[#f8eddc] rounded-2xl border-2 border-[#e4cbac] shadow-md">
-              <div className="flex items-center mb-3">
-                <div className="w-8 h-8 bg-[#8cc750] rounded-full flex items-center justify-center border-2 border-[#7ab145] shadow-sm">
-                  <Clock className="h-5 w-5 text-white" />
-                </div>
-                <h3 className="ml-2 text-lg font-bold text-[#7b6c5d]">
-                  学習ステータス
-                </h3>
-              </div>
-              <div className="grid grid-cols-2 gap-3">
-                <div className="bg-white p-3 rounded-lg border border-[#e4cbac]">
-                  <div className="text-xs text-[#9b8e7e] mb-1">
-                    累計学習時間
-                  </div>
-                  <div className="text-xl font-bold text-[#7b6c5d]">
-                    {formatTime(
-                      tasks.reduce((sum, t) => sum + (t.timeSpent || 0), 0),
-                    )}
-                  </div>
-                </div>
-                <div className="bg-white p-3 rounded-lg border border-[#e4cbac]">
-                  <div className="text-xs text-[#9b8e7e] mb-1">
-                    今日の学習時間
-                  </div>
-                  <div className="text-xl font-bold text-[#7b6c5d]">
-                    {formatTime(
-                      tasks.reduce(
-                        (sum, task) => sum + (task.timeSpent || 0),
-                        0,
-                      ),
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* タブコンテンツ */}
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={activeTab}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: 20 }}
-                transition={{ duration: 0.3 }}
-              >
-                {activeTab === "tasks" && (
-                  <>
-                    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
-                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
-                        タスク管理
-                      </h3>
-                      <TaskManagement
-                        tasks={tasks}
-                        onTaskComplete={handleTaskComplete}
-                        onTaskAdd={handleTaskAdd}
-                      />
-                    </div>
-                  </>
-                )}
-
-                {activeTab === "completed" && (
-                  <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
-                    <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
-                      完了したタスク
-                    </h3>
-
-                    {/* 完了タスク一覧 */}
-                    <div className="space-y-4">
-                      {tasks.filter((task) => task.completed).length === 0 ? (
-                        <div className="text-center py-8">
-                          <FileText className="h-12 w-12 mx-auto text-amber-500 mb-2" />
-                          <p className="text-lg text-amber-800 dark:text-amber-200">
-                            完了したタスクはありません
-                          </p>
-                          <p className="text-sm text-amber-600 dark:text-amber-300">
-                            タスクを完了すると、ここに表示されます
-                          </p>
-                        </div>
-                      ) : (
-                        <>
-                          <div className="mb-4 bg-green-100 dark:bg-green-900/30 border border-green-200 dark:border-green-800 rounded-lg p-4">
-                            <div className="flex items-center gap-2 text-green-800 dark:text-green-300 mb-2">
-                              <CheckCircle className="h-5 w-5" />
-                              <h4 className="font-medium">完了したタスク</h4>
-                            </div>
-                            <p className="text-sm text-green-700 dark:text-green-400">
-                              おめでとうございます！
-                              {tasks.filter((task) => task.completed).length}
-                              件のタスクを完了しました。
-                            </p>
-                          </div>
-
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {tasks
-                              .filter((task) => task.completed)
-                              .map((task) => (
-                                <div
-                                  key={task.id}
-                                  className="bg-amber-50 dark:bg-amber-800/50 p-4 rounded-lg border border-amber-200 dark:border-amber-700"
-                                >
-                                  <div className="flex items-start justify-between">
-                                    <div>
-                                      <h5 className="font-medium line-through text-amber-700 dark:text-amber-300">
-                                        {task.title}
-                                      </h5>
-                                      {task.completedDate && (
-                                        <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
-                                          完了日時:{" "}
-                                          {task.completedDate.toLocaleString()}
-                                        </p>
-                                      )}
-                                    </div>
-                                    <div className="bg-green-600 text-white text-xs px-2 py-1 rounded">
-                                      完了済み
-                                    </div>
-                                  </div>
-
-                                  <div className="mt-2 text-sm text-amber-600 dark:text-amber-400 flex items-center gap-1">
-                                    <Clock className="h-4 w-4" />
-                                    <span>
-                                      学習時間:{" "}
-                                      {formatTime(task.timeSpent || 0)}
-                                    </span>
-                                  </div>
-
-                                  <button
-                                    onClick={() => handleTaskComplete(task.id)}
-                                    className="mt-3 text-amber-700 dark:text-amber-300 text-sm underline flex items-center gap-1"
-                                  >
-                                    <span>未完了に戻す</span>
-                                  </button>
-                                </div>
-                              ))}
-                          </div>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
-
-                {activeTab === "chat" && (
-                  <div
-                    className="bg-white dark:bg-amber-800/90 rounded-lg overflow-hidden shadow-md border border-amber-200 dark:border-amber-700"
-                    style={{ height: "600px" }}
-                  >
-                    <ChatPanel
-                      messages={messages}
-                      setMessages={setMessages}
-                      isDarkMode={isDarkMode}
-                    />
-                  </div>
-                )}
-
-                {activeTab === "stats" && (
-                  <>
-                    {/* 学習ステータス */}
-                    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700 mb-6">
-                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
-                        学習統計
-                      </h3>
-                      <StudyTimeChart tasks={tasks} isDarkMode={isDarkMode} />
-                    </div>
-
-                    {/* タスク別分析 */}
-                    <div className="bg-white dark:bg-amber-800/90 rounded-lg p-6 shadow-md border border-amber-200 dark:border-amber-700">
-                      <h3 className="text-2xl font-bold mb-4 border-b pb-2 border-amber-200 dark:border-amber-700">
-                        タスク別分析
-                      </h3>
-                      <div className="space-y-4">
-                        {tasks.length === 0 ? (
-                          <div className="text-center py-8">
-                            <AlertTriangle className="h-12 w-12 mx-auto text-amber-500 mb-2" />
-                            <p className="text-lg text-amber-800 dark:text-amber-200">
-                              タスクがありません
-                            </p>
-                            <p className="text-sm text-amber-600 dark:text-amber-300">
-                              タスクを追加すると、ここに分析データが表示されます
-                            </p>
-                          </div>
-                        ) : (
-                          tasks.map((task) => (
-                            <div
-                              key={task.id}
-                              className="p-4 border border-amber-200 dark:border-amber-700 rounded-lg"
-                            >
-                              <div className="flex justify-between items-start mb-2">
-                                <div>
-                                  <h4 className="font-bold">{task.title}</h4>
-                                  <p className="text-sm text-amber-700 dark:text-amber-300">
-                                    {task.subject}
-                                  </p>
-                                </div>
-                                <div className="text-right">
-                                  <div className="font-medium">
-                                    {formatTime(task.timeSpent || 0)}
-                                  </div>
-                                  {task.deadline && (
-                                    <div
-                                      className={cn(
-                                        "text-xs",
-                                        new Date() > task.deadline
-                                          ? "text-red-500"
-                                          : "text-amber-600 dark:text-amber-300",
-                                      )}
-                                    >
-                                      {formatDeadline(task.deadline)}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                              <div className="w-full bg-amber-100 dark:bg-amber-700/30 h-2 rounded-full overflow-hidden">
-                                <div
-                                  className="bg-amber-500 h-full rounded-full"
-                                  style={{
-                                    width: `${Math.min(
-                                      100,
-                                      (task.timeSpent || 0) / 60,
-                                    )}%`,
-                                  }}
-                                ></div>
-                              </div>
-                            </div>
-                          ))
-                        )}
-                      </div>
-                    </div>
-                  </>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </div>
-        </div>
-      </div>
-    </main>
-  );
-}
-
-// Card コンポーネント - 最初のコードのカード実装を利用
-function Card({
-  icon,
-  label,
-  value,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="bg-gradient-to-br from-amber-500 to-amber-600 rounded-xl p-4 text-white flex items-center space-x-3 shadow-md">
-      <div className="text-white">{icon}</div>
-      <div>
-        <div className="text-sm opacity-80">{label}</div>
-        <div className="text-xl font-bold">{value}</div>
-      </div>
     </div>
   );
 }

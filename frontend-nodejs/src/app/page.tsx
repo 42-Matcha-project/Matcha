@@ -18,7 +18,7 @@ const WoodenSignButton = ({
   direction?: "left" | "right";
 }) => {
   const baseClasses =
-    "relative px-5 py-4 font-bold text-lg transform transition-transform duration-300 w-32 sm:w-40 md:w-48 mx-auto flex items-center justify-center";
+    "relative px-4 py-3 sm:px-5 sm:py-4 font-bold text-base sm:text-lg transform transition-transform duration-300 w-full sm:w-40 md:w-48 mx-auto flex items-center justify-center";
   const directionClass =
     direction === "left"
       ? "rotate-[-5deg] hover:rotate-0"
@@ -49,7 +49,7 @@ const WoodenSignButton = ({
   };
 
   return (
-    <div className="relative w-32 sm:w-40 md:w-48 mx-auto">
+    <div className="relative w-full sm:w-40 md:w-48 mx-auto">
       {/* 影の要素 - 看板とサイズを合わせる */}
       <div
         className={`absolute w-full h-full top-[5px] left-[6px] rounded ${directionClass}`}
@@ -81,7 +81,7 @@ const WoodenSignButton = ({
 // LetterBox コンポーネント - PRIVYの文字を表示
 const LetterBox = () => {
   return (
-    <div className="flex justify-center w-full mb-8">
+    <div className="flex justify-center w-full mb-6 sm:mb-8">
       <div className="flex space-x-2 sm:space-x-3 md:space-x-4">
         {["P", "R", "I", "V", "Y"].map((letter, index) => {
           const isBlackText =
@@ -89,7 +89,7 @@ const LetterBox = () => {
           return (
             <div
               key={index}
-              className="inline-block border-2 border-emerald-600 rounded-lg p-2 sm:p-3 md:p-4 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-110 transition-all duration-300"
+              className="inline-block border-2 border-emerald-600 rounded-lg p-2 sm:p-3 md:p-4 w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 flex items-center justify-center shadow-md hover:shadow-lg transform hover:scale-110 transition-all duration-300 text-center"
               style={{
                 animation: `bounce 1s ease-in-out ${index * 0.7}s infinite alternate`,
                 backgroundColor: `rgba(16, 185, 129, ${(index + 1) * 0.05 + 0.1})`,
@@ -156,270 +156,52 @@ const DecorativeImage = ({
   );
 };
 
-// 複数の花を表示する汎用コンポーネント
-const FlowerLayer = ({
-  position = "top-right",
-  flowerImage = "/images/welcome-flower.webp",
-}: {
-  position: "top-right" | "bottom-left";
-  flowerImage?: string;
-}) => {
-  // 花の設定の型を定義
-  type FlowerConfig = {
-    containerClassName: string;
-    imageClassName?: string;
-    style?: React.CSSProperties;
-    width: number;
-    height: number;
-    alt: string;
-  };
-
-  // 位置設定の型を定義
-  type PositionConfig = {
-    flowers: FlowerConfig[];
-  };
-  // 位置に基づく設定を定義
-  const positionSettings: Record<string, PositionConfig> = {
-    "top-right": {
-      flowers: [
-        {
-          containerClassName:
-            "absolute top-0 right-0 w-[15%] max-w-[180px] z-30",
-          imageClassName: "w-full",
-          style: {
-            animation: "sway 4s ease-in-out infinite alternate",
-            transformOrigin: "center bottom",
-          },
-          width: 300,
-          height: 300,
-          alt: "花 (前面)",
-        },
-        {
-          containerClassName:
-            "absolute top-[2%] right-[5%] w-[13%] max-w-[160px] z-20",
-          imageClassName: "w-full opacity-90",
-          style: {
-            animation: "sway 5s ease-in-out 0.7s infinite alternate-reverse",
-            transformOrigin: "center bottom",
-          },
-          width: 280,
-          height: 280,
-          alt: "花 (中間)",
-        },
-        {
-          containerClassName:
-            "absolute top-[4%] right-[10%] w-[11%] max-w-[140px] z-10",
-          imageClassName: "w-full opacity-80",
-          style: {
-            animation: "sway 6s ease-in-out 1.4s infinite alternate",
-            transformOrigin: "center bottom",
-          },
-          width: 260,
-          height: 260,
-          alt: "花 (背面)",
-        },
-      ],
-    },
-    "bottom-left": {
-      flowers: [
-        {
-          containerClassName:
-            "absolute bottom-0 left-0 w-[15%] max-w-[180px] z-30",
-          imageClassName: "w-full",
-          style: {
-            animation: "sway 4.5s ease-in-out 0.2s infinite alternate-reverse",
-            transformOrigin: "center bottom",
-          },
-          width: 300,
-          height: 300,
-          alt: "花 (左下前面)",
-        },
-        {
-          containerClassName:
-            "absolute bottom-[2%] left-[5%] w-[13%] max-w-[160px] z-20",
-          imageClassName: "w-full opacity-90",
-          style: {
-            animation: "sway 5.2s ease-in-out 0.9s infinite alternate",
-            transformOrigin: "center bottom",
-          },
-          width: 280,
-          height: 280,
-          alt: "花 (左下中間)",
-        },
-        {
-          containerClassName:
-            "absolute bottom-[4%] left-[10%] w-[11%] max-w-[140px] z-10",
-          imageClassName: "w-full opacity-80",
-          style: {
-            animation: "sway 6.5s ease-in-out 1.6s infinite alternate-reverse",
-            transformOrigin: "center bottom",
-          },
-          width: 260,
-          height: 260,
-          alt: "花 (左下背面)",
-        },
-      ],
-    },
-  };
-
-  const flowers: FlowerConfig[] = positionSettings[position]?.flowers || [];
-
-  return (
-    <>
-      {flowers.map((flower: FlowerConfig, index: number) => (
-        <DecorativeImage
-          key={index}
-          src={flowerImage}
-          alt={flower.alt}
-          width={flower.width}
-          height={flower.height}
-          containerClassName={flower.containerClassName}
-          imageClassName={flower.imageClassName}
-          style={flower.style}
-        />
-      ))}
-    </>
-  );
-};
-
 // メインコンテンツコンポーネント
 const MainContent = () => {
-  // 装飾画像の設定を一元管理
-  const decorations = [
-    {
-      src: "/images/welcome-red-flower.webp",
-      alt: "赤い花",
-      width: 300,
-      height: 300,
-      containerClassName:
-        "absolute bottom-[5%] left-[5%] w-[12%] max-w-[180px] z-10",
-    },
-    {
-      src: "/images/welcome-hiyoko.webp",
-      alt: "ひよこ",
-      width: 160,
-      height: 160,
-      containerClassName:
-        "absolute bottom-0 right-[20%] w-[8%] max-w-[100px] z-10",
-    },
-    {
-      src: "/images/welcome-fox.webp",
-      alt: "狐",
-      width: 350,
-      height: 350,
-      containerClassName:
-        "absolute bottom-[8%] left-[15%] w-[14%] max-w-[200px] z-10",
-    },
-    {
-      src: "/images/welcome-flower&butterfly.webp",
-      alt: "花と蝶",
-      width: 250,
-      height: 250,
-      containerClassName:
-        "absolute bottom-0 right-0 w-[15%] max-w-[200px] z-10",
-    },
-    {
-      src: "/images/macha-neko2.png",
-      alt: "ロゴネコ",
-      width: 400,
-      height: 400,
-      containerClassName:
-        "absolute bottom-[10%] right-[25%] w-[18%] max-w-[280px] z-20",
-    },
-    {
-      src: "/images/welcome-butterfly.webp",
-      alt: "蝶が飛んでいるアニメーション",
-      width: 120,
-      height: 120,
-      containerClassName:
-        "absolute top-1/2 right-[8%] w-[10%] max-w-[100px] z-30 transform -translate-y-1/2",
-      imageClassName: "w-full",
-      style: {
-        animation: "float 3s ease-in-out infinite alternate",
-      },
-    },
-    {
-      src: "/images/welcome-bird.webp",
-      alt: "飛んでいる鳥のアニメーション",
-      width: 300,
-      height: 300,
-      containerClassName:
-        "absolute top-1/3 left-[10%] w-[12%] max-w-[180px] z-20 transform -translate-y-1/2",
-      imageClassName: "w-full",
-      style: {
-        animation: "float 3s ease-in-out infinite alternate",
-      },
-    },
-    {
-      src: "/images/welcome-emmyu.webp",
-      alt: "エミュー",
-      width: 200,
-      height: 200,
-      containerClassName:
-        "absolute bottom-[10%] right-[40%] w-[10%] max-w-[120px] z-5",
-      imageClassName: "w-full opacity-80",
-      style: {
-        animation: "float 3s ease-in-out infinite alternate",
-        filter: "blur(0.5px)",
-        transform: "scale(0.9)",
-      },
-    },
-  ];
-
   return (
-    <div className="relative min-h-screen w-full overflow-hidden">
-      {/* 背景画像 - 画面全体にフィット */}
-      <div className="fixed inset-0 w-full h-full z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-green-50 to-emerald-100" />
-        <Image
-          src="/images/Welcome-background.png"
-          alt="背景画像"
-          fill
-          className="object-cover opacity-90 pointer-events-none"
-          priority
-        />
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-emerald-100 to-amber-50 flex flex-col items-center justify-center px-2 sm:px-4 md:px-8 lg:px-16 py-6 sm:py-10">
+      {/* レターボックス */}
+      <LetterBox />
 
       {/* メインコンテンツ */}
-      <div className="relative min-h-screen w-full flex flex-col items-center justify-center px-4 sm:px-6 md:px-8 py-10 z-10">
-        <LetterBox />
-
-        <div className="w-full max-w-lg mx-auto mb-6 md:mb-8">
-          <p className="text-gray-800 text-sm sm:text-base md:text-lg">
-            ここにアプリの紹介文などを入れる
+      <main className="w-full max-w-2xl md:max-w-3xl lg:max-w-4xl xl:max-w-5xl mx-auto flex flex-col gap-8 sm:gap-10 md:gap-14">
+        {/* ボタン群 */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6 md:gap-8">
+          <WoodenSignButton href="/profile" primary direction="left">
+            プロフィール
+          </WoodenSignButton>
+          <WoodenSignButton href="/myhouse" direction="right">
+            マイハウス
+          </WoodenSignButton>
+          <WoodenSignButton href="/buildings" direction="left">
+            建物一覧
+          </WoodenSignButton>
+          <WoodenSignButton href="/settlement" direction="right">
+            精算ページ
+          </WoodenSignButton>
+          <WoodenSignButton href="/login" direction="left">
+            ログイン
+          </WoodenSignButton>
+          <WoodenSignButton href="/register" direction="right">
+            新規登録
+          </WoodenSignButton>
+        </div>
+        {/* 装飾画像や説明文も同様にレスポンシブクラスを追加 */}
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10">
+          <DecorativeImage
+            src="/images/welcome-flower.webp"
+            alt="花"
+            width={200}
+            height={200}
+            containerClassName="w-32 h-32 sm:w-40 sm:h-40 md:w-52 md:h-52 lg:w-60 lg:h-60"
+          />
+          <p className="text-base sm:text-lg md:text-xl text-center md:text-left max-w-md">
+            ようこそ！Matchaへ。
             <br />
+            あなたの学びと成長を応援します。
           </p>
         </div>
-
-        <div className="w-full max-w-md mx-auto mb-8">
-          <div className="flex flex-col gap-10 ">
-            <WoodenSignButton href="/register" primary direction="left">
-              新規登録
-            </WoodenSignButton>
-            <WoodenSignButton href="/login" direction="right">
-              ログイン
-            </WoodenSignButton>
-          </div>
-        </div>
-
-        {/* 装飾画像群 - パーセンテージベースの位置で配置 */}
-        {decorations.map((decoration, index) => (
-          <DecorativeImage
-            key={index}
-            src={decoration.src}
-            alt={decoration.alt}
-            width={decoration.width}
-            height={decoration.height}
-            containerClassName={decoration.containerClassName}
-            imageClassName={decoration.imageClassName}
-            style={decoration.style}
-          />
-        ))}
-
-        {/* 重なり合う花の装飾 */}
-        <FlowerLayer position="top-right" />
-        <FlowerLayer position="bottom-left" />
-      </div>
+      </main>
     </div>
   );
 };

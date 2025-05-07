@@ -454,42 +454,31 @@ export default function BuildingsPage() {
   };
 
   return (
-    <div
-      className="min-h-screen p-4 relative overflow-x-hidden"
-      style={{
-        backgroundImage: "linear-gradient(to bottom, #f0f4f8, #d1e3dd)",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-      }}
-    >
-      {/* Decorative elements - 装飾要素をシンプルにするために削除 */}
+    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-amber-50 flex flex-col items-center justify-center px-2 sm:px-4 md:px-8 lg:px-12 xl:px-20 py-6 sm:py-10">
+      <header className="w-full max-w-5xl flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-8 px-2 sm:px-6 py-4">
+        <Button
+          variant="ghost"
+          className="flex items-center gap-2 text-amber-800 font-medium hover:bg-amber-100 transition-all duration-300"
+          onClick={() => router.push("/profile")}
+        >
+          <ArrowLeft className="h-4 w-4" />
+          プロフィールに戻る
+        </Button>
+        <h1 className="text-2xl font-bold text-center text-amber-800 flex items-center gap-2">
+          <TreeDeciduous className="h-6 w-6 text-green-600" />
+          マイタウン
+        </h1>
+        <Button
+          variant="outline"
+          className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 text-amber-800 hover:bg-amber-200"
+          onClick={handleRefresh}
+        >
+          <Loader2 className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
+          更新
+        </Button>
+      </header>
 
-      <div className="container mx-auto max-w-6xl relative z-10">
-        {/* Header with navigation back to profile */}
-        <div className="flex items-center justify-between mb-6 bg-amber-50 p-4 rounded-xl border-4 border-amber-200 shadow-md">
-          <Button
-            variant="ghost"
-            className="flex items-center gap-2 text-amber-800 font-medium hover:bg-amber-100 transition-all duration-300"
-            onClick={() => router.push("/profile")}
-          >
-            <ArrowLeft className="h-4 w-4" />
-            プロフィールに戻る
-          </Button>
-          <h1 className="text-2xl font-bold text-center text-amber-800 flex items-center gap-2">
-            <TreeDeciduous className="h-6 w-6 text-green-600" />
-            マイタウン
-          </h1>
-          <Button
-            variant="outline"
-            className="flex items-center gap-2 bg-amber-100 border-2 border-amber-300 text-amber-800 hover:bg-amber-200"
-            onClick={handleRefresh}
-          >
-            <Loader2 className={`h-4 w-4 ${isLoading ? "animate-spin" : ""}`} />
-            更新
-          </Button>
-        </div>
-
+      <main className="w-full max-w-5xl mx-auto flex flex-col gap-5 sm:gap-8 md:gap-12 px-2 sm:px-6">
         {/* Error message */}
         {isError && (
           <div className="bg-red-50 border-4 border-red-200 text-red-700 p-4 rounded-xl mb-6 shadow-md">
@@ -769,7 +758,7 @@ export default function BuildingsPage() {
             )}
           </>
         )}
-      </div>
+      </main>
 
       {/* 削除確認ダイアログ */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
