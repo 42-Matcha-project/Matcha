@@ -290,7 +290,7 @@ const Login = () => {
         {/* タイトル木の看板 */}
         <div className="flex justify-center -mt-16 mb-6">
           <div
-            className="flex items-center gap-3 px-10 py-3 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-900 font-extrabold rounded-xl shadow-lg border-2 border-blue-300 text-2xl drop-shadow"
+            className="flex items-center gap-3 px-10 py-3 bg-gradient-to-r from-green-100 to-green-200 text-green-900 font-extrabold rounded-xl shadow-lg border-2 border-green-300 text-2xl drop-shadow"
             style={{ cursor: "default" }}
           >
             <span className="text-3xl">👤</span>
@@ -465,10 +465,10 @@ const Login = () => {
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className={`relative px-8 py-3 bg-rose-900 text-white font-bold rounded-lg transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg ${
+              className={`relative px-8 py-3 bg-green-600 text-white font-bold rounded-lg transform transition-transform focus:outline-none focus:ring-2 focus:ring-green-400 shadow-lg ${
                 isLoading
                   ? "opacity-70 cursor-not-allowed"
-                  : "hover:scale-105 hover:bg-amber-700"
+                  : "hover:scale-105 hover:bg-green-700"
               }`}
               style={{
                 textShadow: "0 2px 2px rgba(0,0,0,0.5)",
