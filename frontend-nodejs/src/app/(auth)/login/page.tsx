@@ -286,25 +286,20 @@ const Login = () => {
       </div>
 
       {/* メインコンテンツ */}
-      <div className="relative  w-full py-10 z-10 px-4 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-lg bg-white bg-opacity-90 rounded-xl shadow-lg p-8">
         {/* タイトル木の看板 */}
-        <div className="flex justify-center mt-4 mb-8">
-          <button
-            className="relative px-10 py-3 bg-rose-900 text-white font-bold rounded-md transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg"
-            style={{
-              textShadow: "0 2px 2px rgba(0,0,0,0.5)",
-              boxShadow:
-                "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
-            }}
+        <div className="flex justify-center -mt-16 mb-6">
+          <div
+            className="flex items-center gap-3 px-10 py-3 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-900 font-extrabold rounded-xl shadow-lg border-2 border-blue-300 text-2xl drop-shadow"
+            style={{ cursor: "default" }}
           >
-            <h1 className="text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-              町長ログイン
-            </h1>
-          </button>
+            <span className="text-3xl">👤</span>
+            <span>町長ログイン</span>
+          </div>
         </div>
 
         {/* 入力フォームの説明 */}
-        <div className="mb-6 w-full max-w-md">
+        <div className="mb-6 w-full max-w-md mx-auto">
           <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-md shadow-md">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -324,7 +319,7 @@ const Login = () => {
 
         {/* API エラーメッセージ */}
         {apiError && (
-          <div className="mb-4 w-full max-w-md">
+          <div className="mb-4 w-full max-w-md mx-auto">
             <div className="bg-red-100 border-l-4 border-red-500 p-4 rounded-md shadow-md">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -343,7 +338,7 @@ const Login = () => {
 
         {/* 共通エラーメッセージ */}
         {submitAttempted && Object.values(errors).includes(true) && (
-          <div className="mb-4 w-full max-w-md">
+          <div className="mb-4 w-full max-w-md mx-auto">
             <div className="bg-amber-100 border-l-4 border-amber-500 p-4 rounded-md shadow-md">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -362,7 +357,7 @@ const Login = () => {
           </div>
         )}
 
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md mx-auto">
           {/* ユーザー名/メールアドレスフィールド */}
           <div className="mb-8">
             <div className="relative">
