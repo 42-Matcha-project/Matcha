@@ -6,63 +6,60 @@ import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen w-full relative">
-      {/* 背景画像 */}
-      <div
-        className="absolute inset-0 z-0"
-        style={{
-          backgroundImage: "url('/images/background.png')",
-          backgroundSize: "contain", // 画像全体が表示されるよう調整
-          backgroundPosition: "center",
-          backgroundRepeat: "no-repeat",
-        }}
+    <div
+      className="relative w-full h-screen overflow-hidden"
+      style={{
+        backgroundImage: "url('/images/background.png')",
+        backgroundSize: "contain",
+        backgroundPosition: "top center",
+        backgroundRepeat: "no-repeat",
+        top: "-60px",
+        position: "relative",
+      }}
+    >
+      {/* service.png（サービスアイコン）絶対配置で上部中央 */}
+      <Image
+        src="/images/service.png"
+        alt="Service Icon"
+        width={500}
+        height={167}
+        className="object-contain w-full max-w-md h-auto mb-8 absolute top-0 left-1/2 -translate-x-1/2 z-10 pointer-events-none"
+        priority
       />
-
-      {/* コンテンツ部分 */}
-      <div className="flex flex-col items-center z-10 px-4 w-full">
-        {/* service.png（メインキャラクター） */}
-        <div className="mb-8">
-          <Image
-            src="/images/service.png"
-            alt="サービスキャラクター"
-            width={500}
-            height={500}
-            className="object-contain w-auto max-w-full h-auto max-h-[50vh] drop-shadow-xl"
-            priority
-          />
-        </div>
-
-        {/* TaskTown.png（ロゴ） */}
-        <div className="mb-12">
-          <Image
-            src="/images/TaskTown.png"
-            alt="TaskTown Logo"
-            width={600}
-            height={200}
-            className="object-contain w-auto max-w-[90vw] h-auto max-h-[20vh] drop-shadow-lg"
-            priority
-          />
-        </div>
-
-        {/* ボタン部分 - 中央に配置 */}
-        <div className="flex flex-col sm:flex-row gap-6 mt-8 w-full max-w-md justify-center">
+      {/* TaskTown.png（ロゴ）絶対配置：ボタンの上に */}
+      <Image
+        src="/images/TaskTown.png"
+        alt="TaskTown Logo"
+        width={800}
+        height={267}
+        style={{
+          position: "absolute",
+          bottom: "50px",
+          left: "50%",
+          transform: "translateX(-50%)",
+        }}
+        priority
+      />
+      {/* ボタン絶対配置 */}
+      <div
+        style={{
+          position: "absolute",
+          bottom: "90px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "auto",
+        }}
+      >
+        <div className="flex flex-row gap-8 justify-center">
           <Link
             href="/register"
-            className="px-8 py-3 text-lg font-bold tracking-wider border-4 border-black bg-yellow-300 text-black shadow-[4px_4px_0_#222] hover:bg-yellow-400 hover:translate-y-1 transition-all duration-150 text-center rounded-lg"
-            style={{
-              fontFamily: "'DotGothic16', sans-serif",
-              letterSpacing: "0.1em",
-            }}
+            className="min-w-[140px] px-8 py-4 text-xl sm:text-2xl font-extrabold tracking-wider border-4 border-black bg-yellow-300 text-black shadow-[4px_4px_0_#222] hover:bg-yellow-400 hover:translate-y-1 transition-all duration-150 text-center rounded-xl"
           >
             新規登録
           </Link>
           <Link
             href="/login"
-            className="px-8 py-3 text-lg font-bold tracking-wider border-4 border-black bg-blue-300 text-black shadow-[4px_4px_0_#222] hover:bg-blue-400 hover:translate-y-1 transition-all duration-150 text-center rounded-lg"
-            style={{
-              fontFamily: "'DotGothic16', sans-serif",
-              letterSpacing: "0.1em",
-            }}
+            className="min-w-[140px] px-8 py-4 text-xl sm:text-2xl font-extrabold tracking-wider border-4 border-black bg-blue-300 text-black shadow-[4px_4px_0_#222] hover:bg-blue-400 hover:translate-y-1 transition-all duration-150 text-center rounded-xl"
           >
             ログイン
           </Link>
