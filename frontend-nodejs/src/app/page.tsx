@@ -53,13 +53,13 @@ export default function Home() {
         <div className="flex flex-row gap-8 justify-center">
           <Link
             href="/register"
-            className="min-w-[140px] px-8 py-4 text-xl sm:text-2xl font-extrabold tracking-wider border-4 border-black bg-yellow-300 text-black shadow-[4px_4px_0_#222] hover:bg-yellow-400 hover:translate-y-1 transition-all duration-150 text-center rounded-xl"
+            className="min-w-[180px] px-8 py-4 text-xl sm:text-2xl font-extrabold tracking-wider border-4 border-black bg-yellow-300 text-black shadow-[4px_4px_0_#222] hover:bg-yellow-400 hover:translate-y-1 transition-all duration-150 text-center rounded-xl whitespace-nowrap"
           >
             新規登録
           </Link>
           <Link
             href="/login"
-            className="min-w-[140px] px-8 py-4 text-xl sm:text-2xl font-extrabold tracking-wider border-4 border-black bg-blue-300 text-black shadow-[4px_4px_0_#222] hover:bg-blue-400 hover:translate-y-1 transition-all duration-150 text-center rounded-xl"
+            className="min-w-[180px] px-8 py-4 text-xl sm:text-2xl font-extrabold tracking-wider border-4 border-black bg-blue-300 text-black shadow-[4px_4px_0_#222] hover:bg-blue-400 hover:translate-y-1 transition-all duration-150 text-center rounded-xl whitespace-nowrap"
           >
             ログイン
           </Link>
