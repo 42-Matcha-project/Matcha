@@ -824,7 +824,10 @@ const Register = () => {
       {/* Loading overlay - show only when isLoading is true */}
       {isLoading && <LoadingOverlay />}
       {/* 背景の羊皮紙風テクスチャ */}
-      <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-80"
+        style={{ backgroundImage: "url('/images/background2.png')" }}
+      ></div>
       <style jsx>{floatAnimation}</style>
       {renderSakuraFlowers()}
 
@@ -865,7 +868,7 @@ const Register = () => {
             }}
           >
             <h1 className="text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-              入学受付フォーム
+              町長受付フォーム
             </h1>
           </button>
         </div>

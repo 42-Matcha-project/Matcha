@@ -256,7 +256,10 @@ const Login = () => {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-orange-100 flex justify-center items-center">
       {/* 背景の羊皮紙風テクスチャ */}
-      <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-80"
+        style={{ backgroundImage: "url('/images/background2.png')" }}
+      ></div>
 
       {/* 桜の枝 - 左上 */}
       <div className="absolute top-0 left-0 w-64 h-64">
@@ -295,7 +298,7 @@ const Login = () => {
             }}
           >
             <h1 className="text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-              入室ログイン
+              町長ログイン
             </h1>
           </button>
         </div>
@@ -309,7 +312,7 @@ const Login = () => {
               </div>
               <div className="ml-3">
                 <p className="text-md font-medium text-amber-900">
-                  入室に必要な情報
+                  町長のログインに必要な情報
                 </p>
                 <p className="text-sm text-amber-800 mt-1">
                   ユーザー名かメールアドレスのどちらか一方と、パスワードを入力してください。
@@ -478,7 +481,7 @@ const Login = () => {
                   "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
               }}
             >
-              {isLoading ? "送信中..." : "入室する"}
+              {isLoading ? "送信中..." : "ログインする"}
             </button>
           </div>
 
