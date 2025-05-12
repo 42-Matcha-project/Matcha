@@ -241,6 +241,10 @@ export default function SettlementPage() {
         className="fixed inset-0 z-0"
         style={{
           backgroundColor: "#FEF3C7",
+          backgroundImage: "url('/images/background2.png')",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
         }}
       />
 
@@ -266,26 +270,30 @@ export default function SettlementPage() {
         </AnimatePresence>
 
         {/* SettlementHeaderコンポーネントを配置 */}
-        <SettlementHeader
-          currentTime={currentTime}
-          userStats={userStats}
-          isMounted={isMounted}
-          showStoreTooltip={showStoreTooltip}
-          showGiftTooltip={showGiftTooltip}
-          setShowStoreTooltip={setShowStoreTooltip}
-          setShowGiftTooltip={setShowGiftTooltip}
-          goToStore={goToStore}
-          goToGifts={goToGifts}
-        />
+        <div className="fixed top-0 left-0 w-full z-30">
+          <SettlementHeader
+            currentTime={currentTime}
+            userStats={userStats}
+            isMounted={isMounted}
+            showStoreTooltip={showStoreTooltip}
+            showGiftTooltip={showGiftTooltip}
+            setShowStoreTooltip={setShowStoreTooltip}
+            setShowGiftTooltip={setShowGiftTooltip}
+            goToStore={goToStore}
+            goToGifts={goToGifts}
+          />
+        </div>
 
         {/* メインコンテンツ */}
         <main
-          className="relative w-full overflow-y-auto pb-56 pt-16 scroll-smooth"
+          className="fixed inset-0 w-full h-full flex items-center justify-center z-10"
           ref={containerRef}
-          style={{ willChange: "scroll-position" }}
         >
           {/* 建物配置エリア */}
-          <div className="relative min-h-screen w-full z-10 mx-auto rounded-xl overflow-hidden bg-amber-100/20 backdrop-blur-sm shadow-inner">
+          <div
+            id="map-area"
+            className="w-full max-w-5xl h-[80vh] mx-auto rounded-xl overflow-auto flex flex-wrap items-center justify-center gap-8 p-8"
+          >
             {managedBuildings.slice(0, visibleCount).map((building, idx) => (
               <BuildingCard
                 key={building.id}
