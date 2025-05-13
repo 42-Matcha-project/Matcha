@@ -11,7 +11,7 @@ export default function Home() {
         alt="このタスクはあと⚪︎時間で終わらせなければならない!!"
         width={500}
         height={167}
-        className="object-contain w-full max-w-md h-auto mb-8 absolute left-1/2 -translate-x-1/2 z-10 pointer-events-none -top-3"
+        className="object-contain w-full max-w-md h-auto mb-8 absolute left-1/2 -translate-x-1/2 z-10 pointer-events-none -top-9"
         priority
       />
       {/* ロゴ */}
