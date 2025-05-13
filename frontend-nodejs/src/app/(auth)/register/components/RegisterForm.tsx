@@ -31,7 +31,7 @@ export const RegisterForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   // 共通
-  const [errors, setErrors] = useState<any>({});
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [apiError, setApiError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
@@ -77,7 +77,7 @@ export const RegisterForm = () => {
   // メール認証コード送信
   const sendVerificationCode = async () => {
     const emailError = validateEmail(email);
-    setErrors((prev: any) => ({ ...prev, email: emailError }));
+    setErrors((prev) => ({ ...prev, email: emailError }));
     if (emailError) return;
     setIsLoading(true);
     setApiError("");
@@ -94,8 +94,9 @@ export const RegisterForm = () => {
       setCodeSent(true);
       setResendCountdown(60);
       alert(`${email}に認証コードを送信しました。メールをご確認ください。`);
-    } catch (e: any) {
-      setApiError(e.message || "認証コードの送信に失敗しました");
+    } catch (e: unknown) {
+      const err = e as Error;
+      setApiError(err.message || "認証コードの送信に失敗しました");
     } finally {
       setIsLoading(false);
     }
@@ -119,8 +120,9 @@ export const RegisterForm = () => {
       );
       if (!response.ok) throw new Error("認証コードの検証に失敗しました");
       setIsVerified(true);
-    } catch (e: any) {
-      setApiError(e.message || "認証コードの検証に失敗しました");
+    } catch (e: unknown) {
+      const err = e as Error;
+      setApiError(err.message || "認証コードの検証に失敗しました");
     } finally {
       setIsVerifying(false);
     }
@@ -141,7 +143,7 @@ export const RegisterForm = () => {
     if (currentStep === 1) {
       const usernameError = validateUsername(username);
       const displayNameError = validateDisplayName(displayName);
-      setErrors((prev: any) => ({
+      setErrors((prev) => ({
         ...prev,
         username: usernameError,
         displayName: displayNameError,
@@ -153,7 +155,7 @@ export const RegisterForm = () => {
     }
     if (currentStep === 2) {
       const emailError = validateEmail(email);
-      setErrors((prev: any) => ({ ...prev, email: emailError }));
+      setErrors((prev) => ({ ...prev, email: emailError }));
       if (emailError || !isVerified) return setSubmitAttempted(true);
     }
     setCurrentStep((prev) => prev + 1);
@@ -171,7 +173,7 @@ export const RegisterForm = () => {
       confirmPassword,
       password,
     );
-    setErrors((prev: any) => ({
+    setErrors((prev) => ({
       ...prev,
       password: passwordError,
       confirmPassword: confirmPasswordError,
@@ -211,8 +213,9 @@ export const RegisterForm = () => {
         return;
       }
       router.push(`/login?email=${encodeURIComponent(email)}`);
-    } catch (e: any) {
-      setApiError(e.message || "登録に失敗しました");
+    } catch (e: unknown) {
+      const err = e as Error;
+      setApiError(err.message || "登録に失敗しました");
     } finally {
       setIsLoading(false);
     }
