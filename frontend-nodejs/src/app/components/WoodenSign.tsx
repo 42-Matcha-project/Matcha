@@ -23,7 +23,6 @@ export const WoodenSign = ({
       bottomLeft: "bottom-1 left-1",
       bottomRight: "bottom-1 right-1",
     };
-
     return (
       <div
         className={`absolute ${positionClasses[position]} w-1.5 h-1.5 rounded-full bg-gray-500 border border-gray-500 shadow-inner`}

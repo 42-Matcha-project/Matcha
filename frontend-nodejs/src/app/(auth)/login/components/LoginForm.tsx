@@ -4,8 +4,8 @@ import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Eye, EyeOff } from "lucide-react";
 import { useAuth } from "../../../../contexts/AuthContext";
-import { WoodenSign } from "./WoodenSign";
-import { BookmarkError } from "./BookmarkError";
+import { WoodenSign } from "@/app/components/WoodenSign";
+import { BookmarkError } from "@/app/components/BookmarkError";
 import { RequiredTag } from "./RequiredTag";
 import Image from "next/image";
 

@@ -6,9 +6,9 @@ import Link from "next/link";
 import { Mail, Shield, Info, Eye, EyeOff } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../../contexts/AuthContext";
-import { WoodenSign } from "./WoodenSign";
-import { BookmarkError } from "./BookmarkError";
-import { InfoMessage } from "./InfoMessage";
+import { WoodenSign } from "@/app/components/WoodenSign";
+import { BookmarkError } from "@/app/components/BookmarkError";
+import { InfoMessage } from "@/app/components/InfoMessage";
 import { SakuraFlowers } from "./SakuraFlowers";
 
 // --- RegisterForm本体 ---
