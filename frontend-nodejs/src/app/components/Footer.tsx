@@ -11,7 +11,9 @@ export default function Footer() {
         minHeight: "56px",
       }}
     >
-      <div className="text-center font-bold text-lg text-gray-700">Matcha</div>
+      <div className="text-center font-bold text-lg text-gray-700">
+        © 2025 TaskTown
+      </div>
     </footer>
   );
 }
