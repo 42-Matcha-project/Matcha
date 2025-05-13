@@ -15,7 +15,7 @@ export default function Home() {
         height={167}
         className="object-contain w-full max-w-md h-auto mb-8 absolute left-1/2 -translate-x-1/2 z-10 pointer-events-none -top-3"
         priority
-        aria-hidden
+        aria-hidden={true}
       />
       {/* ロゴ */}
       <Image
@@ -25,7 +25,7 @@ export default function Home() {
         height={267}
         className="absolute bottom-12 left-1/2 -translate-x-1/2"
         priority
-        aria-hidden
+        aria-hidden={true}
       />
       {/* ボタン */}
       <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-auto">
