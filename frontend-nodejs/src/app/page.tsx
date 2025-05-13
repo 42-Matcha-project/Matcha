@@ -8,22 +8,20 @@ export default function Home() {
       {/* サービスアイコン */}
       <Image
         src="/images/service.png"
-        alt="Service Icon"
+        alt="このタスクはあと⚪︎時間で終わらせなければならない!!"
         width={500}
         height={167}
         className="object-contain w-full max-w-md h-auto mb-8 absolute left-1/2 -translate-x-1/2 z-10 pointer-events-none -top-3"
         priority
-        aria-hidden={true}
       />
       {/* ロゴ */}
       <Image
         src="/images/TaskTown.png"
-        alt="TaskTown Logo"
+        alt="TaskTown"
         width={800}
         height={267}
         className="absolute bottom-12 left-1/2 -translate-x-1/2"
         priority
-        aria-hidden={true}
       />
       {/* ボタン */}
       <div className="absolute bottom-24 left-1/2 -translate-x-1/2 w-auto">
