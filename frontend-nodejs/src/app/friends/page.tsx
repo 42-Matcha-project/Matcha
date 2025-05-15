@@ -30,9 +30,21 @@ const dummyRanking = [
   { id: 1, name: "Taro", icon: "/images/macha-neko2.png", score: 120 },
   { id: 2, name: "Hanako", icon: "/images/macha-neko2.png", score: 100 },
 ];
+
+// 今日の日付と曜日を生成
+const getTodayWithWeekday = () => {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  const week = ["日", "月", "火", "水", "木", "金", "土"];
+  const w = week[d.getDay()];
+  return `${y}/${m}/${day}(${w})`;
+};
+
 const adminMessage = {
   text: "今日も自分のペースでがんばろう！",
-  date: "2024/06/01",
+  date: getTodayWithWeekday(),
 };
 
 export default function FriendsPage() {
