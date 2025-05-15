@@ -229,7 +229,7 @@ export const RegisterForm = () => {
 
   // UI
   return (
-    <div className="relative min-h-screen w-full overflow-hidden flex justify-center items-center py-10 px-4">
+    <div className="relative min-h-screen w-full overflow-hidden flex justify-center items-center py-6 px-2 sm:py-10 sm:px-4">
       <SakuraFlowers />
       {/* 背景の羊皮紙風テクスチャ */}
       <div
@@ -237,7 +237,7 @@ export const RegisterForm = () => {
         style={{ backgroundImage: "url('/images/background2.png')" }}
       />
       {/* 桜の枝 - 左上 */}
-      <div className="absolute top-0 left-0 w-64 h-64 z-5 pointer-events-none select-none">
+      <div className="absolute top-0 left-0 w-24 h-24 sm:w-40 sm:h-40 md:w-64 md:h-64 z-5 pointer-events-none select-none">
         <Image
           src="/images/welcome-flower.webp"
           alt="桜の枝"
@@ -248,7 +248,7 @@ export const RegisterForm = () => {
         />
       </div>
       {/* 桜の花びら - 右下 */}
-      <div className="absolute bottom-0 right-0 w-64 h-64 z-5 pointer-events-none select-none">
+      <div className="absolute bottom-0 right-0 w-24 h-24 sm:w-40 sm:h-40 md:w-64 md:h-64 z-5 pointer-events-none select-none">
         <Image
           src="/images/welcome-flower.webp"
           alt="桜の花びら"
@@ -259,13 +259,13 @@ export const RegisterForm = () => {
         />
       </div>
       {/* メインコンテンツ */}
-      <div className="relative z-10 w-full max-w-lg mx-auto bg-white bg-opacity-90 rounded-2xl shadow-2xl p-10 border-2 border-yellow-900">
+      <div className="relative z-10 w-full max-w-sm sm:max-w-md md:max-w-lg mx-auto bg-white bg-opacity-90 rounded-2xl shadow-2xl p-3 sm:p-6 md:p-10 border-2 border-yellow-900">
         {/* タイトル木の看板 */}
-        <div className="flex justify-center mb-8">
-          <WoodenSign width="w-full" height="h-16" rotation="">
-            <div className="flex items-center gap-4">
-              <span className="text-4xl">🏛️</span>
-              <span className="text-2xl font-extrabold text-yellow-950 tracking-wide">
+        <div className="flex justify-center mb-6 sm:mb-8">
+          <WoodenSign width="w-full" height="h-10 sm:h-14 md:h-16" rotation="">
+            <div className="flex items-center gap-2 sm:gap-4">
+              <span className="text-xl sm:text-2xl md:text-4xl">🏛️</span>
+              <span className="text-base sm:text-xl md:text-2xl font-extrabold text-yellow-950 tracking-wide">
                 町長受付フォーム
               </span>
             </div>
