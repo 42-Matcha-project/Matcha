@@ -107,9 +107,9 @@ export default function FriendsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-100 via-amber-50 to-blue-100 py-8 px-2 sm:px-6 relative overflow-x-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-green-100 via-amber-50 to-blue-100 py-4 px-1 sm:py-8 sm:px-2 md:px-6 relative overflow-x-hidden">
       {/* 草や花のイラスト背景（装飾） */}
-      <div className="absolute left-0 bottom-0 w-40 h-40 opacity-60 select-none pointer-events-none z-0">
+      <div className="absolute left-0 bottom-0 w-24 h-24 sm:w-40 sm:h-40 opacity-60 select-none pointer-events-none z-0">
         <Image
           src="/images/welcome-flower.webp"
           alt="葉っぱ"
@@ -119,7 +119,7 @@ export default function FriendsPage() {
           aria-hidden
         />
       </div>
-      <div className="absolute right-0 top-0 w-32 h-32 opacity-50 select-none pointer-events-none z-0">
+      <div className="absolute right-0 top-0 w-20 h-20 sm:w-32 sm:h-32 opacity-50 select-none pointer-events-none z-0">
         <Image
           src="/images/flower-bg.png"
           alt="花"
@@ -129,39 +129,47 @@ export default function FriendsPage() {
           aria-hidden
         />
       </div>
-      <div className="max-w-3xl mx-auto bg-white/90 rounded-3xl shadow-2xl p-6 relative z-10 border-4 border-amber-200">
-        <h1 className="text-3xl font-extrabold text-green-900 mb-4 flex items-center gap-3 drop-shadow-[0_2px_2px_rgba(0,0,0,0.08)]">
-          <Users className="w-8 h-8 text-green-700" /> フレンド
+      <div className="max-w-3xl mx-auto bg-white/90 rounded-2xl sm:rounded-3xl shadow-2xl p-2 sm:p-4 md:p-6 relative z-10 border-2 sm:border-4 border-amber-200">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-green-900 mb-3 sm:mb-4 flex items-center gap-2 sm:gap-3 drop-shadow-[0_2px_2px_rgba(0,0,0,0.08)]">
+          <Users className="w-7 h-7 sm:w-8 sm:h-8 text-green-700" /> フレンド
         </h1>
         {/* 今日の一言（特別枠） */}
-        <div className="mb-8">
+        <div className="mb-6 sm:mb-8">
           <AdminMessage message={adminMessage} />
         </div>
         {/* フィードバック表示 */}
         {loading && (
-          <div className="text-center text-green-700 mb-2">読み込み中...</div>
+          <div className="text-center text-green-700 mb-2 text-sm sm:text-base">
+            読み込み中...
+          </div>
         )}
-        {error && <div className="text-center text-red-500 mb-2">{error}</div>}
+        {error && (
+          <div className="text-center text-red-500 mb-2 text-sm sm:text-base">
+            {error}
+          </div>
+        )}
         {successMsg && (
-          <div className="text-center text-green-600 mb-2">{successMsg}</div>
+          <div className="text-center text-green-600 mb-2 text-sm sm:text-base">
+            {successMsg}
+          </div>
         )}
         {/* タブ切り替え */}
-        <div className="flex gap-2 mb-8">
+        <div className="flex gap-1 sm:gap-2 mb-6 sm:mb-8 overflow-x-auto scrollbar-hide">
           <button
             onClick={() => setTab("list")}
-            className={`px-6 py-2 rounded-t-2xl font-bold border-b-4 transition-colors shadow ${tab === "list" ? "border-green-400 bg-green-100 text-green-900" : "border-transparent bg-transparent text-gray-400"}`}
+            className={`flex-1 min-w-[80px] px-2 sm:px-6 py-1.5 sm:py-2 rounded-t-xl sm:rounded-t-2xl font-bold border-b-4 transition-colors shadow text-xs sm:text-base ${tab === "list" ? "border-green-400 bg-green-100 text-green-900" : "border-transparent bg-transparent text-gray-400"}`}
           >
             一覧
           </button>
           <button
             onClick={() => setTab("ranking")}
-            className={`px-6 py-2 rounded-t-2xl font-bold border-b-4 transition-colors shadow ${tab === "ranking" ? "border-yellow-400 bg-yellow-100 text-yellow-900" : "border-transparent bg-transparent text-gray-400"}`}
+            className={`flex-1 min-w-[80px] px-2 sm:px-6 py-1.5 sm:py-2 rounded-t-xl sm:rounded-t-2xl font-bold border-b-4 transition-colors shadow text-xs sm:text-base ${tab === "ranking" ? "border-yellow-400 bg-yellow-100 text-yellow-900" : "border-transparent bg-transparent text-gray-400"}`}
           >
             ランキング
           </button>
           <button
             onClick={() => setTab("request")}
-            className={`px-6 py-2 rounded-t-2xl font-bold border-b-4 transition-colors shadow ${tab === "request" ? "border-blue-400 bg-blue-100 text-blue-900" : "border-transparent bg-transparent text-gray-400"}`}
+            className={`flex-1 min-w-[80px] px-2 sm:px-6 py-1.5 sm:py-2 rounded-t-xl sm:rounded-t-2xl font-bold border-b-4 transition-colors shadow text-xs sm:text-base ${tab === "request" ? "border-blue-400 bg-blue-100 text-blue-900" : "border-transparent bg-transparent text-gray-400"}`}
           >
             申請
           </button>
@@ -196,11 +204,11 @@ function FriendList({
   return (
     <div>
       {friends.length === 0 && !loading ? (
-        <div className="text-center text-gray-400 py-12 flex flex-col items-center">
+        <div className="text-center text-gray-400 py-8 sm:py-12 flex flex-col items-center">
           <Image
             src="/images/welcome-bird.webp"
             alt="鳥"
-            className="w-16 h-16 mb-2 opacity-70"
+            className="w-12 h-12 sm:w-16 sm:h-16 mb-2 opacity-70"
             aria-hidden
             width={64}
             height={64}
@@ -208,17 +216,17 @@ function FriendList({
           フレンドがいません。右上の申請ボタンから追加しましょう！
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
           {friends.map((f) => (
             <div
               key={f.ID}
-              className="bg-green-50 rounded-2xl shadow-lg p-4 flex items-center gap-4 border-2 border-green-200 relative"
+              className="bg-green-50 rounded-xl sm:rounded-2xl shadow-lg p-3 sm:p-4 flex items-center gap-3 sm:gap-4 border-2 border-green-200 relative"
             >
               {/* 木の看板風ラベル */}
-              <div className="absolute -top-4 left-4 bg-amber-200 border-2 border-amber-400 rounded-xl px-3 py-1 text-xs font-bold text-amber-900 shadow drop-shadow-sm z-10 flex items-center gap-1">
+              <div className="absolute -top-3 sm:-top-4 left-3 sm:left-4 bg-amber-200 border-2 border-amber-400 rounded-xl px-2 sm:px-3 py-0.5 sm:py-1 text-xs font-bold text-amber-900 shadow drop-shadow-sm z-10 flex items-center gap-1">
                 <Leaf className="w-4 h-4 text-green-600" /> フレンド
               </div>
-              <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-green-300 bg-white shadow">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full overflow-hidden border-4 border-green-300 bg-white shadow">
                 <Image
                   src={f.IconImageURL || "/images/macha-neko2.png"}
                   alt={f.DisplayName || f.Username}
@@ -227,21 +235,21 @@ function FriendList({
                   className="object-cover w-full h-full"
                 />
               </div>
-              <div className="flex-1">
-                <div className="font-bold text-lg text-green-900 flex items-center gap-1">
+              <div className="flex-1 min-w-0">
+                <div className="font-bold text-base sm:text-lg text-green-900 flex items-center gap-1 truncate">
                   {f.DisplayName || f.Username}
                   <span className="ml-1 text-xs text-green-600 bg-green-100 rounded px-2 py-0.5">
                     ともだち
                   </span>
                 </div>
-                <div className="text-green-700 text-sm flex items-center gap-1">
+                <div className="text-green-700 text-xs sm:text-sm flex items-center gap-1 truncate">
                   <MessageCircle className="w-4 h-4" />
                   {/* メッセージは今はダミー */}
                   よろしくね！
                 </div>
               </div>
               <button
-                className="ml-2 p-2 rounded-full bg-amber-100 hover:bg-red-200 transition-colors shadow"
+                className="ml-1 sm:ml-2 p-2 rounded-full bg-amber-100 hover:bg-red-200 transition-colors shadow"
                 title="削除"
                 onClick={() => onDelete(f.Username)}
                 disabled={loading}
@@ -319,31 +327,21 @@ function FriendRanking({ ranking }: { ranking: RankingItem[] }) {
 function AdminMessage({ message }: { message: typeof adminMessage }) {
   return (
     <div className="relative flex flex-col items-center justify-center">
-      {/* 豪華な掲示板風装飾 */}
-      <div className="absolute -top-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
-        <Image
-          src="/images/welcome-red-flower.webp"
-          alt="ピン"
-          className="w-8 h-8 drop-shadow-lg animate-bounce"
-          aria-hidden
-          width={32}
-          height={32}
-        />
-        <span className="bg-gradient-to-r from-yellow-300 via-amber-200 to-yellow-400 px-6 py-2 rounded-full border-4 border-amber-400 shadow-xl text-2xl font-extrabold text-amber-900 tracking-wide flex items-center gap-2">
-          <span className="mr-2">🌟</span>今日の一言
-          <span className="ml-2">🌟</span>
-        </span>
-        <Image
-          src="/images/welcome-red-flower.webp"
-          alt="red flower"
-          className="w-10 h-10 drop-shadow-lg animate-bounce"
-          style={{ animationDelay: "0.8s" }}
-          aria-hidden
-          width={48}
-          height={48}
-        />
+      {/* 豪華な掲示板風装飾（バッジ） */}
+      <div className="absolute -top-4 sm:-top-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
+        <div className="rounded-full bg-yellow-200 border-4 border-amber-400 shadow-xl text-lg sm:text-2xl font-extrabold text-amber-900 px-4 py-2 sm:px-6 sm:py-3 flex flex-col items-center min-w-[80px] min-h-[80px] sm:min-w-[120px] sm:min-h-[120px] max-w-[120px] max-h-[120px] sm:max-w-[160px] sm:max-h-[160px] flex justify-center">
+          <span className="flex flex-col items-center">
+            <span className="text-base sm:text-xl">今日の</span>
+            <span className="text-base sm:text-xl">一言</span>
+            <span className="flex gap-1 justify-center mt-1">
+              <span>🌟</span>
+              <span>🌟</span>
+            </span>
+          </span>
+        </div>
       </div>
-      <div className="bg-amber-50 rounded-3xl shadow-2xl p-8 pt-16 text-center border-4 border-amber-300 relative mt-8 w-full">
+      {/* 下のカード */}
+      <div className="bg-amber-50 rounded-3xl shadow-2xl p-4 sm:p-8 pt-16 sm:pt-24 text-center border-4 border-amber-300 relative mt-8 w-full">
         <div className="text-2xl text-amber-900 mb-2 font-bold drop-shadow-sm animate-pulse">
           {message.text}
         </div>
