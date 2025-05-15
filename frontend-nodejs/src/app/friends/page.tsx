@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Users,
   Crown,
@@ -12,24 +12,14 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 
-const dummyFriends = [
-  {
-    id: 1,
-    name: "Taro",
-    icon: "/images/macha-neko2.png",
-    message: "今日もがんばる！",
-  },
-  {
-    id: 2,
-    name: "Hanako",
-    icon: "/images/macha-neko2.png",
-    message: "集中！",
-  },
-];
-const dummyRanking = [
-  { id: 1, name: "Taro", icon: "/images/macha-neko2.png", score: 120 },
-  { id: 2, name: "Hanako", icon: "/images/macha-neko2.png", score: 100 },
-];
+// API型
+interface APIFriend {
+  ID: number;
+  Username: string;
+  DisplayName: string;
+  IconImageURL: string;
+  // message等は今はダミーでOK
+}
 
 // 今日の日付と曜日を生成
 const getTodayWithWeekday = () => {
@@ -49,6 +39,72 @@ const adminMessage = {
 
 export default function FriendsPage() {
   const [tab, setTab] = useState<"list" | "ranking" | "request">("list");
+  const [friends, setFriends] = useState<APIFriend[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // フレンド一覧取得
+  const fetchFriends = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/friends/get`,
+        {
+          method: "GET",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+      const data = await res.json();
+      if (!res.ok || !data.Friends) throw new Error(data.Error || "取得失敗");
+      setFriends(data.Friends);
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "フレンド取得に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFriends();
+  }, []);
+
+  // フレンド削除
+  const handleDelete = async (username: string) => {
+    if (!confirm(`${username} をフレンドから削除しますか？`)) return;
+    setLoading(true);
+    setError(null);
+    setSuccessMsg(null);
+    try {
+      const token = localStorage.getItem("token");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/friends/delete`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ FriendNameToDelete: username }),
+        },
+      );
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.Error || "削除に失敗しました");
+      }
+      setFriends((prev) => prev.filter((f) => f.Username !== username));
+      setSuccessMsg("フレンドを削除しました");
+    } catch (e: unknown) {
+      setError(e instanceof Error ? e.message : "削除に失敗しました");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-100 via-amber-50 to-blue-100 py-8 px-2 sm:px-6 relative overflow-x-hidden">
@@ -81,6 +137,14 @@ export default function FriendsPage() {
         <div className="mb-8">
           <AdminMessage message={adminMessage} />
         </div>
+        {/* フィードバック表示 */}
+        {loading && (
+          <div className="text-center text-green-700 mb-2">読み込み中...</div>
+        )}
+        {error && <div className="text-center text-red-500 mb-2">{error}</div>}
+        {successMsg && (
+          <div className="text-center text-green-600 mb-2">{successMsg}</div>
+        )}
         {/* タブ切り替え */}
         <div className="flex gap-2 mb-8">
           <button
@@ -104,8 +168,14 @@ export default function FriendsPage() {
         </div>
         {/* タブ内容 */}
         <div>
-          {tab === "list" && <FriendList friends={dummyFriends} />}
-          {tab === "ranking" && <FriendRanking ranking={dummyRanking} />}
+          {tab === "list" && (
+            <FriendList
+              friends={friends}
+              onDelete={handleDelete}
+              loading={loading}
+            />
+          )}
+          {tab === "ranking" && <FriendRanking ranking={[]} />}
           {tab === "request" && <FriendRequest />}
         </div>
       </div>
@@ -113,14 +183,23 @@ export default function FriendsPage() {
   );
 }
 
-function FriendList({ friends }: { friends: typeof dummyFriends }) {
+// フレンド一覧
+function FriendList({
+  friends,
+  onDelete,
+  loading,
+}: {
+  friends: APIFriend[];
+  onDelete: (username: string) => void;
+  loading: boolean;
+}) {
   return (
     <div>
-      {friends.length === 0 ? (
+      {friends.length === 0 && !loading ? (
         <div className="text-center text-gray-400 py-12 flex flex-col items-center">
           <Image
-            src="/images/leaf-bg.png"
-            alt="葉っぱ"
+            src="/images/welcome-bird.webp"
+            alt="鳥"
             className="w-16 h-16 mb-2 opacity-70"
             aria-hidden
             width={64}
@@ -132,7 +211,7 @@ function FriendList({ friends }: { friends: typeof dummyFriends }) {
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {friends.map((f) => (
             <div
-              key={f.id}
+              key={f.ID}
               className="bg-green-50 rounded-2xl shadow-lg p-4 flex items-center gap-4 border-2 border-green-200 relative"
             >
               {/* 木の看板風ラベル */}
@@ -141,8 +220,8 @@ function FriendList({ friends }: { friends: typeof dummyFriends }) {
               </div>
               <div className="w-16 h-16 rounded-full overflow-hidden border-4 border-green-300 bg-white shadow">
                 <Image
-                  src={f.icon}
-                  alt={f.name}
+                  src={f.IconImageURL || "/images/macha-neko2.png"}
+                  alt={f.DisplayName || f.Username}
                   width={64}
                   height={64}
                   className="object-cover w-full h-full"
@@ -150,19 +229,22 @@ function FriendList({ friends }: { friends: typeof dummyFriends }) {
               </div>
               <div className="flex-1">
                 <div className="font-bold text-lg text-green-900 flex items-center gap-1">
-                  {f.name}
+                  {f.DisplayName || f.Username}
                   <span className="ml-1 text-xs text-green-600 bg-green-100 rounded px-2 py-0.5">
                     ともだち
                   </span>
                 </div>
                 <div className="text-green-700 text-sm flex items-center gap-1">
                   <MessageCircle className="w-4 h-4" />
-                  {f.message}
+                  {/* メッセージは今はダミー */}
+                  よろしくね！
                 </div>
               </div>
               <button
                 className="ml-2 p-2 rounded-full bg-amber-100 hover:bg-red-200 transition-colors shadow"
                 title="削除"
+                onClick={() => onDelete(f.Username)}
+                disabled={loading}
               >
                 <Trash2 className="w-5 h-5 text-red-500" />
               </button>
@@ -174,22 +256,31 @@ function FriendList({ friends }: { friends: typeof dummyFriends }) {
   );
 }
 
-function FriendRanking({ ranking }: { ranking: typeof dummyRanking }) {
+interface RankingItem {
+  id: number;
+  name: string;
+  icon: string;
+  score: number;
+}
+
+function FriendRanking({ ranking }: { ranking: RankingItem[] }) {
   return (
     <div className="space-y-4">
       {ranking.length === 0 ? (
         <div className="text-center text-gray-400 py-12 flex flex-col items-center">
           <Image
-            src="/images/flower-bg.png"
-            alt="花"
+            src="/images/welcome-butterfly.webp"
+            alt="蝶"
             className="w-16 h-16 mb-2 opacity-70"
             aria-hidden
+            width={64}
+            height={64}
           />
           ランキングデータがありません。
         </div>
       ) : (
         <ol className="space-y-2">
-          {ranking.map((r, i) => (
+          {ranking.map((r: RankingItem, i: number) => (
             <li
               key={r.id}
               className={`flex items-center gap-4 p-4 rounded-2xl shadow-lg border-2 ${i === 0 ? "bg-yellow-100 border-yellow-300" : "bg-green-50 border-green-200"}`}
@@ -211,13 +302,7 @@ function FriendRanking({ ranking }: { ranking: typeof dummyRanking }) {
                 )}
               </span>
               <div className="w-12 h-12 rounded-full overflow-hidden border-4 border-green-300 bg-white shadow">
-                <Image
-                  src={r.icon}
-                  alt={r.name}
-                  width={48}
-                  height={48}
-                  className="object-cover w-full h-full"
-                />
+                <Image src={r.icon} alt={r.name} width={48} height={48} />
               </div>
               <span className="font-bold text-lg text-green-900">{r.name}</span>
               <span className="ml-auto text-green-700 font-semibold">
@@ -237,7 +322,7 @@ function AdminMessage({ message }: { message: typeof adminMessage }) {
       {/* 豪華な掲示板風装飾 */}
       <div className="absolute -top-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
         <Image
-          src="/images/board-pin.png"
+          src="/images/welcome-red-flower.webp"
           alt="ピン"
           className="w-8 h-8 drop-shadow-lg animate-bounce"
           aria-hidden
@@ -249,13 +334,13 @@ function AdminMessage({ message }: { message: typeof adminMessage }) {
           <span className="ml-2">🌟</span>
         </span>
         <Image
-          src="/images/board-pin.png"
-          alt="ピン"
-          className="w-8 h-8 drop-shadow-lg animate-bounce"
-          style={{ animationDelay: "0.5s" }}
+          src="/images/welcome-red-flower.webp"
+          alt="red flower"
+          className="w-10 h-10 drop-shadow-lg animate-bounce"
+          style={{ animationDelay: "0.8s" }}
           aria-hidden
-          width={32}
-          height={32}
+          width={48}
+          height={48}
         />
       </div>
       <div className="bg-amber-50 rounded-3xl shadow-2xl p-8 pt-16 text-center border-4 border-amber-300 relative mt-8 w-full">
@@ -268,20 +353,12 @@ function AdminMessage({ message }: { message: typeof adminMessage }) {
         {/* 装飾イラスト */}
         <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
           <Image
-            src="/images/leaf-bg.png"
-            alt="葉っぱ"
-            className="w-10 h-10 opacity-80"
+            src="/images/welcome-hiyoko.webp"
+            alt="鳥"
+            className="w-18 h-18 opacity-100"
             aria-hidden
-            width={40}
-            height={40}
-          />
-          <Image
-            src="/images/flower-bg.png"
-            alt="花"
-            className="w-10 h-10 opacity-80"
-            aria-hidden
-            width={40}
-            height={40}
+            width={72}
+            height={72}
           />
         </div>
       </div>
@@ -310,27 +387,10 @@ function FriendRequest() {
           検索
         </button>
       </form>
-      {/* 検索結果ダミー */}
-      <div className="flex items-center gap-4 bg-white rounded-xl p-3 mb-2 border-2 border-green-200 shadow">
-        <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-green-300">
-          <Image
-            src="/images/macha-neko2.png"
-            alt="dummy"
-            width={40}
-            height={40}
-            className="object-cover w-full h-full"
-          />
-        </div>
-        <span className="font-bold text-green-900">dummy_user</span>
-        <button className="ml-auto px-3 py-1 bg-yellow-400 text-white rounded-xl hover:bg-yellow-500 transition-colors shadow">
-          申請
-        </button>
-      </div>
-      {/* 申請中・承認待ちなどの表示も今後追加 */}
       <div className="mt-6 text-center text-green-700 text-sm flex flex-col items-center">
         <Image
-          src="/images/flower-bg.png"
-          alt="花"
+          src="/images/welcome-fox.webp"
+          alt="狐"
           className="w-10 h-10 mb-2 opacity-70"
           aria-hidden
           width={40}
