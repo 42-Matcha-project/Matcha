@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, Shield, Info, Eye, EyeOff } from "lucide-react";
+import { Mail, Shield, Info, Eye, EyeOff, Camera } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../../../contexts/AuthContext";
 import { WoodenSign } from "@/app/components/WoodenSign";
@@ -18,6 +18,8 @@ export const RegisterForm = () => {
   // プロフィール
   const [username, setUsername] = useState("");
   const [displayName, setDisplayName] = useState("");
+  // アイコン画像ファイル（任意）
+  const [iconImagePreview, setIconImagePreview] = useState<string>("");
   // メール認証
   const [email, setEmail] = useState("");
   const [verificationCode, setVerificationCode] = useState("");
@@ -182,6 +184,8 @@ export const RegisterForm = () => {
     setIsLoading(true);
     setApiError("");
     try {
+      // 画像アップロードAPIが未実装のため、現状は空文字を送信
+      const iconImageUrl = "";
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/auth/register`,
         {
@@ -192,6 +196,7 @@ export const RegisterForm = () => {
             DisplayName: displayName,
             Email: email,
             Password: password,
+            IconImageUrl: iconImageUrl,
           }),
         },
       );
@@ -337,6 +342,49 @@ export const RegisterForm = () => {
               <p className="text-sm text-gray-700">
                 アカウント作成に必要な基本情報を入力してください。
               </p>
+            </div>
+            {/* アイコン画像アップロード（丸いアバターUI） */}
+            <div className="mb-6 flex flex-col items-center">
+              <label className="relative group cursor-pointer w-24 h-24 flex items-center justify-center mb-2">
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="absolute inset-0 opacity-0 cursor-pointer z-10"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if (file) {
+                      const reader = new FileReader();
+                      reader.onload = (ev) => {
+                        setIconImagePreview(ev.target?.result as string);
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }}
+                />
+                <div className="w-24 h-24 rounded-full border-4 border-amber-400 bg-white overflow-hidden flex items-center justify-center shadow-md relative">
+                  {iconImagePreview ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={iconImagePreview}
+                      alt="アイコンプレビュー"
+                      className="object-cover w-full h-full"
+                    />
+                  ) : (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src="/images/macha-neko2.png"
+                      alt="デフォルトアイコン"
+                      className="object-cover w-full h-full"
+                    />
+                  )}
+                  <div className="absolute bottom-2 right-2 bg-amber-200 rounded-full p-1 shadow group-hover:bg-amber-400 transition-colors">
+                    <Camera className="w-5 h-5 text-amber-700" />
+                  </div>
+                </div>
+              </label>
+              <span className="text-xs text-gray-500">
+                アイコン画像をクリックまたはドラッグ＆ドロップで選択（任意）
+              </span>
             </div>
             {/* ユーザー名 */}
             <div className="mb-6">
