@@ -6,7 +6,7 @@ import { AuthProvider } from "@/contexts/AuthContext";
 import { SidebarProvider } from "@/contexts/SidebarContext";
 import ClientInitializer from "./components/ClientInitializer";
 import { Toaster } from "sonner";
-import Footer from "./components/Footer";
+import FooterWrapper from "./components/FooterWrapper";
 
 // 必要なフォントのみを保持し、display: swapで最適化
 const geistSans = Geist({
@@ -43,7 +43,7 @@ export default function RootLayout({
               <div className="absolute inset-0 bg-white bg-opacity-40 dark:bg-gray-900 dark:bg-opacity-70" />
               <div className="relative z-10">
                 {children}
-                <Footer />
+                <FooterWrapper />
               </div>
             </SidebarProvider>
           </AuthProvider>

@@ -824,7 +824,10 @@ const Register = () => {
       {/* Loading overlay - show only when isLoading is true */}
       {isLoading && <LoadingOverlay />}
       {/* 背景の羊皮紙風テクスチャ */}
-      <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-80"
+        style={{ backgroundImage: "url('/images/background2.png')" }}
+      ></div>
       <style jsx>{floatAnimation}</style>
       {renderSakuraFlowers()}
 
@@ -856,18 +859,13 @@ const Register = () => {
       <div className="relative z-10 w-full max-w-lg bg-white bg-opacity-90 rounded-xl shadow-lg p-8">
         {/* タイトル木の看板 */}
         <div className="flex justify-center -mt-16 mb-6">
-          <button
-            className="relative px-10 py-3 bg-rose-900 text-white font-bold rounded-md transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg"
-            style={{
-              textShadow: "0 2px 2px rgba(0,0,0,0.5)",
-              boxShadow:
-                "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
-            }}
+          <div
+            className="flex items-center gap-3 px-10 py-3 bg-gradient-to-r from-yellow-200 to-amber-100 text-amber-900 font-extrabold rounded-xl shadow-lg border-2 border-amber-400 text-2xl drop-shadow"
+            style={{ cursor: "default" }}
           >
-            <h1 className="text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-              入学受付フォーム
-            </h1>
-          </button>
+            <span className="text-3xl">🏛️</span>
+            <span>町長受付フォーム</span>
+          </div>
         </div>
 
         {/* API エラーメッセージ */}

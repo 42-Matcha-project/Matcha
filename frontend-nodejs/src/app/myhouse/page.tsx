@@ -9,7 +9,6 @@ import { TaskManagement } from "./components/TaskManagement";
 import { StudyTimeChart } from "./components/StudyTimeChart";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Home,
   BookOpen,
   Calendar,
   Clock,
@@ -34,6 +33,7 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { useRouter } from "next/navigation";
+import { Header } from "./components/Header";
 
 // APIから取得するタスクの型定義
 interface ApiTask {
@@ -159,7 +159,7 @@ export default function MyHousePage() {
         });
 
         // 新しいタスクリストを作成し、完了状態を適用
-        return convertedTasks.map((task) => {
+        return convertedTasks.map((task: Task) => {
           const existingStatus = completionMap.get(task.id);
           if (existingStatus) {
             return {
@@ -509,40 +509,11 @@ export default function MyHousePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-emerald-100 to-amber-50 flex flex-col items-center justify-center px-2 sm:px-3 md:px-6 lg:px-10 xl:px-16 py-6 sm:py-10">
       {/* 固定ヘッダー */}
-      <header className="sticky top-0 left-0 right-0 z-50 w-full max-w-7xl flex flex-col sm:flex-row items-center justify-between gap-4 sm:gap-8 px-2 sm:px-6 py-4 bg-gradient-to-br from-emerald-100 to-amber-50">
-        <div className="flex items-center">
-          <Home className="h-7 w-7 mr-2" />
-          <h1 className="text-xl font-bold tracking-wide">
-            マイスタディハウス
-          </h1>
-          <span className="ml-3 bg-amber-700 px-3 py-1 rounded text-base font-semibold">
-            Lv.{userStats.level}
-          </span>
-        </div>
-        <div className="flex items-center space-x-6">
-          <div className="flex items-center">
-            <Calendar className="h-6 w-6 mr-2" />
-            <span className="text-lg font-medium">
-              {userStats.dayStreak}日連続
-            </span>
-          </div>
-          <div className="flex items-center">
-            <BookOpen className="h-6 w-6 mr-2" />
-            <span className="text-lg font-medium">
-              {userStats.totalStudyHours}時間
-            </span>
-          </div>
-          {/* Logout Button */}
-          <button
-            onClick={() => setShowLogoutDialog(true)}
-            className="ml-4 flex items-center px-3 py-2 rounded-lg bg-amber-700 hover:bg-red-600 transition-colors text-white font-semibold shadow border border-amber-600 hover:border-red-700"
-            title="ログアウト"
-          >
-            <LogOut className="h-5 w-5 mr-1" />
-            myhouseログアウト
-          </button>
-        </div>
-      </header>
+      <Header
+        currentTime={new Date()}
+        userStats={userStats}
+        onLogout={handleLogout}
+      />
 
       {/* タブナビゲーション（モバイル下部/PC左サイド） */}
       <div className="w-full max-w-7xl">

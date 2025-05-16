@@ -1,15 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { Clock, Settings, LogOut, Moon, Sun, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useTheme } from "@/contexts/ThemeContext";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog";
 
 interface HeaderProps {
   currentTime: Date | null;
+  userStats: {
+    level: number;
+    dayStreak: number;
+    totalStudyHours: number;
+  };
+  onLogout: () => void;
 }
 
 // ルームコードを生成する関数
@@ -22,12 +35,12 @@ function generateRandomCode(length: number = 6): string {
   return result;
 }
 
-export function Header({ currentTime }: HeaderProps) {
-  const router = useRouter();
+export function Header({ currentTime, userStats, onLogout }: HeaderProps) {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [showInviteTooltip, setShowInviteTooltip] = useState(false);
   const [roomCode, setRoomCode] = useState<string>("");
   const [showRoomCode, setShowRoomCode] = useState(false);
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
   // コンポーネントマウント時にルームコードを読み取る
   useEffect(() => {
@@ -97,115 +110,163 @@ export function Header({ currentTime }: HeaderProps) {
   return (
     <header
       className={cn(
-        "px-4 py-2 flex items-center justify-between border-b",
+        "fixed top-0 left-0 right-0 z-50 w-full shadow px-4 py-2 border-b",
         isDarkMode
           ? "bg-amber-900 border-amber-800"
-          : "bg-amber-100 border-amber-200",
+          : "bg-amber-200 border-amber-200",
       )}
     >
-      <div className="flex items-center space-x-2">
-        <h1 className="font-bold text-lg">マイハウス</h1>
-        <span
-          className={cn(
-            "px-2 py-0.5 text-xs rounded-md",
-            isDarkMode ? "bg-amber-800" : "bg-amber-200",
-          )}
-        >
-          マイルーム
-        </span>
-      </div>
-
-      <div className="flex items-center space-x-3">
-        {showRoomCode && (
-          <div
+      <div className="w-full max-w-7xl mx-auto flex items-center justify-between">
+        {/* 左側：タイトル・レベル・連続日数・総学習時間 */}
+        <div className="flex items-center space-x-4">
+          <h1 className="font-bold text-lg">マイハウス</h1>
+          <span
             className={cn(
-              "px-3 py-1 rounded-md text-sm font-mono flex items-center gap-2",
+              "px-2 py-0.5 text-xs rounded-md",
               isDarkMode ? "bg-amber-800" : "bg-amber-200",
             )}
           >
-            <span>招待コード: {roomCode}</span>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={regenerateRoomCode}
-              className="h-5 w-5 rounded-full"
-              title="新しいコードを生成"
-            >
-              <RefreshCw className="h-3 w-3" />
-            </Button>
-          </div>
-        )}
-
-        <Button
-          variant="outline"
-          size="sm"
-          className={cn(
-            "relative",
-            isDarkMode
-              ? "bg-amber-800 border-amber-700 hover:bg-amber-700"
-              : "bg-amber-200 border-amber-300 hover:bg-amber-300",
-          )}
-          onClick={copyInviteLink}
-        >
-          招待する
-          {/* ツールチップ */}
-          <AnimatePresence>
-            {showInviteTooltip && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                className={cn(
-                  "absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded whitespace-nowrap",
-                  isDarkMode ? "bg-amber-700" : "bg-amber-300",
-                )}
-              >
-                ルームコードをコピーしました
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </Button>
-
-        <div
-          className={cn(
-            "flex items-center px-2 py-1 rounded",
-            isDarkMode ? "bg-amber-800" : "bg-amber-200",
-          )}
-        >
-          <Clock className="h-4 w-4 mr-1" />
-          <span>{formattedTime}</span>
+            マイルーム
+          </span>
+          <span className="ml-2 bg-amber-700 text-amber-50 px-2 py-0.5 rounded text-xs font-semibold">
+            Lv.{userStats.level}
+          </span>
+          <span className="ml-2 text-xs text-amber-900 dark:text-amber-100">
+            {userStats.dayStreak}日連続
+          </span>
+          <span className="ml-2 text-xs text-amber-900 dark:text-amber-100">
+            {userStats.totalStudyHours}時間
+          </span>
         </div>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={toggleDarkMode}
-          className={isDarkMode ? "text-amber-50" : "text-amber-950"}
-        >
-          {isDarkMode ? (
-            <Sun className="h-5 w-5" />
-          ) : (
-            <Moon className="h-5 w-5" />
+        {/* 右側：ボタン群 */}
+        <div className="flex items-center space-x-3">
+          {showRoomCode && (
+            <div
+              className={cn(
+                "px-3 py-1 rounded-md text-sm font-mono flex items-center gap-2",
+                isDarkMode ? "bg-amber-800" : "bg-amber-200",
+              )}
+            >
+              <span>招待コード: {roomCode}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={regenerateRoomCode}
+                className="h-5 w-5 rounded-full"
+                title="新しいコードを生成"
+              >
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+            </div>
           )}
-        </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className={isDarkMode ? "text-amber-50" : "text-amber-950"}
-        >
-          <Settings className="h-5 w-5" />
-        </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            className={cn(
+              "relative",
+              isDarkMode
+                ? "bg-amber-800 border-amber-700 hover:bg-amber-700"
+                : "bg-amber-200 border-amber-300 hover:bg-amber-300",
+            )}
+            onClick={copyInviteLink}
+          >
+            招待する
+            {/* ツールチップ */}
+            <AnimatePresence>
+              {showInviteTooltip && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  className={cn(
+                    "absolute -bottom-8 left-1/2 transform -translate-x-1/2 px-2 py-1 text-xs rounded whitespace-nowrap",
+                    isDarkMode ? "bg-amber-700" : "bg-amber-300",
+                  )}
+                >
+                  ルームコードをコピーしました
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className={isDarkMode ? "text-amber-50" : "text-amber-950"}
-          onClick={() => router.push("/settlement")}
-        >
-          <LogOut className="h-5 w-5" />
-        </Button>
+          <div
+            className={cn(
+              "flex items-center px-2 py-1 rounded",
+              isDarkMode ? "bg-amber-800" : "bg-amber-200",
+            )}
+          >
+            <Clock className="h-4 w-4 mr-1" />
+            <span>{formattedTime}</span>
+          </div>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleDarkMode}
+            className={isDarkMode ? "text-amber-50" : "text-amber-950"}
+          >
+            {isDarkMode ? (
+              <Sun className="h-5 w-5" />
+            ) : (
+              <Moon className="h-5 w-5" />
+            )}
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className={isDarkMode ? "text-amber-50" : "text-amber-950"}
+          >
+            <Settings className="h-5 w-5" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            className={isDarkMode ? "text-amber-50" : "text-amber-950"}
+            onClick={() => setShowLogoutDialog(true)}
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
+        </div>
       </div>
+
+      {/* Logout Confirmation Dialog */}
+      <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <DialogContent
+          className={cn(
+            "bg-white dark:bg-amber-900 border-amber-300 dark:border-amber-800",
+          )}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-lg">
+              <LogOut className="h-6 w-6 text-red-600" />
+              ログアウト確認
+            </DialogTitle>
+            <DialogDescription className="text-base mt-2">
+              本当にログアウトしますか？
+              <br />
+              ログアウトするとマイハウスから退出し、建物一覧ページに移動します。
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-row gap-3 mt-6 mb-2">
+            <button
+              onClick={() => setShowLogoutDialog(false)}
+              className="flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors bg-amber-100 hover:bg-amber-200 text-amber-800"
+            >
+              キャンセル
+            </button>
+            <button
+              onClick={onLogout}
+              className="flex-1 py-3 px-5 rounded-lg text-base font-medium transition-colors bg-red-600 hover:bg-red-700 text-white flex items-center justify-center"
+            >
+              <LogOut className="h-5 w-5 mr-2" />
+              ログアウト
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </header>
   );
 }

@@ -256,7 +256,10 @@ const Login = () => {
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-orange-100 flex justify-center items-center">
       {/* 背景の羊皮紙風テクスチャ */}
-      <div className="absolute inset-0 bg-cover bg-center opacity-80"></div>
+      <div
+        className="absolute inset-0 bg-cover bg-center opacity-80"
+        style={{ backgroundImage: "url('/images/background2.png')" }}
+      ></div>
 
       {/* 桜の枝 - 左上 */}
       <div className="absolute top-0 left-0 w-64 h-64">
@@ -283,25 +286,20 @@ const Login = () => {
       </div>
 
       {/* メインコンテンツ */}
-      <div className="relative  w-full py-10 z-10 px-4 flex flex-col items-center">
+      <div className="relative z-10 w-full max-w-lg bg-white bg-opacity-90 rounded-xl shadow-lg p-8">
         {/* タイトル木の看板 */}
-        <div className="flex justify-center mt-4 mb-8">
-          <button
-            className="relative px-10 py-3 bg-rose-900 text-white font-bold rounded-md transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg"
-            style={{
-              textShadow: "0 2px 2px rgba(0,0,0,0.5)",
-              boxShadow:
-                "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
-            }}
+        <div className="flex justify-center -mt-16 mb-6">
+          <div
+            className="flex items-center gap-3 px-10 py-3 bg-gradient-to-r from-green-100 to-green-200 text-green-900 font-extrabold rounded-xl shadow-lg border-2 border-green-300 text-2xl drop-shadow"
+            style={{ cursor: "default" }}
           >
-            <h1 className="text-2xl font-bold drop-shadow-[0_1px_1px_rgba(255,255,255,0.5)]">
-              入室ログイン
-            </h1>
-          </button>
+            <span className="text-3xl">👤</span>
+            <span>町長ログイン</span>
+          </div>
         </div>
 
         {/* 入力フォームの説明 */}
-        <div className="mb-6 w-full max-w-md">
+        <div className="mb-6 w-full max-w-md mx-auto">
           <div className="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-md shadow-md">
             <div className="flex">
               <div className="flex-shrink-0">
@@ -309,7 +307,7 @@ const Login = () => {
               </div>
               <div className="ml-3">
                 <p className="text-md font-medium text-amber-900">
-                  入室に必要な情報
+                  町長のログインに必要な情報
                 </p>
                 <p className="text-sm text-amber-800 mt-1">
                   ユーザー名かメールアドレスのどちらか一方と、パスワードを入力してください。
@@ -321,7 +319,7 @@ const Login = () => {
 
         {/* API エラーメッセージ */}
         {apiError && (
-          <div className="mb-4 w-full max-w-md">
+          <div className="mb-4 w-full max-w-md mx-auto">
             <div className="bg-red-100 border-l-4 border-red-500 p-4 rounded-md shadow-md">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -340,7 +338,7 @@ const Login = () => {
 
         {/* 共通エラーメッセージ */}
         {submitAttempted && Object.values(errors).includes(true) && (
-          <div className="mb-4 w-full max-w-md">
+          <div className="mb-4 w-full max-w-md mx-auto">
             <div className="bg-amber-100 border-l-4 border-amber-500 p-4 rounded-md shadow-md">
               <div className="flex">
                 <div className="flex-shrink-0">
@@ -359,7 +357,7 @@ const Login = () => {
           </div>
         )}
 
-        <div className="w-full max-w-md">
+        <div className="w-full max-w-md mx-auto">
           {/* ユーザー名/メールアドレスフィールド */}
           <div className="mb-8">
             <div className="relative">
@@ -467,10 +465,10 @@ const Login = () => {
             <button
               onClick={handleSubmit}
               disabled={isLoading}
-              className={`relative px-8 py-3 bg-rose-900 text-white font-bold rounded-lg transform transition-transform focus:outline-none focus:ring-2 focus:ring-amber-500 shadow-lg ${
+              className={`relative px-8 py-3 bg-green-600 text-white font-bold rounded-lg transform transition-transform focus:outline-none focus:ring-2 focus:ring-green-400 shadow-lg ${
                 isLoading
                   ? "opacity-70 cursor-not-allowed"
-                  : "hover:scale-105 hover:bg-amber-700"
+                  : "hover:scale-105 hover:bg-green-700"
               }`}
               style={{
                 textShadow: "0 2px 2px rgba(0,0,0,0.5)",
@@ -478,7 +476,7 @@ const Login = () => {
                   "0 4px 6px rgba(0,0,0,0.3), inset 0 -2px 5px rgba(0,0,0,0.2), inset 0 2px 5px rgba(255,255,255,0.2)",
               }}
             >
-              {isLoading ? "送信中..." : "入室する"}
+              {isLoading ? "送信中..." : "ログインする"}
             </button>
           </div>
 
