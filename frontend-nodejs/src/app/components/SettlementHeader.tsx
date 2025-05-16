@@ -3,7 +3,6 @@
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Clock,
-  Home,
   BookOpen,
   Calendar,
   ShoppingBag,
@@ -157,12 +156,30 @@ export default function SettlementHeader({
 
   return (
     <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between z-50 sticky top-0 left-0 right-0 font-sans">
-      <div className="flex items-center">
-        <Home className="h-7 w-7 mr-2" />
-        <h1 className="text-1xl font-bold tracking-wide">マイ開拓地</h1>
-        <span className="ml-3 bg-amber-700 px-3 py-1 rounded text-base font-semibold">
-          Lv.{userStats.level}
-        </span>
+      {/* マイ開拓地へようこそ看板 */}
+      <div className="flex-1 flex justify-center">
+        <div className="relative p-4 rounded-lg overflow-hidden backdrop-blur-sm border-2 border-amber-500/30 shadow-xl w-full max-w-xl min-w-[220px] whitespace-normal break-words text-center">
+          {/* 背景グラデーション */}
+          <div className="absolute inset-0 bg-gradient-to-br from-amber-100/90 via-amber-50/80 to-white/70 z-0"></div>
+          {/* キラキラ効果 */}
+          <div className="absolute top-1 left-2 w-3 h-3 rounded-full bg-white/80 blur-[1px]"></div>
+          <div className="absolute top-3 right-6 w-2 h-2 rounded-full bg-white/80 blur-[1px]"></div>
+          <div className="absolute bottom-3 left-4 w-2 h-2 rounded-full bg-white/80 blur-[1px]"></div>
+          <h2 className="text-3xl md:text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] relative z-10 tracking-wide">
+            マイ開拓地へようこそ
+          </h2>
+          <p className="mt-3 text-base md:text-lg font-medium text-amber-800 relative z-10 leading-snug drop-shadow-sm">
+            建物を選んで
+            <span className="font-bold underline decoration-amber-500/60 decoration-2 underline-offset-2">
+              自習室を作成
+            </span>
+            したり、
+            <span className="font-bold underline decoration-amber-500/60 decoration-2 underline-offset-2">
+              参加
+            </span>
+            したりできます
+          </p>
+        </div>
       </div>
 
       <div className="flex items-center space-x-6">

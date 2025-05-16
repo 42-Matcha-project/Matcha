@@ -22,9 +22,9 @@ import SettlementHeader from "../components/SettlementHeader";
 import BuildingCard from "../components/BuildingCard";
 import PurchaseDialog from "../components/PurchaseDialog";
 import BuildingDetailsDialog from "../components/BuildingDetailsDialog";
-import ActionButton from "../components/ActionButton";
 import CloudAnimation from "../components/CloudAnimation";
 import PurchaseSuccessNotification from "../components/PurchaseSuccessNotification";
+import ActionButton from "../components/ActionButton";
 
 // Add import for the initializeBuildingState function
 import { initializeBuildingState } from "../../utils/buildingStateUtils";
@@ -34,13 +34,8 @@ export default function SettlementPage() {
   const { currentTime, isMounted } = useTimeManager();
 
   // アニメーション状態管理フックを使用
-  const {
-    isLoaded,
-    showButtons,
-    showClouds,
-    shouldShowAnimation,
-    contentVisible,
-  } = useAnimationState(isMounted);
+  const { isLoaded, showClouds, shouldShowAnimation, contentVisible } =
+    useAnimationState(isMounted);
 
   // 認証コンテキストを使用
   const { token, isAuthenticated, isLoading: authLoading } = useAuth();
@@ -284,9 +279,37 @@ export default function SettlementPage() {
           />
         </div>
 
+        {/* PC: 右端3分の1の位置に縦積み、スマホ: 幅いっぱいで3分の1の位置 */}
+        {/* PC用 */}
+        <div className="hidden sm:flex flex-col gap-4 fixed top-1/4 right-8 z-40 w-auto">
+          <ActionButton color="amber" onClick={goToCreateRoom}>
+            ルームを作成
+          </ActionButton>
+          <ActionButton color="dark-amber" onClick={goToJoinRoom}>
+            ルームに参加
+          </ActionButton>
+        </div>
+        {/* スマホ用 */}
+        <div className="flex sm:hidden flex-col gap-3 fixed right-4 left-4 top-1/4 z-40">
+          <ActionButton
+            color="amber"
+            onClick={goToCreateRoom}
+            className="w-full"
+          >
+            ルームを作成
+          </ActionButton>
+          <ActionButton
+            color="dark-amber"
+            onClick={goToJoinRoom}
+            className="w-full"
+          >
+            ルームに参加
+          </ActionButton>
+        </div>
+
         {/* メインコンテンツ */}
         <main
-          className="fixed inset-0 w-full h-full flex items-center justify-center z-10"
+          className="fixed inset-0 w-full h-full flex items-center justify-center z-10 pt-20"
           ref={containerRef}
         >
           {/* 建物配置エリア */}
@@ -319,76 +342,6 @@ export default function SettlementPage() {
             )}
           </AnimatePresence>
 
-          {/* 左上のタイトル */}
-          <motion.div
-            className="fixed top-24 left-8 z-50 text-left"
-            initial={
-              shouldShowAnimation
-                ? { opacity: 0, x: -50 }
-                : { opacity: 1, x: 0 }
-            }
-            animate={{
-              opacity: isLoaded && isMounted ? 1 : 0,
-              x: isLoaded && isMounted ? 0 : -50,
-            }}
-            transition={{
-              delay: shouldShowAnimation ? 1 : 0,
-              duration: shouldShowAnimation ? 0.8 : 0.2,
-            }}
-          >
-            <div className="relative p-4 rounded-lg overflow-hidden backdrop-blur-sm border-2 border-amber-500/30 shadow-xl">
-              {/* 背景グラデーション */}
-              <div className="absolute inset-0 bg-gradient-to-br from-amber-100/90 via-amber-50/80 to-white/70 z-0"></div>
-
-              {/* キラキラ効果 */}
-              <div className="absolute top-1 left-2 w-3 h-3 rounded-full bg-white/80 blur-[1px]"></div>
-              <div className="absolute top-3 right-6 w-2 h-2 rounded-full bg-white/80 blur-[1px]"></div>
-              <div className="absolute bottom-3 left-4 w-2 h-2 rounded-full bg-white/80 blur-[1px]"></div>
-
-              <h2 className="text-4xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-amber-700 via-amber-600 to-amber-800 drop-shadow-[0_1px_1px_rgba(0,0,0,0.1)] relative z-10 tracking-wide">
-                マイ開拓地へようこそ
-              </h2>
-              <p className="mt-3 text-lg font-medium text-amber-800 relative z-10 leading-snug drop-shadow-sm">
-                建物を選んで
-                <span className="font-bold underline decoration-amber-500/60 decoration-2 underline-offset-2">
-                  自習室を作成
-                </span>
-                したり、
-                <span className="font-bold underline decoration-amber-500/60 decoration-2 underline-offset-2">
-                  参加
-                </span>
-                したりできます
-              </p>
-            </div>
-          </motion.div>
-
-          {/* ボタンエリア - 横並び右配置 */}
-          <AnimatePresence>
-            {showButtons && isMounted && (
-              <motion.div
-                className="fixed top-24 right-5 transform -translate-x-1/2 z-50 flex flex-row space-x-6"
-                initial={
-                  shouldShowAnimation
-                    ? { opacity: 0, y: 50 }
-                    : { opacity: 1, y: 0 }
-                }
-                animate={{ opacity: 1, y: 0 }}
-                transition={{
-                  duration: shouldShowAnimation ? 0.5 : 0.2,
-                  type: "spring",
-                }}
-              >
-                <ActionButton color="amber" onClick={goToCreateRoom}>
-                  ルームを作成
-                </ActionButton>
-
-                <ActionButton color="dark-amber" onClick={goToJoinRoom}>
-                  ルームに参加
-                </ActionButton>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* 購入ダイアログ */}
           <AnimatePresence>
             {showPurchaseDialog && (
@@ -412,11 +365,7 @@ export default function SettlementPage() {
               <BuildingDetailsDialog
                 building={showBuildingDetails}
                 onClose={closeBuildingDetails}
-                onCreateRoom={
-                  showBuildingDetails.id === "house"
-                    ? () => router.push("/myhouse")
-                    : goToCreateRoom
-                }
+                onCreateRoom={() => router.push("/myhouse")}
               />
             )}
           </AnimatePresence>
