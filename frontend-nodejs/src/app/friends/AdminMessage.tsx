@@ -38,7 +38,7 @@ export default function AdminMessage({ message }: AdminMessageProps) {
         </div>
       </div>
       {/* 下のカード */}
-      <div className="bg-amber-50 rounded-3xl shadow-2xl p-4 sm:p-8 pt-16 sm:pt-24 text-center border-4 border-amber-300 relative mt-8 w-full">
+      <div className="bg-amber-50 rounded-3xl shadow-2xl p-4 sm:p-8 pt-16 sm:pt-24 pb-12 text-center border-4 border-amber-300 relative mt-8 w-full">
         {editMode ? (
           <div className="flex flex-col items-center gap-3">
             <textarea
@@ -70,7 +70,7 @@ export default function AdminMessage({ message }: AdminMessageProps) {
             <div className="text-2xl text-amber-900 mb-2 font-bold drop-shadow-sm animate-pulse break-words">
               {customMsg || EXAMPLE}
             </div>
-            <div className="text-sm text-gray-500">{message.date}</div>
+            <div className="text-sm text-gray-500 mb-2">{message.date}</div>
             <button
               className="absolute top-2 right-2 px-3 py-1 text-xs bg-yellow-200 text-amber-900 rounded-xl border border-amber-300 hover:bg-yellow-300 transition-colors shadow"
               onClick={() => {
@@ -83,11 +83,11 @@ export default function AdminMessage({ message }: AdminMessageProps) {
           </>
         )}
         {/* 装飾イラスト */}
-        <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+        <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 flex gap-2 z-10">
           <Image
             src="/images/welcome-hiyoko.webp"
             alt="鳥"
-            className="w-18 h-18 opacity-100"
+            className="w-[72px] h-[72px] object-contain opacity-100"
             aria-hidden
             width={72}
             height={72}

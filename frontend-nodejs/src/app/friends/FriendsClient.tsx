@@ -5,7 +5,11 @@ import FriendList from "./FriendList";
 import FriendRanking from "./FriendRanking";
 import FriendRequest from "./FriendRequest";
 import AdminMessage from "./AdminMessage";
-import { ADMIN_MESSAGE_EXAMPLE, APIFriend } from "./types";
+import {
+  ADMIN_MESSAGE_EXAMPLE,
+  APIFriend,
+  APIGetFriendsResponse,
+} from "./types";
 
 // 今日の日付と曜日を生成
 const getTodayWithWeekday = () => {
@@ -46,7 +50,7 @@ export default function FriendsClient() {
           },
         },
       );
-      const data = await res.json();
+      const data: APIGetFriendsResponse = await res.json();
       if (!res.ok || !data.Friends) throw new Error(data.Error || "取得失敗");
       setFriends(data.Friends);
     } catch (e: unknown) {
