@@ -11,6 +11,7 @@ import {
   Leaf,
 } from "lucide-react";
 import Image from "next/image";
+import { ADMIN_MESSAGE_EXAMPLE } from "./types";
 
 // API型
 interface APIFriend {
@@ -33,7 +34,7 @@ const getTodayWithWeekday = () => {
 };
 
 const adminMessage = {
-  text: "今日も自分のペースでがんばろう！",
+  text: ADMIN_MESSAGE_EXAMPLE,
   date: getTodayWithWeekday(),
 };
 
@@ -121,7 +122,7 @@ export default function FriendsPage() {
       </div>
       <div className="absolute right-0 top-0 w-20 h-20 sm:w-32 sm:h-32 opacity-50 select-none pointer-events-none z-0">
         <Image
-          src="/images/flower-bg.png"
+          src="/images/welcome-flower.webp"
           alt="花"
           width={128}
           height={128}
@@ -213,7 +214,7 @@ function FriendList({
             width={64}
             height={64}
           />
-          フレンドがいません。右上の申請ボタンから追加しましょう！
+          フレンドがいません。右欄の申請ボタンから追加しましょう！
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
