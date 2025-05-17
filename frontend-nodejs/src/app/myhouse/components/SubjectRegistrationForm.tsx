@@ -149,7 +149,7 @@ export function SubjectRegistrationForm({
       setIsSubmitting(true);
 
       // ローカルストレージからトークンを取得
-      const token = localStorage.getItem("token") || "dummy-token";
+      const token = localStorage.getItem("token");
 
       // タスク登録APIを呼び出す
       const response = await fetch(

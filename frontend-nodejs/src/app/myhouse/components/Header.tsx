@@ -25,16 +25,6 @@ interface HeaderProps {
   onLogout: () => void;
 }
 
-// ルームコードを生成する関数
-function generateRandomCode(length: number = 6): string {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let result = "";
-  for (let i = 0; i < length; i++) {
-    result += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return result;
-}
-
 export function Header({ currentTime, userStats, onLogout }: HeaderProps) {
   const { isDarkMode, toggleDarkMode } = useTheme();
   const [showInviteTooltip, setShowInviteTooltip] = useState(false);
@@ -42,27 +32,59 @@ export function Header({ currentTime, userStats, onLogout }: HeaderProps) {
   const [showRoomCode, setShowRoomCode] = useState(false);
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
 
-  // コンポーネントマウント時にルームコードを読み取る
+  // サーバーAPI経由でルームコードを取得
+  const fetchRoomCode = async () => {
+    const token = localStorage.getItem("token");
+    if (!token) return null;
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/study-room/create`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          StudyRoomName: "マイハウス",
+          StudyRoomImageURL: "/images/house.png",
+        }),
+      },
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    // RoomCodeを柔軟に取得
+    const roomCode =
+      data.RoomCode ||
+      data.roomCode ||
+      (data.ResponseOptions &&
+        (data.ResponseOptions.RoomCode || data.ResponseOptions.roomCode)) ||
+      null;
+    console.log("ルーム作成APIレスポンス:", data);
+    console.log("保存するroomCode:", roomCode);
+    return roomCode;
+  };
+
+  // 初回取得
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      const savedRoomCode = localStorage.getItem("myRoomCode");
-      if (savedRoomCode) {
-        setRoomCode(savedRoomCode);
-      } else {
-        // 初回訪問時は新しいコードを生成して保存
-        const newCode = generateRandomCode();
-        setRoomCode(newCode);
-        localStorage.setItem("myRoomCode", newCode);
+    const getRoomCode = async () => {
+      let code = localStorage.getItem("myRoomCode");
+      if (!code) {
+        code = await fetchRoomCode();
+        if (code) localStorage.setItem("myRoomCode", code);
       }
-    }
+      setRoomCode(code || "");
+    };
+    getRoomCode();
   }, []);
 
-  // 新しいルームコードを生成する
-  const regenerateRoomCode = () => {
-    const newCode = generateRandomCode();
-    setRoomCode(newCode);
-    localStorage.setItem("myRoomCode", newCode);
-    setShowRoomCode(true);
+  // 再生成
+  const regenerateRoomCode = async () => {
+    const code = await fetchRoomCode();
+    if (code) {
+      setRoomCode(code);
+      localStorage.setItem("myRoomCode", code);
+      setShowRoomCode(true);
+    }
   };
 
   // Format time with safety check for null
@@ -72,10 +94,10 @@ export function Header({ currentTime, userStats, onLogout }: HeaderProps) {
 
   // 招待リンクをコピー
   const copyInviteLink = () => {
+    if (!roomCode) return;
     if (typeof window !== "undefined" && navigator.clipboard) {
       // ルームコードのみをコピー
-      const codeToShare = roomCode || "ルームコードがありません";
-
+      const codeToShare = roomCode;
       navigator.clipboard
         .writeText(codeToShare)
         .then(() => {
@@ -90,9 +112,7 @@ export function Header({ currentTime, userStats, onLogout }: HeaderProps) {
       // フォールバック: テキストエリアを使用してコピーを試みる
       try {
         const textArea = document.createElement("textarea");
-        // ルームコードのみをコピー
-        const codeToShare = roomCode || "ルームコードがありません";
-        textArea.value = codeToShare;
+        textArea.value = roomCode;
         document.body.appendChild(textArea);
         textArea.focus();
         textArea.select();
@@ -140,7 +160,7 @@ export function Header({ currentTime, userStats, onLogout }: HeaderProps) {
         </div>
         {/* 右側：ボタン群 */}
         <div className="flex items-center space-x-3">
-          {showRoomCode && (
+          {showRoomCode && roomCode ? (
             <div
               className={cn(
                 "px-3 py-1 rounded-md text-sm font-mono flex items-center gap-2",
@@ -158,6 +178,8 @@ export function Header({ currentTime, userStats, onLogout }: HeaderProps) {
                 <RefreshCw className="h-3 w-3" />
               </Button>
             </div>
+          ) : (
+            <div className="text-sm text-amber-600">ルーム未作成</div>
           )}
 
           <Button
@@ -170,6 +192,7 @@ export function Header({ currentTime, userStats, onLogout }: HeaderProps) {
                 : "bg-amber-200 border-amber-300 hover:bg-amber-300",
             )}
             onClick={copyInviteLink}
+            disabled={!roomCode}
           >
             招待する
             {/* ツールチップ */}

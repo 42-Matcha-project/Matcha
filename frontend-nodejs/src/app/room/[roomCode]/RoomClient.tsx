@@ -202,6 +202,12 @@ export default function RoomClient({ roomCode }: RoomClientProps) {
     };
   }, [disconnect]);
 
+  useEffect(() => {
+    if (roomCode) {
+      localStorage.setItem("myRoomCode", roomCode);
+    }
+  }, [roomCode]);
+
   // ローディング状態
   if (loading) {
     return (

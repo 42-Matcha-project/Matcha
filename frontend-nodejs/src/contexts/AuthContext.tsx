@@ -32,17 +32,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // 認証状態を確認する関数（APIからユーザー情報を取得）
   const checkAuth = async (): Promise<boolean> => {
-    // UI確認用: 常に認証済みを返す
-    setUser({
-      id: 1,
-      username: "dummy",
-      displayName: "ダミーユーザー",
-      email: "dummy@example.com",
-    });
-    setToken("dummy-token");
-    return true;
-    // 本来の認証処理は下記
-    // ...
+    if (typeof window !== "undefined") {
+      const tokenValue = localStorage.getItem("token");
+      if (tokenValue) {
+        setToken(tokenValue);
+        // TODO: 必要ならここでユーザー情報も取得してsetUserする
+        // 例: const userInfo = await fetchUserInfo(tokenValue); setUser(userInfo);
+        return true;
+      }
+    }
+    setToken(null);
+    setUser(null);
+    return false;
   };
 
   // ログイン時の処理
@@ -97,15 +98,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // コンテキスト値
   const value = {
-    user: user || {
-      id: 1,
-      username: "dummy",
-      displayName: "ダミーユーザー",
-      email: "dummy@example.com",
-    },
+    user,
     isLoading: false,
-    isAuthenticated: true,
-    token: token || "dummy-token",
+    isAuthenticated: !!token,
+    token,
     login,
     logout,
     checkAuth,
