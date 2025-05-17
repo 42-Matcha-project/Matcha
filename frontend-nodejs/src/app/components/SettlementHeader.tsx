@@ -10,6 +10,7 @@ import {
   Gift,
   Coins,
   UserCircle,
+  Users,
 } from "lucide-react";
 import { UserStats } from "../../types/settlement";
 import { useRouter } from "next/navigation";
@@ -146,8 +147,13 @@ export default function SettlementHeader({
     router.push("/profile");
   };
 
+  const navigateToFriends = () => {
+    router.push("/friends");
+  };
+
   // プロフィールボタンのホバー状態を管理
   const [showProfileTooltip, setShowProfileTooltip] = useState(false);
+  const [showFriendsTooltip, setShowFriendsTooltip] = useState(false);
 
   return (
     <header className="bg-amber-800 text-amber-50 p-4 flex items-center justify-between z-50 sticky top-0 left-0 right-0 font-sans">
@@ -217,6 +223,34 @@ export default function SettlementHeader({
                 transition={{ duration: 0.2 }}
               >
                 ストア
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        {/* フレンドボタン */}
+        <div className="relative">
+          <motion.button
+            className="relative bg-gradient-to-br from-amber-500 to-amber-600 p-2 rounded-full shadow-md flex items-center justify-center group"
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onMouseEnter={() => setShowFriendsTooltip(true)}
+            onMouseLeave={() => setShowFriendsTooltip(false)}
+            onClick={navigateToFriends}
+          >
+            <Users className="h-6 w-6 text-white" />
+          </motion.button>
+
+          <AnimatePresence>
+            {showFriendsTooltip && (
+              <motion.div
+                className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 bg-amber-900 text-amber-50 px-3 py-1 rounded text-sm shadow-lg"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -5 }}
+                transition={{ duration: 0.2 }}
+              >
+                フレンド
               </motion.div>
             )}
           </AnimatePresence>
