@@ -77,7 +77,7 @@ export function createRoomWebSocket(
 
   // HTTP URLからWebSocket URLに変換
   const wsBaseUrl = baseUrl.replace(/^http(s?):\/\//, `${wsProtocol}://`);
-  const wsUrl = `${wsBaseUrl}/study_room/join/${roomCode}?token=${token}`;
+  const wsUrl = `${wsBaseUrl}/study-room/join/${roomCode}?token=${token}`;
 
   console.log("WebSocket接続URL:", wsUrl);
 

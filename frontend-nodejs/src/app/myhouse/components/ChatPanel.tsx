@@ -6,37 +6,78 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { Message } from "../types";
+import {
+  createRoomWebSocket,
+  sendChatMessage,
+  WebSocketStatus,
+} from "@/utils/websocketUtils";
 
 interface ChatPanelProps {
   messages: Message[];
   setMessages: React.Dispatch<React.SetStateAction<Message[]>>;
   isDarkMode: boolean;
+  roomCode: string;
+  token: string;
 }
 
 export function ChatPanel({
   messages,
   setMessages,
   isDarkMode,
+  roomCode,
+  token,
 }: ChatPanelProps) {
   const [message, setMessage] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messageContainerRef = useRef<HTMLDivElement>(null);
   const [isScrolledUp, setIsScrolledUp] = useState(false);
+  const socketRef = useRef<WebSocket | null>(null);
+  const messageIdRef = useRef<number>(1);
+
+  // WebSocket接続
+  useEffect(() => {
+    if (!roomCode || !token) return;
+    const socket = createRoomWebSocket(roomCode, token);
+    if (!socket) return;
+    socketRef.current = socket;
+
+    socket.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        // サーバーからのメッセージ形式に応じて分岐
+        if (data.Type === "MESSAGE") {
+          const newMessage: Message = {
+            id: messageIdRef.current++,
+            sender: data.Sender || "?",
+            content: data.Message || "",
+            time: new Date().toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            }),
+          };
+          setMessages((prev) => [...prev, newMessage]);
+        }
+      } catch {
+        // パース失敗時は無視
+      }
+    };
+
+    return () => {
+      if (socket) socket.close();
+    };
+  }, [roomCode, token, setMessages]);
 
   // スクロール位置を監視
   const handleScroll = () => {
     if (!messageContainerRef.current) return;
-
     const { scrollTop, scrollHeight, clientHeight } =
       messageContainerRef.current;
-    // 下から20px以上スクロールしていた場合、ユーザーが上を見ていると判断
     const isAtBottom = scrollHeight - scrollTop - clientHeight < 20;
     setIsScrolledUp(!isAtBottom);
   };
 
-  // 初回レンダリング時と新しいメッセージが追加されたらスクロール
+  // 新しいメッセージが追加されたらスクロール
   useEffect(() => {
-    // 初回マウント時に最新メッセージまでスクロール
     if (messageContainerRef.current && messages.length > 0) {
       const needToScroll = !isScrolledUp || messages.length === 1;
       if (needToScroll) {
@@ -45,30 +86,21 @@ export function ChatPanel({
     }
   }, [messages, isScrolledUp]);
 
-  // コンポーネントマウント時に実行
   useEffect(() => {
-    // 初期表示時にも最下部にスクロール
     messagesEndRef.current?.scrollIntoView();
   }, []);
 
   // メッセージ送信
-  const sendMessage = (e: React.FormEvent) => {
-    e.preventDefault();
+  const sendMessage = (event: React.FormEvent) => {
+    event.preventDefault();
     if (!message.trim()) return;
-
-    const newMessage = {
-      id: messages.length + 1,
-      sender: "あなた",
-      content: message,
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-
-    setMessages([...messages, newMessage]);
+    if (
+      socketRef.current &&
+      socketRef.current.readyState === WebSocketStatus.OPEN
+    ) {
+      sendChatMessage(socketRef.current, message);
+    }
     setMessage("");
-    // 自分が送信した時は必ず下にスクロール
     setIsScrolledUp(false);
   };
 

@@ -105,6 +105,65 @@ export default function MyHousePage() {
     { id: "stats", label: "学習データ", icon: BarChart2 },
   ];
 
+  // 追加: チャット用のroomCode, userName, token
+  const [roomCode, setRoomCode] = useState<string>("");
+  const [token, setToken] = useState<string>("");
+  const [loadingChatInfo, setLoadingChatInfo] = useState(false);
+  const [chatInfoError, setChatInfoError] = useState<string>("");
+
+  // ルーム作成API
+  const fetchRoomCode = async () => {
+    setLoadingChatInfo(true);
+    setChatInfoError("");
+    try {
+      const t = localStorage.getItem("token");
+      if (!t) throw new Error("認証トークンがありません");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BACKEND_BASE_URL}/study-room/create`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${t}`,
+          },
+          body: JSON.stringify({
+            StudyRoomName: "マイハウス",
+            StudyRoomImageURL: "/images/house.png",
+          }),
+        },
+      );
+      if (!res.ok) throw new Error("ルーム作成に失敗しました");
+      const data = await res.json();
+      const code =
+        data.RoomCode ||
+        data.roomCode ||
+        (data.ResponseOptions &&
+          (data.ResponseOptions.RoomCode || data.ResponseOptions.roomCode)) ||
+        "";
+      if (!code) throw new Error("ルームコード取得に失敗しました");
+      setRoomCode(code);
+      localStorage.setItem("myRoomCode", code);
+    } catch (e) {
+      const err = e as Error;
+      setChatInfoError(err.message || "ルーム作成エラー");
+    } finally {
+      setLoadingChatInfo(false);
+    }
+  };
+
+  // チャット用情報の初期取得
+  useEffect(() => {
+    setLoadingChatInfo(true);
+    setChatInfoError("");
+    // token
+    const t = localStorage.getItem("token") || "";
+    setToken(t);
+    // roomCode
+    const code = localStorage.getItem("myRoomCode") || "";
+    setRoomCode(code);
+    setLoadingChatInfo(false);
+  }, [isAuthenticated]);
+
   // APIからタスク情報を取得する関数
   const fetchApiTasks = async () => {
     try {
@@ -714,11 +773,43 @@ export default function MyHousePage() {
                       className="bg-white dark:bg-amber-800/90 rounded-lg overflow-hidden shadow-md border border-amber-200 dark:border-amber-700"
                       style={{ height: "600px" }}
                     >
-                      <ChatPanel
-                        messages={messages}
-                        setMessages={setMessages}
-                        isDarkMode={isDarkMode}
-                      />
+                      {loadingChatInfo ? (
+                        <div className="flex items-center justify-center h-full text-lg text-amber-700 dark:text-amber-200">
+                          チャット情報を取得中...
+                        </div>
+                      ) : chatInfoError ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-4">
+                          <div className="text-red-600 dark:text-red-300 text-lg">
+                            {chatInfoError}
+                          </div>
+                          <button
+                            onClick={fetchRoomCode}
+                            className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700"
+                          >
+                            ルームを新規作成
+                          </button>
+                        </div>
+                      ) : !roomCode || !token ? (
+                        <div className="flex flex-col items-center justify-center h-full gap-4">
+                          <div className="text-amber-700 dark:text-amber-200 text-lg">
+                            チャットに必要な情報が不足しています
+                          </div>
+                          <button
+                            onClick={fetchRoomCode}
+                            className="px-4 py-2 bg-amber-600 text-white rounded hover:bg-amber-700"
+                          >
+                            ルームを新規作成
+                          </button>
+                        </div>
+                      ) : (
+                        <ChatPanel
+                          messages={messages}
+                          setMessages={setMessages}
+                          isDarkMode={isDarkMode}
+                          roomCode={roomCode}
+                          token={token}
+                        />
+                      )}
                     </div>
                   )}
 
